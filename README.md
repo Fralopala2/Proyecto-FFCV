@@ -15,5 +15,5 @@ Módulo de comunicaciones y notificaciones
 Este proyecto está licenciado bajo CC BY 4.0 - consulta el archivo LICENSE.md para más detalles.
 
 📞 Contacto
-Federació de Futbol de la Comunitat Valenciana - https://ffcv.es/wp/
+Federació de Futbol de la Comunitat Valenciana
 Correo: [fralopala2@alu.edu.gva.es]
