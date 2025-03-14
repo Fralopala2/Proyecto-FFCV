@@ -51,7 +51,7 @@ public class Empleado extends Persona{
     
     public String toString(){
     
-    return return "Nombre: "+ super.getnombre() +" Primer Apellido: "+ super.getapellido1() +" Segundo Apellido: "+ super.getapellido2() +" con DNI: "+ super.getDNI() +" y con fecha de nacimiento: "+ super.getfechaNacimiento() +" Usuario: "+ super.getusuario() +" y contraseña: "+ super.getpassword() +" y con poblacion: "+ super.getpoblacion() +" numero de empleado: "+ ;
+    return "Nombre: "+ super.getNombre() +" Primer Apellido: "+ super.getApellido1()+" Segundo Apellido: "+ super.getApellido2() +" con DNI: "+ super.getDNI()+" y con fecha de nacimiento: "+ super.getFechaNacimiento() +" Usuario: "+ super.getUsuario() +" y contraseña: "+ super.getPassword() +" y con poblacion: "+ super.getPoblacion() +" numero de empleado: "+ numEmpleado +" Fecha de inicio de contrato: "+ inicioContrato +" numero de la seguridad social: "+ segSocial;
     }
     
 }
