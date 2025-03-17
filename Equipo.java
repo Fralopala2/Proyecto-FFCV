@@ -3,75 +3,41 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
  */
 package entidades;
-
+import java.time.*;
 import java.util.ArrayList;
 import java.util.List;
-
 /**
  *
- * @author edgar
+ * @author oscpincer
  */
-public class Equipo {
+public class Equipo extends Club{
     private String letra;
-    private Instalacion instalacion;
     private Grupo grupo;
+    private Instalacion instalacion;
     private List<Licencia> licencias;
 
-    public Equipo(String letra, Instalacion instalacion, Grupo grupo) {
+    public Equipo(String letra, Grupo grupo, Instalacion instalacion, Club club) {
+        if (grupo.getEquipos().size() >= 20) {
+            throw new IllegalArgumentException("El grupo ya tiene 20 equipos, no se pueden añadir mas.");
+        }
         this.letra = letra;
-        this.instalacion = instalacion;
         this.grupo = grupo;
+        this.instalacion = instalacion;
         this.licencias = new ArrayList<>();
+        grupo.agregarEquipo(this);
+        club.agregarEquipo(this);
     }
 
     public String getLetra() {
         return letra;
     }
 
-    public void setLetra(String letra) {
-        this.letra = letra;
-    }
-
-    public Instalacion getInstalacion() {
-        return instalacion;
-    }
-
-    public void setInstalacion(Instalacion instalacion) {
-        this.instalacion = instalacion;
-    }
-
     public Grupo getGrupo() {
         return grupo;
     }
 
-    public void setGrupo(Grupo grupo) {
-        this.grupo = grupo;
-    }
-
-    public List<Licencia> getLicencias() {
-        return licencias;
-    }
-
-    public void setLicencias(List<Licencia> licencias) {
-        this.licencias = licencias;
-    }
-
     @Override
     public String toString() {
-        return "Equipo{" +
-                "letra='" + letra + '\'' +
-                ", instalacion=" + instalacion +
-                ", grupo=" + grupo +
-                ", licencias=" + licencias +
-                '}';
-    }
-
-    public double calcularPrecioLicencia() {
-        // Suponiendo que la categoría del equipo tiene un método para obtener el precio de la licencia
-        Categoria categoria = grupo.getCategoria(); // Obtener la categoría del grupo al que pertenece el equipo
-        if (categoria != null) {
-            return categoria.getPrecioLicencia(); // Retornar el precio de la licencia de la categoría
-        }
-        return 0.0; // Si no hay categoría, retornar 0.0
+        return "Equipo " + letra + " - Grupo: " + grupo.getNombre();
     }
 }
