@@ -1,73 +1,68 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- You may freely edit this file. See commented blocks below for -->
-<!-- some examples of how to customize the build. -->
-<!-- (If you delete it and reopen the project it will be recreated.) -->
-<!-- By default, only the Clean and Build commands use this build script. -->
-<!-- Commands such as Run, Debug, and Test only use this build script if -->
-<!-- the Compile on Save feature is turned off for the project. -->
-<!-- You can turn off the Compile on Save (or Deploy on Save) setting -->
-<!-- in the project's Project Properties dialog box.-->
 <project name="ProyectoFFCV" default="default" basedir=".">
     <description>Builds, tests, and runs the project ProyectoFFCV.</description>
     <import file="nbproject/build-impl.xml"/>
-    <!--
 
-    There exist several targets which are by default empty and which can be 
-    used for execution of your tasks. These targets are usually executed 
-    before and after some main targets. They are: 
+    <!-- Define propiedades explícitamente -->
+    <property name="build.test.classes.dir" value="${basedir}/build/test/classes"/>
+    <property name="build.classes.dir" value="${basedir}/build/classes"/>
+    <property name="junit5.lib" value="${basedir}/lib/junit5"/>
+    <property name="test.src.dir" value="${basedir}/test"/>
 
-      -pre-init:                 called before initialization of project properties
-      -post-init:                called after initialization of project properties
-      -pre-compile:              called before javac compilation
-      -post-compile:             called after javac compilation
-      -pre-compile-single:       called before javac compilation of single file
-      -post-compile-single:      called after javac compilation of single file
-      -pre-compile-test:         called before javac compilation of JUnit tests
-      -post-compile-test:        called after javac compilation of JUnit tests
-      -pre-compile-test-single:  called before javac compilation of single JUnit test
-      -post-compile-test-single: called after javac compilation of single JUunit test
-      -pre-jar:                  called before JAR building
-      -post-jar:                 called after JAR building
-      -post-clean:               called after cleaning build products
+    <!-- Define el classpath para JUnit 5 -->
+    <path id="test.classpath">
+        <pathelement location="${build.test.classes.dir}"/>
+        <pathelement location="${build.classes.dir}"/>
+        <pathelement location="${junit5.lib}/junit-platform-console-standalone-1.10.0.jar"/>
+    </path>
 
-    (Targets beginning with '-' are not intended to be called on their own.)
+    <!-- Personaliza la compilación de un solo archivo de prueba -->
+    <target name="compile-test-single" depends="init,compile">
+        <mkdir dir="${build.test.classes.dir}"/>
+        <javac srcdir="${test.src.dir}"
+               destdir="${build.test.classes.dir}"
+               classpathref="test.classpath"
+               includeantruntime="false"
+               includes="${javac.includes}">
+            <compilerarg value="--add-modules=ALL-SYSTEM"/> <!-- Ignora módulos -->
+            <classpath refid="test.classpath"/>
+        </javac>
+    </target>
 
-    Example of inserting an obfuscator after compilation could look like this:
+    <!-- Personaliza la ejecución de todas las pruebas -->
+    <target name="test" depends="-do-compile-test">
+        <echo message="Test classpath: ${toString:test.classpath}"/>
+        <java classname="org.junit.platform.console.ConsoleLauncher" fork="true" failonerror="true">
+            <classpath refid="test.classpath"/>
+            <jvmarg value="--add-modules=ALL-SYSTEM"/> <!-- Ignora módulos -->
+            <arg value="--scan-classpath"/>
+            <arg value="--include-classname=.*Test"/>
+            <arg value="--reports-dir=${build.test.results.dir}"/>
+        </java>
+    </target>
 
-        <target name="-post-compile">
-            <obfuscate>
-                <fileset dir="${build.classes.dir}"/>
-            </obfuscate>
-        </target>
+    <!-- Personaliza la ejecución de una sola prueba -->
+    <target name="test-single" depends="compile-test-single">
+        <echo message="Test classpath: ${toString:test.classpath}"/>
+        <java classname="org.junit.platform.console.ConsoleLauncher" fork="true" failonerror="true">
+            <classpath refid="test.classpath"/>
+            <jvmarg value="--add-modules=ALL-SYSTEM"/> <!-- Opcional si eliminas module-info.java -->
+            <arg value="--select-class=${test.class}"/>
+            <arg value="--reports-dir=${build.test.results.dir}"/>
+        </java>
+    </target>
 
-    For list of available properties check the imported 
-    nbproject/build-impl.xml file. 
-
-
-    Another way to customize the build is by overriding existing main targets.
-    The targets of interest are: 
-
-      -init-macrodef-javac:     defines macro for javac compilation
-      -init-macrodef-junit:     defines macro for junit execution
-      -init-macrodef-debug:     defines macro for class debugging
-      -init-macrodef-java:      defines macro for class execution
-      -do-jar:                  JAR building
-      run:                      execution of project 
-      -javadoc-build:           Javadoc generation
-      test-report:              JUnit report generation
-
-    An example of overriding the target for project execution could look like this:
-
-        <target name="run" depends="ProyectoFFCV-impl.jar">
-            <exec dir="bin" executable="launcher.exe">
-                <arg file="${dist.jar}"/>
-            </exec>
-        </target>
-
-    Notice that the overridden target depends on the jar target and not only on 
-    the compile target as the regular run target does. Again, for a list of available 
-    properties which you can use, check the target you are overriding in the
-    nbproject/build-impl.xml file. 
-
-    -->
+    <!-- Mantén tu personalización existente -->
+    <target name="-post-jar">
+        <property name="javafx.lib" value="${basedir}/lib/JavaFX"/>
+        <path id="run.classpath">
+            <pathelement path="${build.classes.dir}"/>
+            <fileset dir="${javafx.lib}">
+                <include name="*.jar"/>
+            </fileset>
+            <fileset dir="dist/lib">
+                <include name="*.jar"/>
+            </fileset>
+        </path>
+    </target>
 </project>

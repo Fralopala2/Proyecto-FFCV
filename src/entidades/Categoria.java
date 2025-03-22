@@ -3,6 +3,7 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
  */
 package entidades;
+
 import java.util.*;
 
 /**
@@ -24,8 +25,9 @@ public class Categoria {
     }
     
     private void checkPrecioLicencia(double p) throws InputMismatchException {
-        if(p < 0.0)
+        if(p < 0.0) {
             throw new InputMismatchException("El precio de la licencia no puede ser menor que cero.");
+        }
     }
 
     public String getNombre() {
@@ -53,10 +55,12 @@ public class Categoria {
         this.precioLicencia = precioLicencia;
     }
 
+    public List<Grupo> getGrupos() {
+        return grupos;
+    }
+    
     @Override
     public String toString() {
         return "Categoria{" + "nombre=" + nombre + ", orden=" + orden + ", precioLicencia=" + precioLicencia + '}';
     }
-    
-    
 }
