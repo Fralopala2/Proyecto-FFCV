@@ -84,25 +84,43 @@ public class MainAppFX extends Application {
     }
 
     private VBox createMenu() {
-        VBox menu = new VBox(10);
-        menu.setPadding(new Insets(15));
-        menu.setBackground(new Background(new BackgroundFill(Color.web("#212529"), null, null)));
+    VBox menu = new VBox(10);
+    menu.setPadding(new Insets(15));
+    menu.setBackground(new Background(new BackgroundFill(Color.web("#212529"), null, null)));
 
-        String[] menuItems = {"Categorías", "Clubes", "Personas", "Empleados", "Instalaciones", "Grupos", "Equipos", "Licencias"};
-        for (String item : menuItems) {
-            Button menuButton = new Button(item);
-            menuButton.setFont(Font.font("Segoe UI", FontWeight.NORMAL, 16));
-            menuButton.setTextFill(Color.WHITE);
-            menuButton.setPrefWidth(150);
-            menuButton.setStyle("-fx-background-color: transparent; -fx-cursor: hand;");
-            menuButton.setOnMouseEntered(e -> menuButton.setStyle("-fx-background-color: #424242; -fx-text-fill: white; -fx-cursor: hand;"));
-            menuButton.setOnMouseExited(e -> menuButton.setStyle("-fx-background-color: transparent; -fx-text-fill: white; -fx-cursor: hand;"));
-            menuButton.setOnAction(e -> switchContent(item));
-            menu.getChildren().add(menuButton);
-        }
-        return menu;
+    String[] menuItems = {"Categorías", "Clubes", "Personas", "Empleados", "Instalaciones", "Grupos", "Equipos", "Licencias"};
+    String[] iconPaths = {
+        "file:src/resources/iconos/categorias.png",
+        "file:src/resources/iconos/club.png",
+        "file:src/resources/iconos/persona.png",
+        "file:src/resources/iconos/empleado.png",
+        "file:src/resources/iconos/instalaciones.png",
+        "file:src/resources/iconos/grupos.png",
+        "file:src/resources/iconos/teams.png",
+        "file:src/resources/iconos/licencia.png"
+    };
+
+    for (int i = 0; i < menuItems.length; i++) {
+        final String menuItem = menuItems[i]; // Capture the current menu item as a final variable
+        Button menuButton = new Button(menuItems[i]);
+        ImageView icon = new ImageView(new Image(iconPaths[i]));
+        icon.setFitHeight(20);
+        icon.setFitWidth(20);
+        menuButton.setGraphic(icon);
+        menuButton.setFont(Font.font("Segoe UI", FontWeight.NORMAL, 16));
+        menuButton.setTextFill(Color.WHITE);
+        menuButton.setPrefWidth(200); // Increased width to accommodate longer text
+        menuButton.setAlignment(Pos.CENTER_LEFT); // Align text and icon to the left
+        menuButton.setContentDisplay(ContentDisplay.LEFT); // Ensure icon and text are left-aligned
+        menuButton.setStyle("-fx-background-color: transparent; -fx-cursor: hand;");
+        menuButton.setOnMouseEntered(e -> menuButton.setStyle("-fx-background-color: #424242; -fx-text-fill: white; -fx-cursor: hand;"));
+        menuButton.setOnMouseExited(e -> menuButton.setStyle("-fx-background-color: transparent; -fx-text-fill: white; -fx-cursor: hand;"));
+        menuButton.setOnAction(e -> switchContent(menuItem));
+        menu.getChildren().add(menuButton);
     }
-
+    return menu;
+    }
+    
     private Pane createWelcomePane() {
         VBox welcomePane = new VBox(20);
         welcomePane.setAlignment(Pos.CENTER);
@@ -140,6 +158,10 @@ public class MainAppFX extends Application {
         TextField precioField = new TextField();
 
         Button crearButton = new Button("Crear Categoría");
+        ImageView crearIcon = new ImageView(new Image("file:src/resources/iconos/cross.png"));
+        crearIcon.setFitHeight(16);
+        crearIcon.setFitWidth(16);
+        crearButton.setGraphic(crearIcon);
         styleButton(crearButton, true);
         crearButton.setOnAction(e -> {
             try {
@@ -155,6 +177,10 @@ public class MainAppFX extends Application {
         });
 
         Button listarButton = new Button("Listar Categorías");
+        ImageView listarIcon = new ImageView(new Image("file:src/resources/iconos/magnifier.png"));
+        listarIcon.setFitHeight(16);
+        listarIcon.setFitWidth(16);
+        listarButton.setGraphic(listarIcon);
         styleButton(listarButton, false);
         listarButton.setOnAction(e -> {
             List<Categoria> categorias = federacion.obtenerCategorias();
@@ -195,6 +221,10 @@ public class MainAppFX extends Application {
         TextField buscarField = new TextField();
 
         Button crearButton = new Button("Crear Club");
+        ImageView crearIcon = new ImageView(new Image("file:src/resources/iconos/cross.png"));
+        crearIcon.setFitHeight(16);
+        crearIcon.setFitWidth(16);
+        crearButton.setGraphic(crearIcon);
         styleButton(crearButton, true);
         crearButton.setOnAction(e -> {
             try {
@@ -215,6 +245,10 @@ public class MainAppFX extends Application {
         });
 
         Button buscarButton = new Button("Buscar Club");
+        ImageView buscarIcon = new ImageView(new Image("file:src/resources/iconos/magnifier.png"));
+        buscarIcon.setFitHeight(16);
+        buscarIcon.setFitWidth(16);
+        buscarButton.setGraphic(buscarIcon);
         styleButton(buscarButton, false);
         buscarButton.setOnAction(e -> {
             String nombre = buscarField.getText();
@@ -260,6 +294,10 @@ public class MainAppFX extends Application {
         TextField buscarDniField = new TextField();
 
         Button crearButton = new Button("Crear Persona");
+        ImageView crearIcon = new ImageView(new Image("file:src/resources/iconos/cross.png"));
+        crearIcon.setFitHeight(16);
+        crearIcon.setFitWidth(16);
+        crearButton.setGraphic(crearIcon);
         styleButton(crearButton, true);
         crearButton.setOnAction(e -> {
             try {
@@ -278,6 +316,10 @@ public class MainAppFX extends Application {
         });
 
         Button buscarButton = new Button("Buscar Persona");
+        ImageView buscarIcon = new ImageView(new Image("file:src/resources/iconos/magnifier.png"));
+        buscarIcon.setFitHeight(16);
+        buscarIcon.setFitWidth(16);
+        buscarButton.setGraphic(buscarIcon);
         styleButton(buscarButton, false);
         buscarButton.setOnAction(e -> {
             String dni = buscarDniField.getText();
@@ -286,6 +328,10 @@ public class MainAppFX extends Application {
         });
 
         Button buscarMultiButton = new Button("Buscar por Nombre y Apellidos");
+        ImageView buscarMultiIcon = new ImageView(new Image("file:src/resources/iconos/magnifier.png"));
+        buscarMultiIcon.setFitHeight(16);
+        buscarMultiIcon.setFitWidth(16);
+        buscarMultiButton.setGraphic(buscarMultiIcon);
         styleButton(buscarMultiButton, false);
         buscarMultiButton.setOnAction(e -> {
             String nombre = nombreField.getText();
@@ -340,6 +386,10 @@ public class MainAppFX extends Application {
         TextField numEmpField = new TextField();
 
         Button crearButton = new Button("Crear Empleado");
+        ImageView crearIcon = new ImageView(new Image("file:src/resources/iconos/cross.png"));
+        crearIcon.setFitHeight(16);
+        crearIcon.setFitWidth(16);
+        crearButton.setGraphic(crearIcon);
         styleButton(crearButton, true);
         crearButton.setOnAction(e -> {
             try {
@@ -391,6 +441,10 @@ public class MainAppFX extends Application {
         TextField buscarField = new TextField();
 
         Button crearButton = new Button("Crear Instalación");
+        ImageView crearIcon = new ImageView(new Image("file:src/resources/iconos/cross.png"));
+        crearIcon.setFitHeight(16);
+        crearIcon.setFitWidth(16);
+        crearButton.setGraphic(crearIcon);
         styleButton(crearButton, true);
         crearButton.setOnAction(e -> {
             String nombre = nombreField.getText();
@@ -402,6 +456,10 @@ public class MainAppFX extends Application {
         });
 
         Button buscarButton = new Button("Buscar Instalaciones");
+        ImageView buscarIcon = new ImageView(new Image("file:src/resources/iconos/magnifier.png"));
+        buscarIcon.setFitHeight(16);
+        buscarIcon.setFitWidth(16);
+        buscarButton.setGraphic(buscarIcon);
         styleButton(buscarButton, false);
         buscarButton.setOnAction(e -> {
             String nombre = buscarField.getText();
@@ -441,6 +499,10 @@ public class MainAppFX extends Application {
         TextField nombreField = new TextField();
 
         Button crearButton = new Button("Crear Grupo");
+        ImageView crearIcon = new ImageView(new Image("file:src/resources/iconos/cross.png"));
+        crearIcon.setFitHeight(16);
+        crearIcon.setFitWidth(16);
+        crearButton.setGraphic(crearIcon);
         styleButton(crearButton, true);
         crearButton.setOnAction(e -> {
             String nombreCategoria = categoriaField.getText();
@@ -458,6 +520,10 @@ public class MainAppFX extends Application {
         });
 
         Button listarButton = new Button("Listar Grupos");
+        ImageView listarIcon = new ImageView(new Image("file:src/resources/iconos/magnifier.png"));
+        listarIcon.setFitHeight(16);
+        listarIcon.setFitWidth(16);
+        listarButton.setGraphic(listarIcon);
         styleButton(listarButton, false);
         listarButton.setOnAction(e -> {
             String nombreCategoria = categoriaField.getText();
@@ -508,6 +574,10 @@ public class MainAppFX extends Application {
         TextField dniField = new TextField();
 
         Button crearButton = new Button("Crear Equipo");
+        ImageView crearIcon = new ImageView(new Image("file:src/resources/iconos/cross.png"));
+        crearIcon.setFitHeight(16);
+        crearIcon.setFitWidth(16);
+        crearButton.setGraphic(crearIcon);
         styleButton(crearButton, true);
         crearButton.setOnAction(e -> {
             String letra = letraField.getText();
@@ -548,6 +618,10 @@ public class MainAppFX extends Application {
         });
 
         Button buscarJugadorButton = new Button("Buscar Jugador");
+        ImageView buscarIcon = new ImageView(new Image("file:src/resources/iconos/magnifier.png"));
+        buscarIcon.setFitHeight(16);
+        buscarIcon.setFitWidth(16);
+        buscarJugadorButton.setGraphic(buscarIcon);
         styleButton(buscarJugadorButton, false);
         buscarJugadorButton.setOnAction(e -> {
             String letra = buscarLetraField.getText();
@@ -600,6 +674,10 @@ public class MainAppFX extends Application {
         TextField calcularField = new TextField();
 
         Button crearSimpleButton = new Button("Crear Licencia Simple");
+        ImageView crearSimpleIcon = new ImageView(new Image("file:src/resources/iconos/cross.png"));
+        crearSimpleIcon.setFitHeight(16);
+        crearSimpleIcon.setFitWidth(16);
+        crearSimpleButton.setGraphic(crearSimpleIcon);
         styleButton(crearSimpleButton, true);
         crearSimpleButton.setOnAction(e -> {
             String dni = dniField.getText();
@@ -614,6 +692,10 @@ public class MainAppFX extends Application {
         });
 
         Button crearEquipoButton = new Button("Crear Licencia con Equipo");
+        ImageView crearEquipoIcon = new ImageView(new Image("file:src/resources/iconos/cross.png"));
+        crearEquipoIcon.setFitHeight(16);
+        crearEquipoIcon.setFitWidth(16);
+        crearEquipoButton.setGraphic(crearEquipoIcon);
         styleButton(crearEquipoButton, true);
         crearEquipoButton.setOnAction(e -> {
             String dni = dniField.getText();
@@ -639,6 +721,10 @@ public class MainAppFX extends Application {
         });
 
         Button calcularButton = new Button("Calcular Precio Licencia");
+        ImageView calcularIcon = new ImageView(new Image("file:src/resources/iconos/precio_licencia.png"));
+        calcularIcon.setFitHeight(16);
+        calcularIcon.setFitWidth(16);
+        calcularButton.setGraphic(calcularIcon);
         styleButton(calcularButton, false);
         calcularButton.setOnAction(e -> {
             String letraEquipo = calcularField.getText();
