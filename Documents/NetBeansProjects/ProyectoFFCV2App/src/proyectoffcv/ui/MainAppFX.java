@@ -101,7 +101,7 @@ public class MainAppFX extends Application {
     };
 
     for (int i = 0; i < menuItems.length; i++) {
-        final String menuItem = menuItems[i]; // Capture the current menu item as a final variable
+        final String menuItem = menuItems[i]; 
         Button menuButton = new Button(menuItems[i]);
         ImageView icon = new ImageView(new Image(iconPaths[i]));
         icon.setFitHeight(20);
@@ -109,9 +109,9 @@ public class MainAppFX extends Application {
         menuButton.setGraphic(icon);
         menuButton.setFont(Font.font("Segoe UI", FontWeight.NORMAL, 16));
         menuButton.setTextFill(Color.WHITE);
-        menuButton.setPrefWidth(200); // Increased width to accommodate longer text
-        menuButton.setAlignment(Pos.CENTER_LEFT); // Align text and icon to the left
-        menuButton.setContentDisplay(ContentDisplay.LEFT); // Ensure icon and text are left-aligned
+        menuButton.setPrefWidth(200); 
+        menuButton.setAlignment(Pos.CENTER_LEFT); // Alineado izquierda
+        menuButton.setContentDisplay(ContentDisplay.LEFT); 
         menuButton.setStyle("-fx-background-color: transparent; -fx-cursor: hand;");
         menuButton.setOnMouseEntered(e -> menuButton.setStyle("-fx-background-color: #424242; -fx-text-fill: white; -fx-cursor: hand;"));
         menuButton.setOnMouseExited(e -> menuButton.setStyle("-fx-background-color: transparent; -fx-text-fill: white; -fx-cursor: hand;"));
