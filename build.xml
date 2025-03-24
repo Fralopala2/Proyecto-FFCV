@@ -16,6 +16,11 @@
         <pathelement location="${junit5.lib}/junit-platform-console-standalone-1.10.0.jar"/>
     </path>
 
+    <!-- Override run.test.classpath to use JUnit 5 only -->
+    <target name="-pre-init">
+        <property name="run.test.classpath" value="${toString:test.classpath}"/>
+    </target>
+
     <!-- Personaliza la compilación de un solo archivo de prueba -->
     <target name="compile-test-single" depends="init,compile">
         <mkdir dir="${build.test.classes.dir}"/>
@@ -24,7 +29,7 @@
                classpathref="test.classpath"
                includeantruntime="false"
                includes="${javac.includes}">
-            <compilerarg value="--add-modules=ALL-SYSTEM"/> <!-- Ignora módulos -->
+            <compilerarg value="--add-modules=ALL-SYSTEM"/>
             <classpath refid="test.classpath"/>
         </javac>
     </target>
@@ -34,20 +39,35 @@
         <echo message="Test classpath: ${toString:test.classpath}"/>
         <java classname="org.junit.platform.console.ConsoleLauncher" fork="true" failonerror="true">
             <classpath refid="test.classpath"/>
-            <jvmarg value="--add-modules=ALL-SYSTEM"/> <!-- Ignora módulos -->
+            <jvmarg value="--add-modules=ALL-SYSTEM"/>
             <arg value="--scan-classpath"/>
             <arg value="--include-classname=.*Test"/>
             <arg value="--reports-dir=${build.test.results.dir}"/>
         </java>
     </target>
-
+        
     <!-- Personaliza la ejecución de una sola prueba -->
     <target name="test-single" depends="compile-test-single">
         <echo message="Test classpath: ${toString:test.classpath}"/>
         <java classname="org.junit.platform.console.ConsoleLauncher" fork="true" failonerror="true">
             <classpath refid="test.classpath"/>
-            <jvmarg value="--add-modules=ALL-SYSTEM"/> <!-- Opcional si eliminas module-info.java -->
+            <jvmarg value="--add-modules=ALL-SYSTEM"/>
             <arg value="--select-class=${test.class}"/>
+            <arg value="--reports-dir=${build.test.results.dir}"/>
+        </java>
+    </target>
+
+    <!-- Personaliza la ejecución de un solo método de prueba en modo debug -->
+    <target name="debug-single-method" depends="compile-test-single">
+        <fail unless="test.class">Must select a test class (e.g., set test.class)</fail>
+        <fail unless="test.method">Must select a test method (e.g., set test.method)</fail>
+        <echo message="Debugging single method with classpath: ${toString:test.classpath}"/>
+        <java classname="org.junit.platform.console.ConsoleLauncher" fork="true" failonerror="true">
+            <classpath refid="test.classpath"/>
+            <jvmarg value="-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=5005"/>
+            <jvmarg value="--add-modules=ALL-SYSTEM"/>
+            <arg value="--select-class=${test.class}"/>
+            <arg value="--select-method=${test.method}"/>
             <arg value="--reports-dir=${build.test.results.dir}"/>
         </java>
     </target>
