@@ -1,7 +1,3 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package entidades;
 
 import java.util.ArrayList;
@@ -11,6 +7,7 @@ import java.util.List;
  *
  * @author edgar
  */
+
 public class Grupo {
     private String nombre;
     private Categoria categoria;
@@ -34,6 +31,9 @@ public class Grupo {
     }
 
     public void setCategoria(Categoria categoria) {
+        if (categoria == null) {
+            throw new IllegalArgumentException("La categoria no puede ser null");
+        }
         this.categoria = categoria;
     }
 
@@ -47,10 +47,7 @@ public class Grupo {
 
     @Override
     public String toString() {
-        return "Grupo{" +
-                "nombre='" + nombre + '\'' +
-                ", categoria=" + categoria +
-                ", equipos=" + equipos +
-                '}';
+        return "Grupo{" + "nombre='" + nombre + '\'' + ", categoria=" + (categoria != null ? categoria.getNombre() : "null") +
+                ", equipos=" + equipos.size() + " equipos" +'}';
     }
 }

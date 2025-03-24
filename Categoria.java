@@ -8,7 +8,7 @@ import java.util.*;
 
 /**
  *
- * @author jmontanerm
+ * @author edgar
  */
 public class Categoria {
     private String nombre;
@@ -25,8 +25,9 @@ public class Categoria {
     }
     
     private void checkPrecioLicencia(double p) throws InputMismatchException {
-        if(p < 0.0)
+        if(p < 0.0) {
             throw new InputMismatchException("El precio de la licencia no puede ser menor que cero.");
+        }
     }
 
     public String getNombre() {
@@ -58,7 +59,7 @@ public class Categoria {
         return grupos;
     }
     
-     @Override
+    @Override
     public String toString() {
         return "Categoria{" + "nombre=" + nombre + ", orden=" + orden + ", precioLicencia=" + precioLicencia + '}';
     }
