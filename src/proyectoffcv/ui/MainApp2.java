@@ -20,6 +20,7 @@ public class MainApp2 {
     private IFederacion federacion;
     private JFrame frame;
     private JPanel contentPanel;
+    private JMenuBar menuBar; // Variable de instancia para el JMenuBar
 
     public MainApp2() {
         federacion = Federacion.getInstance();
@@ -30,9 +31,31 @@ public class MainApp2 {
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setSize(1000, 750);
         frame.setLocationRelativeTo(null);
-        frame.setIconImage(new ImageIcon("src/resources/logo.png").getImage());
+        setFrameIcon("src/resources/logo.png");
 
-        JPanel mainPanel = new JPanel(new BorderLayout()) {
+        JPanel mainPanel = createGradientPanel();
+        mainPanel.setBorder(new EmptyBorder(15, 15, 15, 15));
+
+        JPanel headerPanel = createHeaderPanel();
+        menuBar = createMenuBar(); // Asigna el JMenuBar a la variable de instancia
+        headerPanel.add(menuBar, BorderLayout.SOUTH);
+
+        contentPanel = new JPanel(new BorderLayout());
+        contentPanel.setBackground(Color.WHITE);
+        contentPanel.setBorder(new EmptyBorder(10, 10, 10, 10));
+        contentPanel.add(createWelcomePanel(), BorderLayout.CENTER);
+
+        mainPanel.add(headerPanel, BorderLayout.NORTH);
+        mainPanel.add(contentPanel, BorderLayout.CENTER);
+        frame.add(mainPanel);
+
+        setupMenuActions(); // Configura las acciones después de crear el menuBar
+
+        frame.setVisible(true);
+    }
+
+    private JPanel createGradientPanel() {
+        return new JPanel(new BorderLayout()) {
             @Override
             protected void paintComponent(Graphics g) {
                 super.paintComponent(g);
@@ -46,8 +69,9 @@ public class MainApp2 {
                 g2d.fillRect(0, 0, w, h);
             }
         };
-        mainPanel.setBorder(new EmptyBorder(15, 15, 15, 15));
+    }
 
+    private JPanel createHeaderPanel() {
         JPanel headerPanel = new JPanel(new BorderLayout());
         headerPanel.setBackground(new Color(166, 7, 7));
         headerPanel.setBorder(new EmptyBorder(10, 20, 10, 20));
@@ -56,13 +80,13 @@ public class MainApp2 {
         headerLabel.setFont(new Font("Segoe UI", Font.BOLD, 26));
         headerLabel.setForeground(Color.WHITE);
 
-        ImageIcon logoIcon = new ImageIcon("src/resources/logo.png");
-        Image logoImage = logoIcon.getImage().getScaledInstance(50, 50, Image.SCALE_SMOOTH);
-        JLabel logoLabel = new JLabel(new ImageIcon(logoImage));
-        logoLabel.setPreferredSize(new Dimension(50, 50));
+        JLabel logoLabel = createLogoLabel("src/resources/logo.png");
         headerPanel.add(logoLabel, BorderLayout.WEST);
         headerPanel.add(headerLabel, BorderLayout.CENTER);
+        return headerPanel;
+    }
 
+    private JMenuBar createMenuBar() {
         JMenuBar menuBar = new JMenuBar();
         menuBar.setBackground(new Color(33, 37, 41));
         menuBar.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
@@ -71,67 +95,34 @@ public class MainApp2 {
         Color menuForeground = Color.WHITE;
         Color menuHover = new Color(66, 66, 66);
 
-        ImageIcon categoryIcon = new ImageIcon("src/resources/iconos/categorias.png");
-        ImageIcon clubIcon = new ImageIcon("src/resources/iconos/club.png");
-        ImageIcon personIcon = new ImageIcon("src/resources/iconos/persona.png");
-        ImageIcon employeeIcon = new ImageIcon("src/resources/iconos/empleado.png");
-        ImageIcon facilityIcon = new ImageIcon("src/resources/iconos/instalaciones.png");
-        ImageIcon groupIcon = new ImageIcon("src/resources/iconos/grupos.png");
-        ImageIcon teamIcon = new ImageIcon("src/resources/iconos/teams.png");
-        ImageIcon licenseIcon = new ImageIcon("src/resources/iconos/licencia.png");
-
         JMenu gestionMenu = new JMenu("Gestión");
         styleMenu(gestionMenu, menuFont, menuForeground, menuHover);
-        gestionMenu.setIcon(new ImageIcon("src/resources/iconos/gestion.png"));
+        gestionMenu.setIcon(loadIcon("src/resources/iconos/gestion.png"));
 
-        JMenuItem categoriasItem = new JMenuItem("Categorías", categoryIcon);
-        JMenuItem clubesItem = new JMenuItem("Clubes", clubIcon);
-        JMenuItem personasItem = new JMenuItem("Personas", personIcon);
-        JMenuItem empleadosItem = new JMenuItem("Empleados", employeeIcon);
-        JMenuItem instalacionesItem = new JMenuItem("Instalaciones", facilityIcon);
-        JMenuItem gruposItem = new JMenuItem("Grupos", groupIcon);
-        JMenuItem equiposItem = new JMenuItem("Equipos", teamIcon);
-        JMenuItem licenciasItem = new JMenuItem("Licencias", licenseIcon);
+        String[] menuItems = {"Categorías", "Clubes", "Personas", "Empleados", "Instalaciones", "Grupos", "Equipos", "Licencias"};
+        String[] iconPaths = {"categorias.png", "club.png", "persona.png", "empleado.png", "instalaciones.png", "grupos.png", "teams.png", "licencia.png"};
+        JMenuItem[] items = new JMenuItem[menuItems.length];
 
-        styleMenuItem(categoriasItem, menuFont, menuForeground, menuHover);
-        styleMenuItem(clubesItem, menuFont, menuForeground, menuHover);
-        styleMenuItem(personasItem, menuFont, menuForeground, menuHover);
-        styleMenuItem(empleadosItem, menuFont, menuForeground, menuHover);
-        styleMenuItem(instalacionesItem, menuFont, menuForeground, menuHover);
-        styleMenuItem(gruposItem, menuFont, menuForeground, menuHover);
-        styleMenuItem(equiposItem, menuFont, menuForeground, menuHover);
-        styleMenuItem(licenciasItem, menuFont, menuForeground, menuHover);
-
-        gestionMenu.add(categoriasItem);
-        gestionMenu.add(clubesItem);
-        gestionMenu.add(personasItem);
-        gestionMenu.add(empleadosItem);
-        gestionMenu.add(instalacionesItem);
-        gestionMenu.add(gruposItem);
-        gestionMenu.add(equiposItem);
-        gestionMenu.add(licenciasItem);
+        for (int i = 0; i < menuItems.length; i++) {
+            items[i] = new JMenuItem(menuItems[i], loadIcon("src/resources/iconos/" + iconPaths[i]));
+            styleMenuItem(items[i], menuFont, menuForeground, menuHover);
+            gestionMenu.add(items[i]);
+        }
 
         menuBar.add(gestionMenu);
-        headerPanel.add(menuBar, BorderLayout.SOUTH);
+        return menuBar;
+    }
 
-        contentPanel = new JPanel(new BorderLayout());
-        contentPanel.setBackground(Color.WHITE);
-        contentPanel.setBorder(new EmptyBorder(10, 10, 10, 10));
-        contentPanel.add(createWelcomePanel(), BorderLayout.CENTER);
-
-        categoriasItem.addActionListener(e -> switchPanel(createCategoriaPanel()));
-        clubesItem.addActionListener(e -> switchPanel(createClubPanel()));
-        personasItem.addActionListener(e -> switchPanel(createPersonaPanel()));
-        empleadosItem.addActionListener(e -> switchPanel(createEmpleadoPanel()));
-        instalacionesItem.addActionListener(e -> switchPanel(createInstalacionPanel()));
-        gruposItem.addActionListener(e -> switchPanel(createGrupoPanel()));
-        equiposItem.addActionListener(e -> switchPanel(createEquipoPanel()));
-        licenciasItem.addActionListener(e -> switchPanel(createLicenciaPanel()));
-
-        mainPanel.add(headerPanel, BorderLayout.NORTH);
-        mainPanel.add(contentPanel, BorderLayout.CENTER);
-        frame.add(mainPanel);
-        frame.setVisible(true);
+    private void setupMenuActions() {
+        JMenu gestionMenu = menuBar.getMenu(0); // Usa la variable de instancia directamente
+        gestionMenu.getItem(0).addActionListener(e -> switchPanel(createCategoriaPanel()));
+        gestionMenu.getItem(1).addActionListener(e -> switchPanel(createClubPanel()));
+        gestionMenu.getItem(2).addActionListener(e -> switchPanel(createPersonaPanel()));
+        gestionMenu.getItem(3).addActionListener(e -> switchPanel(createEmpleadoPanel()));
+        gestionMenu.getItem(4).addActionListener(e -> switchPanel(createInstalacionPanel()));
+        gestionMenu.getItem(5).addActionListener(e -> switchPanel(createGrupoPanel()));
+        gestionMenu.getItem(6).addActionListener(e -> switchPanel(createEquipoPanel()));
+        gestionMenu.getItem(7).addActionListener(e -> switchPanel(createLicenciaPanel()));
     }
 
     private void switchPanel(JPanel panel) {
@@ -164,44 +155,22 @@ public class MainApp2 {
         panel.setBackground(Color.WHITE);
         panel.setBorder(new EmptyBorder(15, 15, 15, 15));
 
-        JPanel createPanel = new JPanel(new GridBagLayout());
-        createPanel.setBackground(Color.WHITE);
-        createPanel.setBorder(BorderFactory.createTitledBorder(
-                BorderFactory.createLineBorder(new Color(200, 200, 200), 1, true),
-                "Crear Nueva Categoría",
-                TitledBorder.LEFT,
-                TitledBorder.TOP,
-                new Font("Segoe UI", Font.BOLD, 16),
-                new Color(33, 37, 41)));
-
+        JPanel createPanel = createTitledPanel("Crear Nueva Categoría"); // GridBagLayout por defecto
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.insets = new Insets(8, 10, 8, 10);
         gbc.fill = GridBagConstraints.HORIZONTAL;
 
-        JLabel nombreLabel = new JLabel("Nombre:");
-        nombreLabel.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-        JTextField nombreField = new JTextField(20);
-        nombreField.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        JTextField nombreField = addField(createPanel, gbc, "Nombre:", 0);
+        JTextField ordenField = addField(createPanel, gbc, "Nivel/Orden:", 1);
+        JTextField precioField = addField(createPanel, gbc, "Precio Licencia:", 2);
 
-        JLabel ordenLabel = new JLabel("Nivel/Orden:");
-        ordenLabel.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-        JTextField ordenField = new JTextField(20);
-        ordenField.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-
-        JLabel precioLabel = new JLabel("Precio Licencia:");
-        precioLabel.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-        JTextField precioField = new JTextField(20);
-        precioField.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-
-        JButton crearButton = new JButton("Crear Categoría", new ImageIcon("src/resources/iconos/cross.png"));
+        JButton crearButton = new JButton("Crear Categoría", loadIcon("src/resources/iconos/cross.png"));
         styleButton(crearButton, new Color(211, 47, 47), true);
-
+        crearButton.setToolTipText("Crea una nueva categoría con los datos ingresados");
         crearButton.addActionListener(event -> {
+            if (!validateFields(nombreField, ordenField, precioField)) return;
             try {
-                String nombre = nombreField.getText();
-                int orden = Integer.parseInt(ordenField.getText());
-                double precio = Double.parseDouble(precioField.getText());
-                Categoria categoria = new Categoria(nombre, orden, precio);
+                Categoria categoria = new Categoria(nombreField.getText(), Integer.parseInt(ordenField.getText()), Double.parseDouble(precioField.getText()));
                 categoria.guardar();
                 JOptionPane.showMessageDialog(frame, "Categoría creada: " + categoria);
                 clearFields(nombreField, ordenField, precioField);
@@ -211,48 +180,13 @@ public class MainApp2 {
                 JOptionPane.showMessageDialog(frame, "Error al guardar categoría: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
             }
         });
-
-        gbc.gridx = 0; gbc.gridy = 0; createPanel.add(nombreLabel, gbc);
-        gbc.gridx = 1; createPanel.add(nombreField, gbc);
-        gbc.gridx = 0; gbc.gridy = 1; createPanel.add(ordenLabel, gbc);
-        gbc.gridx = 1; createPanel.add(ordenField, gbc);
-        gbc.gridx = 0; gbc.gridy = 2; createPanel.add(precioLabel, gbc);
-        gbc.gridx = 1; createPanel.add(precioField, gbc);
         gbc.gridx = 0; gbc.gridy = 3; gbc.gridwidth = 2; createPanel.add(crearButton, gbc);
 
-        JPanel listPanel = new JPanel(new BorderLayout());
-        listPanel.setBackground(Color.WHITE);
-        listPanel.setBorder(BorderFactory.createTitledBorder(
-                BorderFactory.createLineBorder(new Color(200, 200, 200), 1, true),
-                "Consultar Categorías",
-                TitledBorder.LEFT,
-                TitledBorder.TOP,
-                new Font("Segoe UI", Font.BOLD, 16),
-                new Color(33, 37, 41)));
-
-        JButton listarButton = new JButton("Listar Categorías", new ImageIcon("src/resources/iconos/magnifier.png"));
+        JPanel listPanel = createTitledPanel("Consultar Categorías", new BorderLayout()); // BorderLayout explícito
+        JButton listarButton = new JButton("Listar Categorías", loadIcon("src/resources/iconos/magnifier.png"));
         styleButton(listarButton, new Color(33, 37, 41), false);
-
-        listarButton.addActionListener(event -> {
-            try {
-                List<Categoria> categorias = Categoria.obtenerTodas();
-                JTextArea textArea = new JTextArea(10, 30);
-                textArea.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-                textArea.setText("Categorías:\n");
-                for (Categoria c : categorias) {
-                    textArea.append(c.toString() + "\n");
-                }
-                textArea.setEditable(false);
-                listPanel.removeAll();
-                listPanel.add(listarButton, BorderLayout.NORTH);
-                listPanel.add(new JScrollPane(textArea), BorderLayout.CENTER);
-                listPanel.revalidate();
-                listPanel.repaint();
-            } catch (SQLException ex) {
-                JOptionPane.showMessageDialog(frame, "Error al listar categorías: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
-            }
-        });
-
+        listarButton.setToolTipText("Muestra todas las categorías registradas");
+        listarButton.addActionListener(event -> listCategorias(listPanel));
         listPanel.add(listarButton, BorderLayout.NORTH);
 
         panel.add(createPanel, BorderLayout.NORTH);
@@ -265,56 +199,33 @@ public class MainApp2 {
         panel.setBackground(Color.WHITE);
         panel.setBorder(new EmptyBorder(15, 15, 15, 15));
 
-        JPanel createPanel = new JPanel(new GridBagLayout());
-        createPanel.setBackground(Color.WHITE);
-        createPanel.setBorder(BorderFactory.createTitledBorder(
-                BorderFactory.createLineBorder(new Color(200, 200, 200), 1, true),
-                "Gestión de Clubes",
-                TitledBorder.LEFT,
-                TitledBorder.TOP,
-                new Font("Segoe UI", Font.BOLD, 16),
-                new Color(33, 37, 41)));
-
+        JPanel createPanel = createTitledPanel("Gestión de Clubes"); // GridBagLayout
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.insets = new Insets(8, 10, 8, 10);
         gbc.fill = GridBagConstraints.HORIZONTAL;
 
-        JLabel nombreLabel = new JLabel("Nombre Club:");
-        nombreLabel.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-        JTextField nombreField = new JTextField(20);
-        nombreField.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        JTextField nombreField = addField(createPanel, gbc, "Nombre Club:", 0);
+        JTextField fechaField = addField(createPanel, gbc, "Fecha Fundación (YYYY-MM-DD):", 1);
+        JTextField dniPresField = addField(createPanel, gbc, "DNI Presidente:", 2);
+        JTextField buscarField = addField(createPanel, gbc, "Buscar Club por Nombre:", 3);
 
-        JLabel fechaLabel = new JLabel("Fecha Fundación (YYYY-MM-DD):");
-        fechaLabel.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-        JTextField fechaField = new JTextField(20);
-        fechaField.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-
-        JLabel dniPresLabel = new JLabel("DNI Presidente:");
-        dniPresLabel.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-        JTextField dniPresField = new JTextField(20);
-        dniPresField.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-
-        JLabel buscarLabel = new JLabel("Buscar Club por Nombre:");
-        buscarLabel.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-        JTextField buscarField = new JTextField(20);
-        buscarField.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-
-        JButton crearClubButton = new JButton("Crear Club", new ImageIcon("src/resources/iconos/cross.png"));
+        JButton crearClubButton = new JButton("Crear Club", loadIcon("src/resources/iconos/cross.png"));
         styleButton(crearClubButton, new Color(211, 47, 47), true);
-        JButton buscarButton = new JButton("Buscar Club", new ImageIcon("src/resources/iconos/magnifier.png"));
+        crearClubButton.setToolTipText("Crea un nuevo club con los datos ingresados");
+        JButton buscarButton = new JButton("Buscar Club", loadIcon("src/resources/iconos/magnifier.png"));
         styleButton(buscarButton, new Color(33, 37, 41), false);
+        buscarButton.setToolTipText("Busca un club por nombre");
 
         crearClubButton.addActionListener(event -> {
+            if (!validateFields(nombreField, fechaField, dniPresField)) return;
             try {
-                String nombre = nombreField.getText();
                 LocalDate fecha = LocalDate.parse(fechaField.getText());
-                String dni = dniPresField.getText();
-                Persona presidente = Persona.buscarPorDni(dni);
+                Persona presidente = Persona.buscarPorDni(dniPresField.getText());
                 if (presidente == null) {
                     JOptionPane.showMessageDialog(frame, "Presidente no encontrado. Regístrelo primero.", "Error", JOptionPane.ERROR_MESSAGE);
                     return;
                 }
-                Club club = new Club(nombre, fecha, presidente);
+                Club club = new Club(nombreField.getText(), fecha, presidente);
                 club.guardar();
                 JOptionPane.showMessageDialog(frame, "Club creado: " + club);
                 clearFields(nombreField, fechaField, dniPresField);
@@ -326,27 +237,27 @@ public class MainApp2 {
         });
 
         buscarButton.addActionListener(event -> {
+            if (!validateFields(buscarField)) return;
             try {
-                String nombre = buscarField.getText();
-                Club club = Club.buscarPorNombre(nombre);
+                Club club = Club.buscarPorNombre(buscarField.getText());
                 JOptionPane.showMessageDialog(frame, club != null ? "Club encontrado: " + club : "Club no encontrado.");
             } catch (SQLException ex) {
                 JOptionPane.showMessageDialog(frame, "Error al buscar club: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
             }
         });
 
-        gbc.gridx = 0; gbc.gridy = 0; createPanel.add(nombreLabel, gbc);
-        gbc.gridx = 1; createPanel.add(nombreField, gbc);
-        gbc.gridx = 0; gbc.gridy = 1; createPanel.add(fechaLabel, gbc);
-        gbc.gridx = 1; createPanel.add(fechaField, gbc);
-        gbc.gridx = 0; gbc.gridy = 2; createPanel.add(dniPresLabel, gbc);
-        gbc.gridx = 1; createPanel.add(dniPresField, gbc);
-        gbc.gridx = 0; gbc.gridy = 3; createPanel.add(buscarLabel, gbc);
-        gbc.gridx = 1; createPanel.add(buscarField, gbc);
         gbc.gridx = 0; gbc.gridy = 4; gbc.gridwidth = 2; createPanel.add(crearClubButton, gbc);
         gbc.gridy = 5; createPanel.add(buscarButton, gbc);
 
+        JPanel listPanel = createTitledPanel("Listar Clubes", new BorderLayout()); // BorderLayout
+        JButton listarButton = new JButton("Listar Clubes", loadIcon("src/resources/iconos/magnifier.png"));
+        styleButton(listarButton, new Color(33, 37, 41), false);
+        listarButton.setToolTipText("Muestra todos los clubes registrados");
+        listarButton.addActionListener(event -> listClubes(listPanel));
+        listPanel.add(listarButton, BorderLayout.NORTH);
+
         panel.add(createPanel, BorderLayout.NORTH);
+        panel.add(listPanel, BorderLayout.CENTER);
         return panel;
     }
 
@@ -355,71 +266,35 @@ public class MainApp2 {
         panel.setBackground(Color.WHITE);
         panel.setBorder(new EmptyBorder(15, 15, 15, 15));
 
-        JPanel createPanel = new JPanel(new GridBagLayout());
-        createPanel.setBackground(Color.WHITE);
-        createPanel.setBorder(BorderFactory.createTitledBorder(
-                BorderFactory.createLineBorder(new Color(200, 200, 200), 1, true),
-                "Crear Nueva Persona",
-                TitledBorder.LEFT,
-                TitledBorder.TOP,
-                new Font("Segoe UI", Font.BOLD, 16),
-                new Color(33, 37, 41)));
-
+        JPanel createPanel = createTitledPanel("Crear Nueva Persona"); // GridBagLayout
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.insets = new Insets(8, 10, 8, 10);
         gbc.fill = GridBagConstraints.HORIZONTAL;
 
-        JLabel dniLabel = new JLabel("DNI:");
-        dniLabel.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-        JTextField dniField = new JTextField(20);
-        dniField.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        JTextField dniField = addField(createPanel, gbc, "DNI:", 0);
+        JTextField nombreField = addField(createPanel, gbc, "Nombre:", 1);
+        JTextField apellido1Field = addField(createPanel, gbc, "Apellido 1:", 2);
+        JTextField apellido2Field = addField(createPanel, gbc, "Apellido 2:", 3);
+        JTextField fechaField = addField(createPanel, gbc, "Fecha Nacimiento (YYYY-MM-DD):", 4);
+        JTextField poblacionField = addField(createPanel, gbc, "Población:", 5);
+        JTextField buscarDniField = addField(createPanel, gbc, "Buscar por DNI:", 6);
 
-        JLabel nombreLabel = new JLabel("Nombre:");
-        nombreLabel.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-        JTextField nombreField = new JTextField(20);
-        nombreField.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-
-        JLabel apellido1Label = new JLabel("Apellido 1:");
-        apellido1Label.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-        JTextField apellido1Field = new JTextField(20);
-        apellido1Field.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-
-        JLabel apellido2Label = new JLabel("Apellido 2:");
-        apellido2Label.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-        JTextField apellido2Field = new JTextField(20);
-        apellido2Field.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-
-        JLabel fechaLabel = new JLabel("Fecha Nacimiento (YYYY-MM-DD):");
-        fechaLabel.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-        JTextField fechaField = new JTextField(20);
-        fechaField.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-
-        JLabel poblacionLabel = new JLabel("Población:");
-        poblacionLabel.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-        JTextField poblacionField = new JTextField(20);
-        poblacionField.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-
-        JLabel buscarDniLabel = new JLabel("Buscar por DNI:");
-        buscarDniLabel.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-        JTextField buscarDniField = new JTextField(20);
-        buscarDniField.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-
-        JButton crearButton = new JButton("Crear Persona", new ImageIcon("src/resources/iconos/cross.png"));
+        JButton crearButton = new JButton("Crear Persona", loadIcon("src/resources/iconos/cross.png"));
         styleButton(crearButton, new Color(211, 47, 47), true);
-        JButton buscarButton = new JButton("Buscar Persona", new ImageIcon("src/resources/iconos/magnifier.png"));
+        crearButton.setToolTipText("Crea una nueva persona con los datos ingresados");
+        JButton buscarButton = new JButton("Buscar Persona", loadIcon("src/resources/iconos/magnifier.png"));
         styleButton(buscarButton, new Color(33, 37, 41), false);
-        JButton buscarMultiButton = new JButton("Buscar por Nombre y Apellidos", new ImageIcon("src/resources/iconos/magnifier.png"));
+        buscarButton.setToolTipText("Busca una persona por DNI");
+        JButton buscarMultiButton = new JButton("Buscar por Nombre y Apellidos", loadIcon("src/resources/iconos/magnifier.png"));
         styleButton(buscarMultiButton, new Color(33, 37, 41), false);
+        buscarMultiButton.setToolTipText("Busca personas por nombre y apellidos");
 
         crearButton.addActionListener(event -> {
+            if (!validateFields(dniField, nombreField, apellido1Field, apellido2Field, fechaField, poblacionField)) return;
             try {
-                String dni = dniField.getText();
-                String nombre = nombreField.getText();
-                String apellido1 = apellido1Field.getText();
-                String apellido2 = apellido2Field.getText();
-                LocalDate fecha = LocalDate.parse(fechaField.getText());
-                String poblacion = poblacionField.getText();
-                Persona persona = new Persona(dni, nombre, apellido1, apellido2, fecha, "user" + dni, "pass" + dni, poblacion);
+                Persona persona = new Persona(dniField.getText(), nombreField.getText(), apellido1Field.getText(), 
+                        apellido2Field.getText(), LocalDate.parse(fechaField.getText()), "user" + dniField.getText(), 
+                        "pass" + dniField.getText(), poblacionField.getText());
                 persona.guardar();
                 JOptionPane.showMessageDialog(frame, "Persona creada: " + persona);
                 clearFields(dniField, nombreField, apellido1Field, apellido2Field, fechaField, poblacionField);
@@ -431,9 +306,9 @@ public class MainApp2 {
         });
 
         buscarButton.addActionListener(event -> {
+            if (!validateFields(buscarDniField)) return;
             try {
-                String dni = buscarDniField.getText();
-                Persona persona = Persona.buscarPorDni(dni);
+                Persona persona = Persona.buscarPorDni(buscarDniField.getText());
                 JOptionPane.showMessageDialog(frame, persona != null ? "Persona encontrada: " + persona : "Persona no encontrada.");
             } catch (SQLException ex) {
                 JOptionPane.showMessageDialog(frame, "Error al buscar persona: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
@@ -441,38 +316,15 @@ public class MainApp2 {
         });
 
         buscarMultiButton.addActionListener(event -> {
+            if (!validateFields(nombreField, apellido1Field, apellido2Field)) return;
             try {
-                String nombre = nombreField.getText();
-                String apellido1 = apellido1Field.getText();
-                String apellido2 = apellido2Field.getText();
-                List<Persona> personas = Persona.buscarPorNombreYApellidos(nombre, apellido1, apellido2);
-                JTextArea textArea = new JTextArea(10, 30);
-                textArea.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-                textArea.setText("Personas encontradas:\n");
-                for (Persona p : personas) {
-                    textArea.append(p.toString() + "\n");
-                }
-                textArea.setEditable(false);
-                JOptionPane.showMessageDialog(frame, new JScrollPane(textArea), "Resultados", JOptionPane.INFORMATION_MESSAGE);
+                List<Persona> personas = Persona.buscarPorNombreYApellidos(nombreField.getText(), apellido1Field.getText(), apellido2Field.getText());
+                showListResult(personas, "Personas encontradas:");
             } catch (SQLException ex) {
                 JOptionPane.showMessageDialog(frame, "Error al buscar personas: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
             }
         });
 
-        gbc.gridx = 0; gbc.gridy = 0; createPanel.add(dniLabel, gbc);
-        gbc.gridx = 1; createPanel.add(dniField, gbc);
-        gbc.gridx = 0; gbc.gridy = 1; createPanel.add(nombreLabel, gbc);
-        gbc.gridx = 1; createPanel.add(nombreField, gbc);
-        gbc.gridx = 0; gbc.gridy = 2; createPanel.add(apellido1Label, gbc);
-        gbc.gridx = 1; createPanel.add(apellido1Field, gbc);
-        gbc.gridx = 0; gbc.gridy = 3; createPanel.add(apellido2Label, gbc);
-        gbc.gridx = 1; createPanel.add(apellido2Field, gbc);
-        gbc.gridx = 0; gbc.gridy = 4; createPanel.add(fechaLabel, gbc);
-        gbc.gridx = 1; createPanel.add(fechaField, gbc);
-        gbc.gridx = 0; gbc.gridy = 5; createPanel.add(poblacionLabel, gbc);
-        gbc.gridx = 1; createPanel.add(poblacionField, gbc);
-        gbc.gridx = 0; gbc.gridy = 6; createPanel.add(buscarDniLabel, gbc);
-        gbc.gridx = 1; createPanel.add(buscarDniField, gbc);
         gbc.gridx = 0; gbc.gridy = 7; gbc.gridwidth = 2; createPanel.add(crearButton, gbc);
         gbc.gridy = 8; createPanel.add(buscarButton, gbc);
         gbc.gridy = 9; createPanel.add(buscarMultiButton, gbc);
@@ -486,78 +338,35 @@ public class MainApp2 {
         panel.setBackground(Color.WHITE);
         panel.setBorder(new EmptyBorder(15, 15, 15, 15));
 
-        JPanel createPanel = new JPanel(new GridBagLayout());
-        createPanel.setBackground(Color.WHITE);
-        createPanel.setBorder(BorderFactory.createTitledBorder(
-                BorderFactory.createLineBorder(new Color(200, 200, 200), 1, true),
-                "Crear Nuevo Empleado",
-                TitledBorder.LEFT,
-                TitledBorder.TOP,
-                new Font("Segoe UI", Font.BOLD, 16),
-                new Color(33, 37, 41)));
-
+        JPanel createPanel = createTitledPanel("Crear Nuevo Empleado"); // GridBagLayout
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.insets = new Insets(8, 10, 8, 10);
         gbc.fill = GridBagConstraints.HORIZONTAL;
 
-        JLabel dniLabel = new JLabel("DNI:");
-        dniLabel.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-        JTextField dniField = new JTextField(20);
-        dniField.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        JTextField dniField = addField(createPanel, gbc, "DNI:", 0);
+        JTextField nombreField = addField(createPanel, gbc, "Nombre:", 1);
+        JTextField apellido1Field = addField(createPanel, gbc, "Apellido 1:", 2);
+        JTextField apellido2Field = addField(createPanel, gbc, "Apellido 2:", 3);
+        JTextField fechaField = addField(createPanel, gbc, "Fecha Nacimiento (YYYY-MM-DD):", 4);
+        JTextField numEmpField = addField(createPanel, gbc, "Número Empleado:", 5);
+        JTextField puestoField = addField(createPanel, gbc, "Puesto:", 6);
+        JTextField inicioContratoField = addField(createPanel, gbc, "Inicio Contrato (YYYY-MM-DD):", 7);
+        JTextField segSocialField = addField(createPanel, gbc, "Seguridad Social:", 8);
 
-        JLabel nombreLabel = new JLabel("Nombre:");
-        nombreLabel.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-        JTextField nombreField = new JTextField(20);
-        nombreField.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-
-        JLabel apellido1Label = new JLabel("Apellido 1:");
-        apellido1Label.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-        JTextField apellido1Field = new JTextField(20);
-        apellido1Field.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-
-        JLabel fechaLabel = new JLabel("Fecha Nacimiento (YYYY-MM-DD):");
-        fechaLabel.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-        JTextField fechaField = new JTextField(20);
-        fechaField.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-
-        JLabel numEmpLabel = new JLabel("Número Empleado:");
-        numEmpLabel.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-        JTextField numEmpField = new JTextField(20);
-        numEmpField.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-
-        JLabel puestoLabel = new JLabel("Puesto:");
-        puestoLabel.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-        JTextField puestoField = new JTextField(20);
-        puestoField.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-
-        JLabel inicioContratoLabel = new JLabel("Inicio Contrato (YYYY-MM-DD):");
-        inicioContratoLabel.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-        JTextField inicioContratoField = new JTextField(20);
-        inicioContratoField.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-
-        JLabel segSocialLabel = new JLabel("Seguridad Social:");
-        segSocialLabel.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-        JTextField segSocialField = new JTextField(20);
-        segSocialField.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-
-        JButton crearButton = new JButton("Crear Empleado", new ImageIcon("src/resources/iconos/cross.png"));
+        JButton crearButton = new JButton("Crear Empleado", loadIcon("src/resources/iconos/cross.png"));
         styleButton(crearButton, new Color(211, 47, 47), true);
+        crearButton.setToolTipText("Crea un nuevo empleado con los datos ingresados");
 
         crearButton.addActionListener(event -> {
+            if (!validateFields(dniField, nombreField, apellido1Field, apellido2Field, fechaField, numEmpField, puestoField, inicioContratoField, segSocialField)) return;
             try {
-                String dni = dniField.getText();
-                String nombre = nombreField.getText();
-                String apellido1 = apellido1Field.getText();
-                LocalDate fecha = LocalDate.parse(fechaField.getText());
-                int numEmp = Integer.parseInt(numEmpField.getText());
-                String puesto = puestoField.getText();
-                LocalDate inicioContrato = LocalDate.parse(inicioContratoField.getText());
-                String segSocial = segSocialField.getText();
-                Empleado empleado = new Empleado(dni, nombre, apellido1, "Apellido2", fecha,
-                        "user" + numEmp, "pass" + numEmp, "Población", puesto, numEmp, inicioContrato, segSocial);
+                Empleado empleado = new Empleado(dniField.getText(), nombreField.getText(), apellido1Field.getText(), 
+                        apellido2Field.getText(), LocalDate.parse(fechaField.getText()), "user" + numEmpField.getText(), 
+                        "pass" + numEmpField.getText(), "Población", puestoField.getText(), Integer.parseInt(numEmpField.getText()), 
+                        LocalDate.parse(inicioContratoField.getText()), segSocialField.getText());
                 empleado.guardar();
                 JOptionPane.showMessageDialog(frame, "Empleado creado: " + empleado);
-                clearFields(dniField, nombreField, apellido1Field, fechaField, numEmpField, puestoField, inicioContratoField, segSocialField);
+                clearFields(dniField, nombreField, apellido1Field, apellido2Field, fechaField, numEmpField, puestoField, inicioContratoField, segSocialField);
             } catch (DateTimeParseException ex) {
                 JOptionPane.showMessageDialog(frame, "Formato de fecha inválido.", "Error", JOptionPane.ERROR_MESSAGE);
             } catch (NumberFormatException ex) {
@@ -567,23 +376,7 @@ public class MainApp2 {
             }
         });
 
-        gbc.gridx = 0; gbc.gridy = 0; createPanel.add(dniLabel, gbc);
-        gbc.gridx = 1; createPanel.add(dniField, gbc);
-        gbc.gridx = 0; gbc.gridy = 1; createPanel.add(nombreLabel, gbc);
-        gbc.gridx = 1; createPanel.add(nombreField, gbc);
-        gbc.gridx = 0; gbc.gridy = 2; createPanel.add(apellido1Label, gbc);
-        gbc.gridx = 1; createPanel.add(apellido1Field, gbc);
-        gbc.gridx = 0; gbc.gridy = 3; createPanel.add(fechaLabel, gbc);
-        gbc.gridx = 1; createPanel.add(fechaField, gbc);
-        gbc.gridx = 0; gbc.gridy = 4; createPanel.add(numEmpLabel, gbc);
-        gbc.gridx = 1; createPanel.add(numEmpField, gbc);
-        gbc.gridx = 0; gbc.gridy = 5; createPanel.add(puestoLabel, gbc);
-        gbc.gridx = 1; createPanel.add(puestoField, gbc);
-        gbc.gridx = 0; gbc.gridy = 6; createPanel.add(inicioContratoLabel, gbc);
-        gbc.gridx = 1; createPanel.add(inicioContratoField, gbc);
-        gbc.gridx = 0; gbc.gridy = 7; createPanel.add(segSocialLabel, gbc);
-        gbc.gridx = 1; createPanel.add(segSocialField, gbc);
-        gbc.gridx = 0; gbc.gridy = 8; gbc.gridwidth = 2; createPanel.add(crearButton, gbc);
+        gbc.gridx = 0; gbc.gridy = 9; gbc.gridwidth = 2; createPanel.add(crearButton, gbc);
 
         panel.add(createPanel, BorderLayout.NORTH);
         return panel;
@@ -594,51 +387,32 @@ public class MainApp2 {
         panel.setBackground(Color.WHITE);
         panel.setBorder(new EmptyBorder(15, 15, 15, 15));
 
-        JPanel createPanel = new JPanel(new GridBagLayout());
-        createPanel.setBackground(Color.WHITE);
-        createPanel.setBorder(BorderFactory.createTitledBorder(
-                BorderFactory.createLineBorder(new Color(200, 200, 200), 1, true),
-                "Crear Nueva Instalación",
-                TitledBorder.LEFT,
-                TitledBorder.TOP,
-                new Font("Segoe UI", Font.BOLD, 16),
-                new Color(33, 37, 41)));
-
+        JPanel createPanel = createTitledPanel("Crear Nueva Instalación"); // GridBagLayout
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.insets = new Insets(8, 10, 8, 10);
         gbc.fill = GridBagConstraints.HORIZONTAL;
 
-        JLabel nombreLabel = new JLabel("Nombre:");
-        nombreLabel.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-        JTextField nombreField = new JTextField(20);
-        nombreField.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-
-        JLabel direccionLabel = new JLabel("Dirección:");
-        direccionLabel.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-        JTextField direccionField = new JTextField(20);
-        direccionField.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-
+        JTextField nombreField = addField(createPanel, gbc, "Nombre:", 0);
+        JTextField direccionField = addField(createPanel, gbc, "Dirección:", 1);
         JLabel superficieLabel = new JLabel("Tipo de Superficie:");
         superficieLabel.setFont(new Font("Segoe UI", Font.PLAIN, 14));
         JComboBox<Instalacion.TipoSuperficie> superficieCombo = new JComboBox<>(Instalacion.TipoSuperficie.values());
         superficieCombo.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        gbc.gridx = 0; gbc.gridy = 2; createPanel.add(superficieLabel, gbc);
+        gbc.gridx = 1; createPanel.add(superficieCombo, gbc);
+        JTextField buscarField = addField(createPanel, gbc, "Buscar por Nombre:", 3);
 
-        JLabel buscarLabel = new JLabel("Buscar por Nombre:");
-        buscarLabel.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-        JTextField buscarField = new JTextField(20);
-        buscarField.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-
-        JButton crearButton = new JButton("Crear Instalación", new ImageIcon("src/resources/iconos/cross.png"));
+        JButton crearButton = new JButton("Crear Instalación", loadIcon("src/resources/iconos/cross.png"));
         styleButton(crearButton, new Color(211, 47, 47), true);
-        JButton buscarButton = new JButton("Buscar Instalaciones", new ImageIcon("src/resources/iconos/magnifier.png"));
+        crearButton.setToolTipText("Crea una nueva instalación con los datos ingresados");
+        JButton buscarButton = new JButton("Buscar Instalaciones", loadIcon("src/resources/iconos/magnifier.png"));
         styleButton(buscarButton, new Color(33, 37, 41), false);
+        buscarButton.setToolTipText("Busca instalaciones por nombre parcial");
 
         crearButton.addActionListener(event -> {
+            if (!validateFields(nombreField, direccionField)) return;
             try {
-                String nombre = nombreField.getText();
-                String direccion = direccionField.getText();
-                Instalacion.TipoSuperficie superficie = (Instalacion.TipoSuperficie) superficieCombo.getSelectedItem();
-                Instalacion instalacion = new Instalacion(nombre, direccion, superficie);
+                Instalacion instalacion = new Instalacion(nombreField.getText(), direccionField.getText(), (Instalacion.TipoSuperficie) superficieCombo.getSelectedItem());
                 instalacion.guardar();
                 JOptionPane.showMessageDialog(frame, "Instalación creada: " + instalacion);
                 clearFields(nombreField, direccionField);
@@ -648,30 +422,15 @@ public class MainApp2 {
         });
 
         buscarButton.addActionListener(event -> {
+            if (!validateFields(buscarField)) return;
             try {
-                String nombre = buscarField.getText();
-                List<Instalacion> instalaciones = Instalacion.buscarPorNombreParcial(nombre);
-                JTextArea textArea = new JTextArea(10, 30);
-                textArea.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-                textArea.setText("Instalaciones encontradas:\n");
-                for (Instalacion i : instalaciones) {
-                    textArea.append(i.toString() + "\n");
-                }
-                textArea.setEditable(false);
-                JOptionPane.showMessageDialog(frame, new JScrollPane(textArea), "Resultados", JOptionPane.INFORMATION_MESSAGE);
+                List<Instalacion> instalaciones = Instalacion.buscarPorNombreParcial(buscarField.getText());
+                showListResult(instalaciones, "Instalaciones encontradas:");
             } catch (SQLException ex) {
                 JOptionPane.showMessageDialog(frame, "Error al buscar instalaciones: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
             }
         });
 
-        gbc.gridx = 0; gbc.gridy = 0; createPanel.add(nombreLabel, gbc);
-        gbc.gridx = 1; createPanel.add(nombreField, gbc);
-        gbc.gridx = 0; gbc.gridy = 1; createPanel.add(direccionLabel, gbc);
-        gbc.gridx = 1; createPanel.add(direccionField, gbc);
-        gbc.gridx = 0; gbc.gridy = 2; createPanel.add(superficieLabel, gbc);
-        gbc.gridx = 1; createPanel.add(superficieCombo, gbc);
-        gbc.gridx = 0; gbc.gridy = 3; createPanel.add(buscarLabel, gbc);
-        gbc.gridx = 1; createPanel.add(buscarField, gbc);
         gbc.gridx = 0; gbc.gridy = 4; gbc.gridwidth = 2; createPanel.add(crearButton, gbc);
         gbc.gridy = 5; createPanel.add(buscarButton, gbc);
 
@@ -684,45 +443,30 @@ public class MainApp2 {
         panel.setBackground(Color.WHITE);
         panel.setBorder(new EmptyBorder(15, 15, 15, 15));
 
-        JPanel createPanel = new JPanel(new GridBagLayout());
-        createPanel.setBackground(Color.WHITE);
-        createPanel.setBorder(BorderFactory.createTitledBorder(
-                BorderFactory.createLineBorder(new Color(200, 200, 200), 1, true),
-                "Crear Nuevo Grupo",
-                TitledBorder.LEFT,
-                TitledBorder.TOP,
-                new Font("Segoe UI", Font.BOLD, 16),
-                new Color(33, 37, 41)));
-
+        JPanel createPanel = createTitledPanel("Crear Nuevo Grupo"); // GridBagLayout
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.insets = new Insets(8, 10, 8, 10);
         gbc.fill = GridBagConstraints.HORIZONTAL;
 
-        JLabel categoriaLabel = new JLabel("Nombre Categoría:");
-        categoriaLabel.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-        JTextField categoriaField = new JTextField(20);
-        categoriaField.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        JTextField categoriaField = addField(createPanel, gbc, "Nombre Categoría:", 0);
+        JTextField nombreField = addField(createPanel, gbc, "Nombre Grupo:", 1);
 
-        JLabel nombreLabel = new JLabel("Nombre Grupo:");
-        nombreLabel.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-        JTextField nombreField = new JTextField(20);
-        nombreField.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-
-        JButton crearButton = new JButton("Crear Grupo", new ImageIcon("src/resources/iconos/cross.png"));
+        JButton crearButton = new JButton("Crear Grupo", loadIcon("src/resources/iconos/cross.png"));
         styleButton(crearButton, new Color(211, 47, 47), true);
-        JButton listarButton = new JButton("Listar Grupos", new ImageIcon("src/resources/iconos/magnifier.png"));
+        crearButton.setToolTipText("Crea un nuevo grupo con los datos ingresados");
+        JButton listarButton = new JButton("Listar Grupos", loadIcon("src/resources/iconos/magnifier.png"));
         styleButton(listarButton, new Color(33, 37, 41), false);
+        listarButton.setToolTipText("Lista los grupos de la categoría especificada");
 
         crearButton.addActionListener(event -> {
+            if (!validateFields(categoriaField, nombreField)) return;
             try {
-                String nombreCategoria = categoriaField.getText();
-                String nombreGrupo = nombreField.getText();
-                Categoria categoria = Categoria.buscarPorNombre(nombreCategoria);
+                Categoria categoria = Categoria.buscarPorNombre(categoriaField.getText());
                 if (categoria == null) {
                     JOptionPane.showMessageDialog(frame, "Categoría no encontrada.", "Error", JOptionPane.ERROR_MESSAGE);
                     return;
                 }
-                Grupo grupo = new Grupo(nombreGrupo);
+                Grupo grupo = new Grupo(nombreField.getText());
                 grupo.setCategoria(categoria);
                 grupo.guardar();
                 JOptionPane.showMessageDialog(frame, "Grupo creado: " + grupo);
@@ -733,31 +477,20 @@ public class MainApp2 {
         });
 
         listarButton.addActionListener(event -> {
+            if (!validateFields(categoriaField)) return;
             try {
-                String nombreCategoria = categoriaField.getText();
-                Categoria categoria = Categoria.buscarPorNombre(nombreCategoria);
+                Categoria categoria = Categoria.buscarPorNombre(categoriaField.getText());
                 if (categoria == null) {
                     JOptionPane.showMessageDialog(frame, "Categoría no encontrada.", "Error", JOptionPane.ERROR_MESSAGE);
                     return;
                 }
                 List<Grupo> grupos = Grupo.obtenerPorCategoria(categoria);
-                JTextArea textArea = new JTextArea(10, 30);
-                textArea.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-                textArea.setText("Grupos en " + categoria.getNombre() + ":\n");
-                for (Grupo g : grupos) {
-                    textArea.append(g.toString() + "\n");
-                }
-                textArea.setEditable(false);
-                JOptionPane.showMessageDialog(frame, new JScrollPane(textArea), "Lista de Grupos", JOptionPane.INFORMATION_MESSAGE);
+                showListResult(grupos, "Grupos en " + categoria.getNombre() + ":");
             } catch (SQLException ex) {
                 JOptionPane.showMessageDialog(frame, "Error al listar grupos: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
             }
         });
 
-        gbc.gridx = 0; gbc.gridy = 0; createPanel.add(categoriaLabel, gbc);
-        gbc.gridx = 1; createPanel.add(categoriaField, gbc);
-        gbc.gridx = 0; gbc.gridy = 1; createPanel.add(nombreLabel, gbc);
-        gbc.gridx = 1; createPanel.add(nombreField, gbc);
         gbc.gridx = 0; gbc.gridy = 2; gbc.gridwidth = 2; createPanel.add(crearButton, gbc);
         gbc.gridy = 3; createPanel.add(listarButton, gbc);
 
@@ -770,87 +503,48 @@ public class MainApp2 {
         panel.setBackground(Color.WHITE);
         panel.setBorder(new EmptyBorder(15, 15, 15, 15));
 
-        JPanel createPanel = new JPanel(new GridBagLayout());
-        createPanel.setBackground(Color.WHITE);
-        createPanel.setBorder(BorderFactory.createTitledBorder(
-                BorderFactory.createLineBorder(new Color(200, 200, 200), 1, true),
-                "Crear Nuevo Equipo y Buscar Jugador",
-                TitledBorder.LEFT,
-                TitledBorder.TOP,
-                new Font("Segoe UI", Font.BOLD, 16),
-                new Color(33, 37, 41)));
-
+        JPanel createPanel = createTitledPanel("Crear Nuevo Equipo y Buscar Jugador"); // GridBagLayout
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.insets = new Insets(8, 10, 8, 10);
         gbc.fill = GridBagConstraints.HORIZONTAL;
 
-        JLabel letraLabel = new JLabel("Letra:");
-        letraLabel.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-        JTextField letraField = new JTextField(20);
-        letraField.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        JTextField letraField = addField(createPanel, gbc, "Letra:", 0);
+        JTextField instalacionField = addField(createPanel, gbc, "Nombre Instalación:", 1);
+        JTextField grupoField = addField(createPanel, gbc, "Nombre Grupo:", 2);
+        JTextField clubField = addField(createPanel, gbc, "Nombre Club (opcional):", 3);
 
-        JLabel instalacionLabel = new JLabel("Nombre Instalación:");
-        instalacionLabel.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-        JTextField instalacionField = new JTextField(20);
-        instalacionField.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-
-        JLabel grupoLabel = new JLabel("Nombre Grupo:");
-        grupoLabel.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-        JTextField grupoField = new JTextField(20);
-        grupoField.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-
-        JLabel clubLabel = new JLabel("Nombre Club (opcional):");
-        clubLabel.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-        JTextField clubField = new JTextField(20);
-        clubField.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-
-        JButton crearButton = new JButton("Crear Equipo", new ImageIcon("src/resources/iconos/cross.png"));
+        JButton crearButton = new JButton("Crear Equipo", loadIcon("src/resources/iconos/cross.png"));
         styleButton(crearButton, new Color(211, 47, 47), true);
+        crearButton.setToolTipText("Crea un nuevo equipo con los datos ingresados");
 
-        JLabel buscarLetraLabel = new JLabel("Letra Equipo para Buscar:");
-        buscarLetraLabel.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-        JTextField buscarLetraField = new JTextField(20);
-        buscarLetraField.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        JTextField buscarLetraField = addField(createPanel, gbc, "Letra Equipo para Buscar:", 5);
+        JTextField dniField = addField(createPanel, gbc, "DNI Jugador:", 6);
 
-        JLabel dniLabel = new JLabel("DNI Jugador:");
-        dniLabel.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-        JTextField dniField = new JTextField(20);
-        dniField.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-
-        JButton buscarJugadorButton = new JButton("Buscar Jugador", new ImageIcon("src/resources/iconos/magnifier.png"));
+        JButton buscarJugadorButton = new JButton("Buscar Jugador", loadIcon("src/resources/iconos/magnifier.png"));
         styleButton(buscarJugadorButton, new Color(33, 37, 41), false);
+        buscarJugadorButton.setToolTipText("Busca un jugador en el equipo por DNI");
 
         crearButton.addActionListener(event -> {
+            if (!validateFields(letraField, instalacionField, grupoField)) return;
             try {
-                String letra = letraField.getText();
-                String nombreInstalacion = instalacionField.getText();
-                String nombreGrupo = grupoField.getText();
-                String nombreClub = clubField.getText();
-
-                Instalacion instalacion = Instalacion.buscarPorNombre(nombreInstalacion);
+                Instalacion instalacion = Instalacion.buscarPorNombre(instalacionField.getText());
                 if (instalacion == null) {
-                    instalacion = new Instalacion(nombreInstalacion, "Dirección por defecto", Instalacion.TipoSuperficie.CESPED_NATURAL);
-                    instalacion.guardar();
+                    int confirm = JOptionPane.showConfirmDialog(frame, "Instalación no encontrada. ¿Crear una nueva con valores por defecto?", "Confirmar", JOptionPane.YES_NO_OPTION);
+                    if (confirm == JOptionPane.YES_OPTION) {
+                        instalacion = new Instalacion(instalacionField.getText(), "Dirección por defecto", Instalacion.TipoSuperficie.CESPED_NATURAL);
+                        instalacion.guardar();
+                    } else {
+                        return;
+                    }
                 }
-
-                Grupo grupo = Grupo.buscarPorNombre(nombreGrupo);
+                Grupo grupo = Grupo.buscarPorNombre(grupoField.getText());
                 if (grupo == null) {
                     JOptionPane.showMessageDialog(frame, "Grupo no encontrado. Cree uno primero.", "Error", JOptionPane.ERROR_MESSAGE);
                     return;
                 }
-
-                Equipo equipo = new Equipo(letra, instalacion, grupo);
+                Equipo equipo = new Equipo(letraField.getText(), instalacion, grupo);
                 equipo.guardar();
-
-                if (!nombreClub.isEmpty()) {
-                    Club club = Club.buscarPorNombre(nombreClub);
-                    if (club != null) {
-                        club.addEquipo(equipo);
-                    } else {
-                        JOptionPane.showMessageDialog(frame, "Club no encontrado, equipo creado sin club.", "Advertencia", JOptionPane.WARNING_MESSAGE);
-                    }
-                }
-
+                handleClubAssignment(equipo, clubField.getText());
                 JOptionPane.showMessageDialog(frame, "Equipo creado: " + equipo);
                 clearFields(letraField, instalacionField, grupoField, clubField);
             } catch (SQLException ex) {
@@ -859,44 +553,24 @@ public class MainApp2 {
         });
 
         buscarJugadorButton.addActionListener(event -> {
+            if (!validateFields(buscarLetraField, dniField)) return;
             try {
-                String letra = buscarLetraField.getText();
-                String dni = dniField.getText();
-
-                Equipo equipo = Equipo.buscarPorLetra(letra);
+                Equipo equipo = Equipo.buscarPorLetra(buscarLetraField.getText());
                 if (equipo == null) {
-                    JOptionPane.showMessageDialog(frame, "Equipo no encontrado con la letra: " + letra, "Error", JOptionPane.ERROR_MESSAGE);
+                    JOptionPane.showMessageDialog(frame, "Equipo no encontrado con la letra: " + buscarLetraField.getText(), "Error", JOptionPane.ERROR_MESSAGE);
                     return;
                 }
-
-                Persona jugador = equipo.buscarJugador(dni);
-                if (jugador != null) {
-                    JOptionPane.showMessageDialog(frame, "Jugador encontrado: " + jugador.toString(), "Resultado", JOptionPane.INFORMATION_MESSAGE);
-                } else {
-                    JOptionPane.showMessageDialog(frame, "No se encontró un jugador con DNI: " + dni + " en el equipo " + letra, "Resultado", JOptionPane.INFORMATION_MESSAGE);
-                }
-
+                Persona jugador = equipo.buscarJugador(dniField.getText());
+                JOptionPane.showMessageDialog(frame, jugador != null ? "Jugador encontrado: " + jugador.toString() + "\nEquipo: " + equipo.getLetra() : 
+                        "No se encontró un jugador con DNI: " + dniField.getText() + " en el equipo " + buscarLetraField.getText());
                 clearFields(buscarLetraField, dniField);
             } catch (SQLException ex) {
                 JOptionPane.showMessageDialog(frame, "Error al buscar jugador: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
             }
         });
 
-        gbc.gridx = 0; gbc.gridy = 0; createPanel.add(letraLabel, gbc);
-        gbc.gridx = 1; createPanel.add(letraField, gbc);
-        gbc.gridx = 0; gbc.gridy = 1; createPanel.add(instalacionLabel, gbc);
-        gbc.gridx = 1; createPanel.add(instalacionField, gbc);
-        gbc.gridx = 0; gbc.gridy = 2; createPanel.add(grupoLabel, gbc);
-        gbc.gridx = 1; createPanel.add(grupoField, gbc);
-        gbc.gridx = 0; gbc.gridy = 3; createPanel.add(clubLabel, gbc);
-        gbc.gridx = 1; createPanel.add(clubField, gbc);
         gbc.gridx = 0; gbc.gridy = 4; gbc.gridwidth = 2; createPanel.add(crearButton, gbc);
-
-        gbc.gridx = 0; gbc.gridy = 5; gbc.gridwidth = 1; createPanel.add(buscarLetraLabel, gbc);
-        gbc.gridx = 1; createPanel.add(buscarLetraField, gbc);
-        gbc.gridx = 0; gbc.gridy = 6; createPanel.add(dniLabel, gbc);
-        gbc.gridx = 1; createPanel.add(dniField, gbc);
-        gbc.gridx = 0; gbc.gridy = 7; gbc.gridwidth = 2; createPanel.add(buscarJugadorButton, gbc);
+        gbc.gridy = 7; createPanel.add(buscarJugadorButton, gbc);
 
         panel.add(createPanel, BorderLayout.NORTH);
         return panel;
@@ -907,46 +581,29 @@ public class MainApp2 {
         panel.setBackground(Color.WHITE);
         panel.setBorder(new EmptyBorder(15, 15, 15, 15));
 
-        JPanel createPanel = new JPanel(new GridBagLayout());
-        createPanel.setBackground(Color.WHITE);
-        createPanel.setBorder(BorderFactory.createTitledBorder(
-                BorderFactory.createLineBorder(new Color(200, 200, 200), 1, true),
-                "Gestionar Licencias",
-                TitledBorder.LEFT,
-                TitledBorder.TOP,
-                new Font("Segoe UI", Font.BOLD, 16),
-                new Color(33, 37, 41)));
-
+        JPanel createPanel = createTitledPanel("Gestionar Licencias"); // GridBagLayout
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.insets = new Insets(8, 10, 8, 10);
         gbc.fill = GridBagConstraints.HORIZONTAL;
 
-        JLabel dniLabel = new JLabel("DNI Persona:");
-        dniLabel.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-        JTextField dniField = new JTextField(20);
-        dniField.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        JTextField dniField = addField(createPanel, gbc, "DNI Persona:", 0);
+        JTextField equipoField = addField(createPanel, gbc, "Letra Equipo (opcional):", 1);
+        JTextField calcularField = addField(createPanel, gbc, "Letra Equipo para Precio:", 2);
 
-        JLabel equipoLabel = new JLabel("Letra Equipo (opcional):");
-        equipoLabel.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-        JTextField equipoField = new JTextField(20);
-        equipoField.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-
-        JLabel calcularLabel = new JLabel("Letra Equipo para Precio:");
-        calcularLabel.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-        JTextField calcularField = new JTextField(20);
-        calcularField.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-
-        JButton crearSimpleButton = new JButton("Crear Licencia Simple", new ImageIcon("src/resources/iconos/cross.png"));
+        JButton crearSimpleButton = new JButton("Crear Licencia Simple", loadIcon("src/resources/iconos/cross.png"));
         styleButton(crearSimpleButton, new Color(211, 47, 47), true);
-        JButton crearEquipoButton = new JButton("Crear Licencia con Equipo", new ImageIcon("src/resources/iconos/cross.png"));
+        crearSimpleButton.setToolTipText("Crea una licencia simple para una persona");
+        JButton crearEquipoButton = new JButton("Crear Licencia con Equipo", loadIcon("src/resources/iconos/cross.png"));
         styleButton(crearEquipoButton, new Color(211, 47, 47), true);
-        JButton calcularButton = new JButton("Calcular Precio Licencia", new ImageIcon("src/resources/iconos/precio_licencia.png"));
+        crearEquipoButton.setToolTipText("Crea una licencia y asigna un equipo");
+        JButton calcularButton = new JButton("Calcular Precio Licencia", loadIcon("src/resources/iconos/precio_licencia.png"));
         styleButton(calcularButton, new Color(33, 37, 41), false);
+        calcularButton.setToolTipText("Calcula el precio de la licencia para un equipo");
 
         crearSimpleButton.addActionListener(event -> {
+            if (!validateFields(dniField)) return;
             try {
-                String dni = dniField.getText();
-                Persona persona = Persona.buscarPorDni(dni);
+                Persona persona = Persona.buscarPorDni(dniField.getText());
                 if (persona == null) {
                     JOptionPane.showMessageDialog(frame, "Persona no encontrada.", "Error", JOptionPane.ERROR_MESSAGE);
                     return;
@@ -961,17 +618,12 @@ public class MainApp2 {
         });
 
         crearEquipoButton.addActionListener(event -> {
+            if (!validateFields(dniField, equipoField)) return;
             try {
-                String dni = dniField.getText();
-                String letraEquipo = equipoField.getText();
-                Persona persona = Persona.buscarPorDni(dni);
-                if (persona == null) {
-                    JOptionPane.showMessageDialog(frame, "Persona no encontrada.", "Error", JOptionPane.ERROR_MESSAGE);
-                    return;
-                }
-                Equipo equipo = Equipo.buscarPorLetra(letraEquipo);
-                if (equipo == null) {
-                    JOptionPane.showMessageDialog(frame, "Equipo no encontrado.", "Error", JOptionPane.ERROR_MESSAGE);
+                Persona persona = Persona.buscarPorDni(dniField.getText());
+                Equipo equipo = Equipo.buscarPorLetra(equipoField.getText());
+                if (persona == null || equipo == null) {
+                    JOptionPane.showMessageDialog(frame, persona == null ? "Persona no encontrada." : "Equipo no encontrado.", "Error", JOptionPane.ERROR_MESSAGE);
                     return;
                 }
                 Licencia licencia = new Licencia(persona, "LIC" + System.currentTimeMillis());
@@ -985,9 +637,9 @@ public class MainApp2 {
         });
 
         calcularButton.addActionListener(event -> {
+            if (!validateFields(calcularField)) return;
             try {
-                String letraEquipo = calcularField.getText();
-                Equipo equipo = Equipo.buscarPorLetra(letraEquipo);
+                Equipo equipo = Equipo.buscarPorLetra(calcularField.getText());
                 if (equipo == null) {
                     JOptionPane.showMessageDialog(frame, "Equipo no encontrado.", "Error", JOptionPane.ERROR_MESSAGE);
                     return;
@@ -999,12 +651,6 @@ public class MainApp2 {
             }
         });
 
-        gbc.gridx = 0; gbc.gridy = 0; createPanel.add(dniLabel, gbc);
-        gbc.gridx = 1; createPanel.add(dniField, gbc);
-        gbc.gridx = 0; gbc.gridy = 1; createPanel.add(equipoLabel, gbc);
-        gbc.gridx = 1; createPanel.add(equipoField, gbc);
-        gbc.gridx = 0; gbc.gridy = 2; createPanel.add(calcularLabel, gbc);
-        gbc.gridx = 1; createPanel.add(calcularField, gbc);
         gbc.gridx = 0; gbc.gridy = 3; gbc.gridwidth = 2; createPanel.add(crearSimpleButton, gbc);
         gbc.gridy = 4; createPanel.add(crearEquipoButton, gbc);
         gbc.gridy = 5; createPanel.add(calcularButton, gbc);
@@ -1013,23 +659,137 @@ public class MainApp2 {
         return panel;
     }
 
+    // Métodos de utilidad
+    private void setFrameIcon(String path) {
+        ImageIcon icon = loadIcon(path);
+        if (icon != null) frame.setIconImage(icon.getImage());
+    }
+
+    private JLabel createLogoLabel(String path) {
+        ImageIcon icon = loadIcon(path);
+        if (icon != null) {
+            Image scaledImage = icon.getImage().getScaledInstance(50, 50, Image.SCALE_SMOOTH);
+            return new JLabel(new ImageIcon(scaledImage));
+        }
+        return new JLabel();
+    }
+
+    private ImageIcon loadIcon(String path) {
+        try {
+            return new ImageIcon(path);
+        } catch (Exception e) {
+            System.err.println("No se pudo cargar el icono: " + path);
+            return null;
+        }
+    }
+
+    private JPanel createTitledPanel(String title, LayoutManager layout) {
+        JPanel panel = new JPanel(layout);
+        panel.setBackground(Color.WHITE);
+        panel.setBorder(BorderFactory.createTitledBorder(
+                BorderFactory.createLineBorder(new Color(200, 200, 200), 1, true),
+                title, TitledBorder.LEFT, TitledBorder.TOP,
+                new Font("Segoe UI", Font.BOLD, 16), new Color(33, 37, 41)));
+        return panel;
+    }
+
+    private JPanel createTitledPanel(String title) {
+        return createTitledPanel(title, new GridBagLayout());
+    }
+
+    private JTextField addField(JPanel panel, GridBagConstraints gbc, String labelText, int row) {
+        JLabel label = new JLabel(labelText);
+        label.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        JTextField field = new JTextField(20);
+        field.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        gbc.gridx = 0; gbc.gridy = row; panel.add(label, gbc);
+        gbc.gridx = 1; panel.add(field, gbc);
+        return field;
+    }
+
+    private boolean validateFields(JTextField... fields) {
+        for (JTextField field : fields) {
+            if (field.getText().trim().isEmpty()) {
+                JOptionPane.showMessageDialog(frame, "Todos los campos deben estar llenos.", "Error", JOptionPane.ERROR_MESSAGE);
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private void listCategorias(JPanel listPanel) {
+        try {
+            List<Categoria> categorias = Categoria.obtenerTodas();
+            JTextArea textArea = new JTextArea(10, 30);
+            textArea.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+            textArea.setText("Categorías:\n");
+            for (Categoria c : categorias) {
+                textArea.append(c.toString() + "\n");
+            }
+            textArea.setEditable(false);
+            listPanel.removeAll();
+            listPanel.add(new JButton("Listar Categorías", loadIcon("src/resources/iconos/magnifier.png")), BorderLayout.NORTH);
+            listPanel.add(new JScrollPane(textArea), BorderLayout.CENTER);
+            listPanel.revalidate();
+            listPanel.repaint();
+        } catch (SQLException ex) {
+            JOptionPane.showMessageDialog(frame, "Error al listar categorías: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    private void listClubes(JPanel listPanel) {
+        try {
+            List<Club> clubes = Club.obtenerTodos();
+            JTextArea textArea = new JTextArea(10, 30);
+            textArea.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+            textArea.setText("Clubes:\n");
+            for (Club c : clubes) {
+                textArea.append(c.toString() + "\n");
+            }
+            textArea.setEditable(false);
+            listPanel.removeAll();
+            listPanel.add(new JButton("Listar Clubes", loadIcon("src/resources/iconos/magnifier.png")), BorderLayout.NORTH);
+            listPanel.add(new JScrollPane(textArea), BorderLayout.CENTER);
+            listPanel.revalidate();
+            listPanel.repaint();
+        } catch (SQLException ex) {
+            JOptionPane.showMessageDialog(frame, "Error al listar clubes: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    private void showListResult(List<?> list, String title) {
+        JTextArea textArea = new JTextArea(10, 30);
+        textArea.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        textArea.setText(title + "\n");
+        for (Object item : list) {
+            textArea.append(item.toString() + "\n");
+        }
+        textArea.setEditable(false);
+        JOptionPane.showMessageDialog(frame, new JScrollPane(textArea), "Resultados", JOptionPane.INFORMATION_MESSAGE);
+    }
+
+    private void handleClubAssignment(Equipo equipo, String nombreClub) throws SQLException {
+        if (!nombreClub.isEmpty()) {
+            Club club = Club.buscarPorNombre(nombreClub);
+            if (club != null) {
+                club.addEquipo(equipo);
+            } else {
+                JOptionPane.showMessageDialog(frame, "Club no encontrado, equipo creado sin club.", "Advertencia", JOptionPane.WARNING_MESSAGE);
+            }
+        }
+    }
+
     private void styleMenu(JMenu menu, Font font, Color foreground, Color hoverColor) {
         menu.setFont(font);
         menu.setForeground(foreground);
         menu.setOpaque(true);
         menu.setBackground(new Color(33, 37, 41));
         menu.setCursor(new Cursor(Cursor.HAND_CURSOR));
-
         menu.addMouseListener(new MouseAdapter() {
             @Override
-            public void mouseEntered(MouseEvent e) {
-                menu.setBackground(hoverColor);
-            }
-
+            public void mouseEntered(MouseEvent e) { menu.setBackground(hoverColor); }
             @Override
-            public void mouseExited(MouseEvent e) {
-                menu.setBackground(new Color(33, 37, 41));
-            }
+            public void mouseExited(MouseEvent e) { menu.setBackground(new Color(33, 37, 41)); }
         });
     }
 
@@ -1040,17 +800,11 @@ public class MainApp2 {
         item.setOpaque(true);
         item.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
         item.setCursor(new Cursor(Cursor.HAND_CURSOR));
-
         item.addMouseListener(new MouseAdapter() {
             @Override
-            public void mouseEntered(MouseEvent e) {
-                item.setBackground(hoverColor);
-            }
-
+            public void mouseEntered(MouseEvent e) { item.setBackground(hoverColor); }
             @Override
-            public void mouseExited(MouseEvent e) {
-                item.setBackground(new Color(33, 37, 41));
-            }
+            public void mouseExited(MouseEvent e) { item.setBackground(new Color(33, 37, 41)); }
         });
     }
 
@@ -1061,18 +815,12 @@ public class MainApp2 {
         button.setFocusPainted(false);
         button.setBorder(BorderFactory.createEmptyBorder(12, 25, 12, 25));
         button.setCursor(new Cursor(Cursor.HAND_CURSOR));
-
         Color hoverColor = isCreateButton ? new Color(239, 83, 80) : new Color(66, 66, 66);
         button.addMouseListener(new MouseAdapter() {
             @Override
-            public void mouseEntered(MouseEvent e) {
-                button.setBackground(hoverColor);
-            }
-
+            public void mouseEntered(MouseEvent e) { button.setBackground(hoverColor); }
             @Override
-            public void mouseExited(MouseEvent e) {
-                button.setBackground(bgColor);
-            }
+            public void mouseExited(MouseEvent e) { button.setBackground(bgColor); }
         });
     }
 

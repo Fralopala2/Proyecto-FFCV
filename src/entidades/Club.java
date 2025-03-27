@@ -163,6 +163,33 @@ public class Club {
             throw new SQLException("Equipo no encontrado.");
         }
     }
+    
+    public static List<Club> obtenerTodos() throws SQLException {
+        List<Club> clubes = new ArrayList<>();
+        String sql = "SELECT c.nombre, c.fechaFundacion, c.presidente_dni " +
+                     "FROM Club c";
+
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+
+            while (rs.next()) {
+                Persona presidente = Persona.buscarPorDni(rs.getString("presidente_dni"));
+                if (presidente == null) {
+                    throw new SQLException("Presidente no encontrado para el club: " + rs.getString("nombre"));
+                }
+                
+                Club club = new Club(
+                    rs.getString("nombre"),
+                    rs.getDate("fechaFundacion").toLocalDate(),
+                    presidente
+                );
+                club.cargarEquipos();
+                clubes.add(club);
+            }
+        }
+        return clubes;
+    }
 
     // Getters y setters
     public String getNombre() { return nombre; }
