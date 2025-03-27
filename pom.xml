@@ -56,7 +56,7 @@
                     </execution>
                 </executions>
                 <configuration>
-                    <mainClass>proyectoffcv.ui.MainAppFX</mainClass>
+                    <mainClass>proyectoffcv.ui.MainApp2</mainClass>
                 </configuration>
             </plugin>
             <plugin>
