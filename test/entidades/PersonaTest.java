@@ -2,9 +2,54 @@ package entidades;
 
 import static org.junit.jupiter.api.Assertions.*;
 import java.time.LocalDate;
+import java.sql.SQLException;
 import org.junit.jupiter.api.Test;
 
 public class PersonaTest {
+    private void cleanup(String dni) throws SQLException {
+        Persona persona = Persona.buscarPorDni(dni);
+        if (persona != null) persona.eliminar();
+    }
+
+    @Test
+    public void testPersistenciaPersona() throws SQLException {
+        String dni = "12345678X";
+        cleanup(dni);
+        
+        Persona persona = new Persona(dni, "Juan", "Pérez", "Gómez", 
+            LocalDate.of(1980, 1, 1), "juanp", "pass123", "Madrid");
+        
+        try {
+            persona.guardar();
+            
+            Persona recuperada = Persona.buscarPorDni(dni);
+            assertNotNull(recuperada);
+            assertEquals(dni, recuperada.getDni());
+            assertEquals("Juan", recuperada.getNombre());
+            assertEquals("Madrid", recuperada.getPoblacion());
+        } finally {
+            cleanup(dni);
+        }
+    }
+
+    @Test
+    public void testBusquedaPorNombreYApellidos() throws SQLException {
+        String dni = "12345678Y";
+        cleanup(dni);
+        
+        Persona persona = new Persona(dni, "Juan", "Pérez", "Gómez", 
+            LocalDate.of(1980, 1, 1), "juanp", "pass123", "Madrid");
+        
+        try {
+            persona.guardar();
+            
+            var resultados = Persona.buscarPorNombreYApellidos("Juan", "Pérez", "Gómez");
+            assertFalse(resultados.isEmpty());
+            assertEquals(dni, resultados.get(0).getDni());
+        } finally {
+            cleanup(dni);
+        }
+    }
 
     @Test
     public void testPersonaConstructorValid() {

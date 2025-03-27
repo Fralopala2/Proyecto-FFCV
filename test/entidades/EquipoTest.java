@@ -1,11 +1,89 @@
 package entidades;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
+import java.sql.SQLException;
+import java.time.LocalDate;
 import org.junit.jupiter.api.Test;
 
 public class EquipoTest {
+    private void cleanup(String letra, String grupoNombre, String catNombre, String instalacionNombre) throws SQLException {
+        Equipo equipo = Equipo.buscarPorLetra(letra);
+        if (equipo != null) equipo.eliminar();
+        Grupo grupo = Grupo.buscarPorNombre(grupoNombre);
+        if (grupo != null) grupo.eliminar();
+        Categoria categoria = Categoria.buscarPorNombre(catNombre);
+        if (categoria != null) categoria.eliminar();
+        Instalacion instalacion = Instalacion.buscarPorNombre(instalacionNombre);
+        if (instalacion != null) instalacion.eliminar();
+    }
+
+    @Test
+    public void testPersistenciaEquipo() throws SQLException {
+        String letra = "X";
+        String grupoNombre = "Grupo Test";
+        String catNombre = "Categoria Test";
+        String instalacionNombre = "Instalacion Test";
+        cleanup(letra, grupoNombre, catNombre, instalacionNombre);
+        
+        Categoria categoria = new Categoria(catNombre, 1, 100.0);
+        Grupo grupo = new Grupo(grupoNombre);
+        grupo.setCategoria(categoria);
+        Instalacion instalacion = new Instalacion(instalacionNombre, "Direccion", Instalacion.TipoSuperficie.CESPED_NATURAL);
+        Equipo equipo = new Equipo(letra, instalacion, grupo);
+        
+        try {
+            categoria.guardar();
+            grupo.guardar();
+            instalacion.guardar();
+            equipo.guardar();
+            
+            Equipo recuperado = Equipo.buscarPorLetra(letra);
+            assertNotNull(recuperado);
+            assertEquals(letra, recuperado.getLetra());
+            assertEquals(grupoNombre, recuperado.getGrupo().getNombre());
+        } finally {
+            cleanup(letra, grupoNombre, catNombre, instalacionNombre);
+        }
+    }
+
+    @Test
+    public void testBuscarJugador() throws SQLException {
+        String letra = "Y";
+        String grupoNombre = "Grupo Test Jug";
+        String catNombre = "Categoria Test Jug";
+        String instalacionNombre = "Instalacion Test Jug";
+        String dni = "12345678Z";
+        cleanup(letra, grupoNombre, catNombre, instalacionNombre);
+        
+        Persona persona = new Persona(dni, "Jugador", "Test", "Apellido", 
+        LocalDate.of(1990,1,1), "user", "pass", "Ciudad");
+        Licencia licencia = new Licencia(persona, "LIC-123");
+        
+        Categoria categoria = new Categoria(catNombre, 1, 100.0);
+        Grupo grupo = new Grupo(grupoNombre);
+        grupo.setCategoria(categoria);
+        Instalacion instalacion = new Instalacion(instalacionNombre, "Direccion", Instalacion.TipoSuperficie.CESPED_NATURAL);
+        Equipo equipo = new Equipo(letra, instalacion, grupo);
+        
+        try {
+            persona.guardar();
+            licencia.guardar();
+            categoria.guardar();
+            grupo.guardar();
+            instalacion.guardar();
+            equipo.guardar();
+            
+            licencia.asignarAEquipo(equipo);
+            
+            Persona jugador = equipo.buscarJugador(dni);
+            assertNotNull(jugador);
+            assertEquals(dni, jugador.getDni());
+        } finally {
+            licencia.eliminar();
+            persona.eliminar();
+            cleanup(letra, grupoNombre, catNombre, instalacionNombre);
+        }
+    }
 
     @Test
     public void testEquipoConstructorValid() {

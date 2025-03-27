@@ -1,12 +1,61 @@
 package entidades;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
+import java.sql.SQLException;
 import org.junit.jupiter.api.Test;
 
 public class GrupoTest {
+    private void cleanup(String grupoNombre, String catNombre) throws SQLException {
+        Grupo grupo = Grupo.buscarPorNombre(grupoNombre);
+        if (grupo != null) grupo.eliminar();
+        Categoria categoria = Categoria.buscarPorNombre(catNombre);
+        if (categoria != null) categoria.eliminar();
+    }
+
+    @Test
+    public void testPersistenciaGrupo() throws SQLException {
+        String grupoNombre = "Grupo Test";
+        String catNombre = "Categoria Test";
+        cleanup(grupoNombre, catNombre);
+        
+        Categoria categoria = new Categoria(catNombre, 1, 100.0);
+        Grupo grupo = new Grupo(grupoNombre);
+        grupo.setCategoria(categoria);
+        
+        try {
+            categoria.guardar();
+            grupo.guardar();
+            
+            Grupo recuperado = Grupo.buscarPorNombre(grupoNombre);
+            assertNotNull(recuperado);
+            assertEquals(grupoNombre, recuperado.getNombre());
+            assertEquals(catNombre, recuperado.getCategoria().getNombre());
+        } finally {
+            cleanup(grupoNombre, catNombre);
+        }
+    }
+
+    @Test
+    public void testObtenerPorCategoria() throws SQLException {
+        String grupoNombre = "Grupo Test Cat";
+        String catNombre = "Categoria Test Cat";
+        cleanup(grupoNombre, catNombre);
+        
+        Categoria categoria = new Categoria(catNombre, 1, 100.0);
+        Grupo grupo = new Grupo(grupoNombre);
+        grupo.setCategoria(categoria);
+        
+        try {
+            categoria.guardar();
+            grupo.guardar();
+            
+            var resultados = Grupo.obtenerPorCategoria(categoria);
+            assertFalse(resultados.isEmpty());
+            assertEquals(grupoNombre, resultados.get(0).getNombre());
+        } finally {
+            cleanup(grupoNombre, catNombre);
+        }
+    }
 
     @Test
     public void testGrupoConstructorValid() {

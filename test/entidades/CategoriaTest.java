@@ -1,13 +1,53 @@
 package entidades;
 
+import static org.junit.jupiter.api.Assertions.*;
+import java.sql.SQLException;
 import java.util.InputMismatchException;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.Test;
 
 public class CategoriaTest {
+    private void cleanup(String nombre) throws SQLException {
+        Categoria categoria = Categoria.buscarPorNombre(nombre);
+        if (categoria != null) categoria.eliminar();
+    }
+
+    @Test
+    public void testPersistenciaCategoria() throws SQLException {
+        String nombre = "Categoria Test Pers";
+        cleanup(nombre);
+        
+        Categoria categoria = new Categoria(nombre, 1, 100.0);
+        
+        try {
+            categoria.guardar();
+            
+            Categoria recuperada = Categoria.buscarPorNombre(nombre);
+            assertNotNull(recuperada);
+            assertEquals(nombre, recuperada.getNombre());
+            assertEquals(1, recuperada.getOrden());
+            assertEquals(100.0, recuperada.getPrecioLicencia());
+        } finally {
+            cleanup(nombre);
+        }
+    }
+
+    @Test
+    public void testObtenerTodas() throws SQLException {
+        String nombre = "Categoria Test Todas";
+        cleanup(nombre);
+        
+        Categoria categoria = new Categoria(nombre, 1, 100.0);
+        
+        try {
+            categoria.guardar();
+            
+            var categorias = Categoria.obtenerTodas();
+            assertFalse(categorias.isEmpty());
+            assertTrue(categorias.stream().anyMatch(c -> c.getNombre().equals(nombre)));
+        } finally {
+            cleanup(nombre);
+        }
+    }
 
     @Test
     public void testCategoriaConstructorValid() {
