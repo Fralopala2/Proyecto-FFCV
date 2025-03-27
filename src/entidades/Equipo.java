@@ -20,12 +20,13 @@ public class Equipo {
     }
 
     private void persistir() throws SQLException {
-        String sql = "INSERT INTO Equipo (letra, instalacion_id, grupo_id) VALUES (?, ?, ?)";
+        String sql = "INSERT INTO Equipo (letra, instalacion_id, grupo_id, club_id) VALUES (?, ?, ?, ?)";
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, letra);
             ps.setInt(2, obtenerIdInstalacion());
             ps.setInt(3, obtenerIdGrupo());
+            ps.setInt(4, clubId); // Add club_id
             ps.executeUpdate();
         }
     }

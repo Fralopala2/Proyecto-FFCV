@@ -88,9 +88,7 @@ public class Club {
             ResultSet rs = ps.executeQuery();
             if (rs.next()) {
                 Persona presidente = Persona.buscarPorDni(rs.getString("presidente_dni"));
-                Club club = new Club(rs.getString("nombre"), rs.getDate("fechaFundacion").toLocalDate(), presidente);
-                club.cargarEquipos();
-                return club;
+                return new Club(rs.getString("nombre"), rs.getDate("fechaFundacion").toLocalDate(), presidente);
             }
             return null;
         }
@@ -140,11 +138,11 @@ public class Club {
         }
     }
 
-    private int obtenerIdClub() throws SQLException {
+    public int obtenerIdClub() throws SQLException {
         String sql = "SELECT id FROM Club WHERE nombre = ?";
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setString(1, nombre);
+            ps.setString(1, this.getNombre());
             ResultSet rs = ps.executeQuery();
             if (rs.next()) {
                 return rs.getInt("id");
