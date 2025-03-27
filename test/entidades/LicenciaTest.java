@@ -1,26 +1,67 @@
 package entidades;
 
+import static org.junit.jupiter.api.Assertions.*;
 import java.time.LocalDate;
 import java.sql.SQLException;
 import org.junit.jupiter.api.Test;
-import static org.junit.jupiter.api.Assertions.*;
 
 public class LicenciaTest {
-    private void cleanup(String licenciaNum, String dni) throws SQLException {
+    private void cleanup(String licenciaNum, String dni, String letraEquipo, 
+                        String grupoNombre, String catNombre, String instalacionNombre) throws SQLException {
+        // Limpiar licencia
         Licencia licencia = Licencia.buscarPorNumero(licenciaNum);
         if (licencia != null) licencia.eliminar();
+        
+        // Limpiar persona
         Persona persona = Persona.buscarPorDni(dni);
         if (persona != null) persona.eliminar();
+        
+        // Limpiar equipo y dependencias
+        Equipo equipo = Equipo.buscarPorLetra(letraEquipo);
+        if (equipo != null) equipo.eliminar();
+        
+        Grupo grupo = Grupo.buscarPorNombre(grupoNombre);
+        if (grupo != null) grupo.eliminar();
+        
+        Categoria categoria = Categoria.buscarPorNombre(catNombre);
+        if (categoria != null) categoria.eliminar();
+        
+        Instalacion instalacion = Instalacion.buscarPorNombre(instalacionNombre);
+        if (instalacion != null) instalacion.eliminar();
+    }
+
+    @Test
+    public void testLicenciaConstructorValid() {
+        Persona persona = new Persona("12345678A", "Juan", "Pérez", "Gómez", 
+                                    LocalDate.of(1980, 1, 1), "juanp", "pass123", "Madrid");
+        Licencia licencia = new Licencia(persona, "LIC123");
+        
+        assertEquals(persona, licencia.getPersona());
+        assertEquals("LIC123", licencia.getNumeroLicencia());
+        assertFalse(licencia.isAbonada());
+    }
+
+    @Test
+    public void testSetAbonada() {
+        Persona persona = new Persona("12345678B", "Ana", "García", "López", 
+                                    LocalDate.of(1975, 2, 2), "anag", "pass456", "Barcelona");
+        Licencia licencia = new Licencia(persona, "LIC456");
+        
+        licencia.setAbonada(true);
+        assertTrue(licencia.isAbonada());
+        
+        licencia.setAbonada(false);
+        assertFalse(licencia.isAbonada());
     }
 
     @Test
     public void testPersistenciaLicencia() throws SQLException {
         String dni = "12345678X";
         String licenciaNum = "LIC-12345";
-        cleanup(licenciaNum, dni);
+        cleanup(licenciaNum, dni, "", "", "", "");
         
         Persona persona = new Persona(dni, "Juan", "Pérez", "Gómez", 
-            LocalDate.of(1980, 1, 1), "juanp", "pass123", "Madrid");
+                                    LocalDate.of(1980, 1, 1), "juanp", "pass123", "Madrid");
         Licencia licencia = new Licencia(persona, licenciaNum);
         
         try {
@@ -31,8 +72,9 @@ public class LicenciaTest {
             assertNotNull(recuperada);
             assertEquals(dni, recuperada.getPersona().getDni());
             assertEquals(licenciaNum, recuperada.getNumeroLicencia());
+            assertFalse(recuperada.isAbonada());
         } finally {
-            cleanup(licenciaNum, dni);
+            cleanup(licenciaNum, dni, "", "", "", "");
         }
     }
 
@@ -41,17 +83,22 @@ public class LicenciaTest {
         String dni = "12345678Y";
         String licenciaNum = "LIC-12346";
         String letraEquipo = "A";
-        cleanup(licenciaNum, dni);
+        String grupoNombre = "Grupo Test";
+        String catNombre = "Cat Test";
+        String instalacionNombre = "Estadio Test";
         
-        // Configuración inicial similar a ClubTest
+        cleanup(licenciaNum, dni, letraEquipo, grupoNombre, catNombre, instalacionNombre);
+        
+        // Configuración inicial
         Persona persona = new Persona(dni, "Juan", "Pérez", "Gómez", 
-            LocalDate.of(1980, 1, 1), "juanp", "pass123", "Madrid");
+                                    LocalDate.of(1980, 1, 1), "juanp", "pass123", "Madrid");
         Licencia licencia = new Licencia(persona, licenciaNum);
         
-        // Configurar equipo (similar a ClubTest)
-        Instalacion instalacion = new Instalacion("Estadio Test", "Calle Test", Instalacion.TipoSuperficie.CESPED_NATURAL);
-        Categoria categoria = new Categoria("Cat Test", 1, 100.0);
-        Grupo grupo = new Grupo("Grupo Test");
+        // Configurar equipo
+        Instalacion instalacion = new Instalacion(instalacionNombre, "Calle Test", 
+                                                Instalacion.TipoSuperficie.CESPED_NATURAL);
+        Categoria categoria = new Categoria(catNombre, 1, 100.0);
+        Grupo grupo = new Grupo(grupoNombre);
         grupo.setCategoria(categoria);
         Equipo equipo = new Equipo(letraEquipo, instalacion, grupo);
         
@@ -67,18 +114,28 @@ public class LicenciaTest {
             // Probar la asignación
             licencia.asignarAEquipo(equipo);
             
-            // Verificar
+            // Verificar la asignación
             Licencia recuperada = Licencia.buscarPorNumero(licenciaNum);
-            // Aquí necesitarías un método para verificar la asignación
-            // Por ejemplo, buscar el equipo asociado a la licencia
+            assertNotNull(recuperada);
+            
+            // Verificar que la licencia está en el equipo
+            equipo = Equipo.buscarPorLetra(letraEquipo);
+            assertTrue(equipo.getLicencias().stream()
+                          .anyMatch(l -> l.getNumeroLicencia().equals(licenciaNum)));
         } finally {
             // Limpieza en orden inverso
-            equipo.eliminar();
-            grupo.eliminar();
-            categoria.eliminar();
-            instalacion.eliminar();
-            licencia.eliminar();
-            persona.eliminar();
+            cleanup(licenciaNum, dni, letraEquipo, grupoNombre, catNombre, instalacionNombre);
         }
+    }
+
+    @Test
+    public void testToString() {
+        Persona persona = new Persona("12345678Z", "Carlos", "Ruiz", "Santos", 
+                                    LocalDate.of(1985, 5, 15), "carlosr", "pass789", "Valencia");
+        Licencia licencia = new Licencia(persona, "LIC789");
+        licencia.setAbonada(true);
+        
+        String expected = "Licencia{numero='LIC789', persona=12345678Z, abonada=true}";
+        assertEquals(expected, licencia.toString());
     }
 }
