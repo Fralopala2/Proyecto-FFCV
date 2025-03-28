@@ -10,7 +10,6 @@ public class Federacion implements IFederacion {
     private static Federacion instancia;
 
     private Federacion() {
-        // Constructor privado para el patron Singleton
     }
 
     public static Federacion getInstance() {
@@ -32,20 +31,44 @@ public class Federacion implements IFederacion {
 
     @Override
     public Equipo nuevoEquipo(String letra, Instalacion instalacion, Grupo grupo) {
+        // Implementación mínima para cumplir con la interfaz, pero con advertencia
         if (letra == null || letra.trim().isEmpty()) {
             throw new IllegalArgumentException("La letra no puede ser nula ni vacía.");
         }
         if (instalacion == null || grupo == null) {
             throw new IllegalArgumentException("Instalación y grupo no pueden ser nulos.");
         }
+        try {
+            // Busca un club por defecto (el primero en la base de datos)
+            List<Club> clubes = Club.obtenerTodos();
+            if (clubes.isEmpty()) {
+                throw new IllegalStateException("No hay clubes en la base de datos. Usa nuevoEquipoConClub para especificar un club.");
+            }
+            Club clubPorDefecto = clubes.get(0);
+            return nuevoEquipoConClub(letra, instalacion, grupo, clubPorDefecto);
+        } catch (SQLException e) {
+            throw new RuntimeException("Error al crear equipo: " + e.getMessage() + 
+                ". Usa nuevoEquipoConClub para especificar un club.", e);
+        }
+    }
+
+    // Método auxiliar para crear un equipo con un club específico
+    public Equipo nuevoEquipoConClub(String letra, Instalacion instalacion, Grupo grupo, Club club) {
+        if (letra == null || letra.trim().isEmpty()) {
+            throw new IllegalArgumentException("La letra no puede ser nula ni vacía.");
+        }
+        if (instalacion == null || grupo == null || club == null) {
+            throw new IllegalArgumentException("Instalación, grupo y club no pueden ser nulos.");
+        }
         Equipo equipo = new Equipo(letra, instalacion, grupo);
         try {
-            equipo.setClubId(1);
+            equipo.setClubId(club.obtenerIdClub());
             equipo.guardar();
             grupo.getEquipos().add(equipo);
+            club.addEquipo(equipo);
             return equipo;
         } catch (SQLException e) {
-            throw new RuntimeException("Error al crear equipo: " + e.getMessage(), e);
+            throw new RuntimeException("Error al crear equipo con club: " + e.getMessage(), e);
         }
     }
 

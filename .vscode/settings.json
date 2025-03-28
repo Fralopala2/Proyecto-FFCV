@@ -23,7 +23,7 @@
             "type": "java",
             "name": "Launch MainApp",
             "request": "launch",
-            "mainClass": "proyectoffcv.ui.MainApp",
+            "mainClass": "proyectoffcv.ui.MainApp2",
             "vmArgs": "--module-path lib --add-modules javafx.controls"
         },
         {

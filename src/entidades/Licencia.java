@@ -16,7 +16,7 @@ public class Licencia {
     }
 
     private void persistir() throws SQLException {
-        String sql = "UPDATE Licencia SET persona_dni = ?, abonada = ? WHERE numeroLicencia = ?";
+        String sql = "INSERT INTO Licencia (numeroLicencia, persona_dni, abonada) VALUES (?, ?, ?)";
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, numeroLicencia);
