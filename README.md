@@ -1,3 +1,5 @@
+**ESTE PROYECTO ES PARA UN EJERCICIO DE INSTITUTO, NO ES OFICIAL DE LA FEDERACIÓN DE FÚTBOL**
+
 Sistema de Gestión de Competiciones FFCV - PROYECTO 1ºDAW Programación
 
 Este repositorio contiene el sistema informático de gestión de competiciones para la Federació de Futbol de la Comunitat Valenciana (FFCV). La plataforma permite administrar las competiciones de fútbol a nivel regional, abarcando tanto fútbol base como categorías amateur.
