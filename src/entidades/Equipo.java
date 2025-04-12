@@ -1,9 +1,16 @@
+/*
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
+ */
 package entidades;
-
 import proyectoffcv.util.DatabaseConnection;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
+/**
+ *
+ * @author oscar
+ */
 
 public class Equipo {
     private String letra;
@@ -26,7 +33,7 @@ public class Equipo {
             ps.setString(1, letra);
             ps.setInt(2, obtenerIdInstalacion());
             ps.setInt(3, obtenerIdGrupo());
-            ps.setInt(4, clubId); // Add club_id
+            ps.setInt(4, clubId);
             ps.executeUpdate();
         }
     }
@@ -168,23 +175,41 @@ public class Equipo {
             throw new SQLException("Equipo no encontrado.");
         }
     }
-
     // Getters y setters
-    public String getLetra() { return letra; }
-    public void setLetra(String letra) { this.letra = letra; }
-    public Instalacion getInstalacion() { return instalacion; }
-    public void setInstalacion(Instalacion instalacion) { this.instalacion = instalacion; }
-    public Grupo getGrupo() { return grupo; }
-    public void setGrupo(Grupo grupo) { this.grupo = grupo; }
-    public List<Licencia> getLicencias() { return licencias; }
+    public String getLetra(){
+        return letra;
+    }
 
+    public void setLetra(String letra){
+        this.letra = letra;
+    }
+
+    public Instalacion getInstalacion(){
+        return instalacion;
+    }
+
+    public void setInstalacion(Instalacion instalacion){
+        this.instalacion = instalacion;
+    }
+
+    public Grupo getGrupo(){
+        return grupo;
+    }
+
+    public void setGrupo(Grupo grupo){
+        this.grupo = grupo;
+    }
+
+    public List<Licencia> getLicencias(){
+        return licencias;
+    }
+
+    public void setLicencias(List<Licencia> licencias){
+        this.licencias = licencias;
+    }
+    
     @Override
-    public String toString() {
-        return "Equipo{" +
-               "letra='" + letra + '\'' +
-               ", instalacion=" + instalacion.getNombre() +
-               ", grupo=" + grupo.getNombre() +
-               ", licencias=" + licencias.size() + " licencias" +
-               '}';
+    public String toString(){
+        return "Equipo{" +"letra='" + letra + '\'' +", instalacion=" + instalacion.getNombre() +", grupo=" + grupo.getNombre() + ", licencias=" + licencias.size() + " licencias" +'}';
     }
 }
