@@ -110,16 +110,14 @@ public class Equipo {
     public Persona buscarJugador(String dni) throws SQLException {
         for (Licencia licencia : cargarLicencias()) {
             if (licencia.getPersona().getDNI().equals(dni)) {
-            if (licencia.getPersona().getDni().equals(dni)) {
+            if (licencia.getPersona().getDNI().equals(dni)) {
                 return licencia.getPersona();
             }
         }
         return null;
     }
-
-    public double calcularPrecioLicencia() {
-        return grupo.getCategoria() != null ? grupo.getCategoria().getPrecioLicencia() : 0.0;
-    }
+        
+        
 
     private List<Licencia> cargarLicencias() throws SQLException {
         licencias.clear();

@@ -1,5 +1,6 @@
 package entidades;
-
+import proyectoffcv.util.DatabaseConnection;
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -35,6 +36,8 @@ public class Grupo {
         }
     }
     
+    
+    
     public List<Equipo> getEquipos() { return equipos; }
 
     public void agregarEquipo(Equipo equipo) {
@@ -46,6 +49,24 @@ public class Grupo {
 
     public void eliminarEquipo(Equipo equipo) {
         equipos.remove(equipo);
+    }
+    
+    public static Grupo buscarPorId(int id) throws SQLException {
+        String sql = "SELECT * FROM Grupo WHERE id = ?";
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, id);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                Grupo grupo = new Grupo(rs.getString("nombre"));
+                int categoriaId = rs.getInt("categoria_id");
+                Categoria categoria = Categoria.buscarPorId(categoriaId);
+                grupo.setCategoria(categoria);
+
+                return grupo;
+            }
+            return null;
+        }
     }
 
     @Override
