@@ -8,6 +8,7 @@ import java.sql.*;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import entidades.Persona;
 /**
  *
  * @author oscar
@@ -36,7 +37,7 @@ public class Club{
         try(Connection conn = getConnection(); PreparedStatement ps = conn.prepareStatement(sql)){
             ps.setString(1, nombre);
             ps.setDate(2, java.sql.Date.valueOf(fechaFundacion));
-            ps.setString(3, presidente.getDni());
+            ps.setString(3, presidente.getDNI());
             ps.executeUpdate();
         }
     }
@@ -45,7 +46,7 @@ public class Club{
         String sql = "UPDATE Club SET fechaFundacion = ?, presidente_dni = ? WHERE nombre = ?";
         try(Connection conn = getConnection(); PreparedStatement ps = conn.prepareStatement(sql)){
             ps.setDate(1, java.sql.Date.valueOf(fechaFundacion));
-            ps.setString(2, presidente.getDni());
+            ps.setString(2, presidente.getDNI());
             ps.setString(3, nombre);
             ps.executeUpdate();
         }
@@ -224,6 +225,6 @@ public class Club{
 
     @Override
     public String toString() {
-        return "Club{nombre='" + nombre + "', fechaFundacion=" + fechaFundacion + ", presidente=" + presidente.getDni() + ", equipos=" + equipos.size() + "}";
+        return "Club{nombre='" + nombre + "', fechaFundacion=" + fechaFundacion + ", presidente=" + presidente.getDNI() + ", equipos=" + equipos.size() + "}";
     }
 }

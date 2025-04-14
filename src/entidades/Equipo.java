@@ -109,6 +109,7 @@ public class Equipo {
 
     public Persona buscarJugador(String dni) throws SQLException {
         for (Licencia licencia : cargarLicencias()) {
+            if (licencia.getPersona().getDNI().equals(dni)) {
             if (licencia.getPersona().getDni().equals(dni)) {
                 return licencia.getPersona();
             }
