@@ -1,5 +1,6 @@
 package entidades;
-
+import proyectoffcv.util.DatabaseConnection;
+import java.sql.*;
 import java.util.InputMismatchException;
 import java.util.ArrayList;
 import java.util.List;
@@ -44,6 +45,24 @@ public class Categoria {
         grupos.add(grupo);
     }
 
+    public static Categoria buscarPorId(int id) throws SQLException {
+        String sql = "SELECT * FROM Categoria WHERE id = ?";
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, id);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                Categoria categoria = new Categoria(
+                        rs.getString("nombre"),
+                        rs.getInt("orden"),
+                        rs.getDouble("precioLicencia")
+                );
+                return categoria;
+            }
+            return null;
+        }
+    }
+    
     public void eliminarGrupo(Grupo grupo) {
         grupos.remove(grupo);
     }
