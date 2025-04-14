@@ -2,7 +2,7 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Main.java to edit this template
  */
-package persona;
+package entidades;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.sql.Connection;
@@ -162,6 +162,10 @@ public class Persona {
     }
     }
     
+     public static Persona buscarPorDni(String dni) {
+        return buscaPersona(dni);
+    }
+     
    @Override
     public String toString() {
         return nombre + " " + apellido1 + " " + apellido2 + " (" + DNI + ")";
