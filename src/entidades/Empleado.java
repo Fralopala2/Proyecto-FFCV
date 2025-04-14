@@ -14,7 +14,14 @@ import java.sql.*;
  */
 public class Empleado extends Persona{
     
-    private String puesto;
+    private String dni;
+    private String nombre;
+    private String apellido1;
+    private String apellido2;
+    private LocalDate fechaNacimiento;
+    private String usuario;
+    private String password;
+    private String poblacion;
     private int numEmpleado;
     private LocalDate inicioContrato;
     private String segSocial;
