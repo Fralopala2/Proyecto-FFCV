@@ -1,7 +1,3 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package proyectoffcv.logica;
 
 import entidades.*;
@@ -12,10 +8,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.UUID;
 
-/**
- *
- * @author Paco
- */
 public final class Federacion implements IFederacion {
     private static Federacion instancia;
     private List<Categoria> categorias;
@@ -64,11 +56,11 @@ public final class Federacion implements IFederacion {
             Equipo equipo = new Equipo(letra, instalacion, grupo);
             equipo.setClubId(club.obtenerIdClub());
             equipo.guardar();
-            club.addEquipo(equipo);
+            club.getEquipos().add(equipo);
             return equipo;
         } catch (SQLException ex) {
             Logger.getLogger(Federacion.class.getName()).log(Level.SEVERE, null, ex);
-            throw new IllegalStateException("No se pudo crear el equipo.");
+            throw new IllegalStateException("No se pudo crear el equipo: " + ex.getMessage());
         }
     }
 
@@ -81,7 +73,7 @@ public final class Federacion implements IFederacion {
             return club;
         } catch (SQLException ex) {
             Logger.getLogger(Federacion.class.getName()).log(Level.SEVERE, null, ex);
-            throw new IllegalStateException("No se pudo crear el club.");
+            throw new IllegalStateException("No se pudo crear el club: " + ex.getMessage());
         }
     }
 
@@ -89,60 +81,90 @@ public final class Federacion implements IFederacion {
     public Categoria nuevaCategoria(String nombre, int orden, double precioLicencia) {
         try {
             Categoria c = new Categoria(nombre, orden, precioLicencia);
+            c.guardar();
             categorias.add(c);
             return c;
-        } catch (Exception ex) {
+        } catch (SQLException ex) {
             Logger.getLogger(Federacion.class.getName()).log(Level.SEVERE, null, ex);
-            throw new IllegalStateException("No se pudo crear la categoría.");
+            throw new IllegalStateException("No se pudo crear la categoría: " + ex.getMessage());
         }
     }
 
     @Override
     public List<Categoria> obtenerCategorias() {
-        return new ArrayList<>(categorias);
+        try {
+            List<Categoria> todasCategorias = Categoria.obtenerTodas();
+            categorias.clear();
+            categorias.addAll(todasCategorias);
+            return new ArrayList<>(categorias);
+        } catch (SQLException ex) {
+            Logger.getLogger(Federacion.class.getName()).log(Level.SEVERE, null, ex);
+            return new ArrayList<>(categorias);
+        }
     }
 
     @Override
     public List<Grupo> obtenerGrupos(Categoria c) {
-        return new ArrayList<>(c.getGrupos());
+        try {
+            return Grupo.obtenerTodos().stream()
+                    .filter(g -> g.getCategoria() != null && g.getCategoria().getNombre().equals(c.getNombre()))
+                    .toList();
+        } catch (SQLException ex) {
+            Logger.getLogger(Federacion.class.getName()).log(Level.SEVERE, null, ex);
+            return new ArrayList<>();
+        }
     }
 
     @Override
     public Grupo nuevoGrupo(Categoria c, String nombre) {
-        Grupo grupo = new Grupo(nombre);
-        grupo.setCategoria(c);
-        c.agregarGrupo(grupo);
-        return grupo;
+        try {
+            // Generar un ID temporal (en una aplicación real debería venir de la base de datos)
+            int nuevoId = categorias.size() + 1;
+            Grupo grupo = new Grupo(nuevoId, nombre);
+            grupo.setCategoria(c);
+            grupo.guardar();
+            c.getGrupos().add(grupo);
+            return grupo;
+        } catch (SQLException ex) {
+            Logger.getLogger(Federacion.class.getName()).log(Level.SEVERE, null, ex);
+            throw new IllegalStateException("No se pudo crear el grupo: " + ex.getMessage());
+        }
     }
 
     @Override
-    public Persona nuevaPersona(String dni, String nombre, String apellido1, String apellido2, LocalDate fechaNacimiento, String usuario, String password, String poblacion) {
-        Persona persona = Persona.nuevaPersona(dni, nombre, apellido1, apellido2, fechaNacimiento, usuario, password, poblacion);
-        if (persona != null) {
-            try {
+    public Persona nuevaPersona(String dni, String nombre, String apellido1, String apellido2, 
+                              LocalDate fechaNacimiento, String usuario, String password, String poblacion) {
+        try {
+            Persona persona = Persona.nuevaPersona(dni, nombre, apellido1, apellido2, 
+                                                 fechaNacimiento, usuario, password, poblacion);
+            if (persona != null) {
                 persona.Persistencia();
                 afiliados.add(persona);
-            } catch (SQLException ex) {
-                Logger.getLogger(Federacion.class.getName()).log(Level.SEVERE, null, ex);
-                throw new IllegalStateException("No se pudo persistir la persona.");
             }
+            return persona;
+        } catch (SQLException ex) {
+            Logger.getLogger(Federacion.class.getName()).log(Level.SEVERE, null, ex);
+            throw new IllegalStateException("No se pudo crear la persona: " + ex.getMessage());
         }
-        return persona;
     }
 
     @Override
-    public Empleado nuevoEmpleado(String dni, String nombre, String apellido1, String apellido2, LocalDate fechaNacimiento, String usuario, String password, String poblacion, int numEmpleado, LocalDate inicioContrato, String segSocial) {
-        Empleado empleado = Empleado.nuevoEmpleado(dni, nombre, apellido1, apellido2, fechaNacimiento, usuario, password, poblacion, numEmpleado, inicioContrato, segSocial);
-        if (empleado != null) {
-            try {
-                empleado.Persistencia();
+    public Empleado nuevoEmpleado(String dni, String nombre, String apellido1, String apellido2, 
+                                LocalDate fechaNacimiento, String usuario, String password, String poblacion, 
+                                int numEmpleado, LocalDate inicioContrato, String segSocial) {
+        try {
+            Empleado empleado = Empleado.nuevoEmpleado(dni, nombre, apellido1, apellido2, fechaNacimiento, 
+                                                      usuario, password, poblacion, numEmpleado, 
+                                                      inicioContrato, segSocial);
+            if (empleado != null) {
+                empleado.guardar();
                 empleados.add(empleado);
-            } catch (SQLException ex) {
-                Logger.getLogger(Federacion.class.getName()).log(Level.SEVERE, null, ex);
-                throw new IllegalStateException("No se pudo persistir el empleado.");
             }
+            return empleado;
+        } catch (SQLException ex) {
+            Logger.getLogger(Federacion.class.getName()).log(Level.SEVERE, null, ex);
+            throw new IllegalStateException("No se pudo crear el empleado: " + ex.getMessage());
         }
-        return empleado;
     }
 
     @Override
@@ -173,7 +195,7 @@ public final class Federacion implements IFederacion {
             return licencia;
         } catch (SQLException ex) {
             Logger.getLogger(Federacion.class.getName()).log(Level.SEVERE, null, ex);
-            throw new IllegalStateException("No se pudo crear la licencia.");
+            throw new IllegalStateException("No se pudo crear la licencia: " + ex.getMessage());
         }
     }
 
@@ -185,7 +207,7 @@ public final class Federacion implements IFederacion {
             return licencia;
         } catch (SQLException ex) {
             Logger.getLogger(Federacion.class.getName()).log(Level.SEVERE, null, ex);
-            throw new IllegalStateException("No se pudo asignar la licencia al equipo.");
+            throw new IllegalStateException("No se pudo asignar la licencia al equipo: " + ex.getMessage());
         }
     }
 
@@ -195,15 +217,14 @@ public final class Federacion implements IFederacion {
             l.asignarAEquipo(e);
         } catch (SQLException ex) {
             Logger.getLogger(Federacion.class.getName()).log(Level.SEVERE, null, ex);
-            throw new IllegalStateException("No se pudo asignar la licencia al equipo.");
+            throw new IllegalStateException("No se pudo asignar la licencia al equipo: " + ex.getMessage());
         }
     }
 
     @Override
     public double calcularPrecioLicencia(Equipo e) {
-        Grupo grupo = e.getGrupo();
-        if (grupo != null && grupo.getCategoria() != null) {
-            return grupo.getCategoria().getPrecioLicencia();
+        if (e != null && e.getGrupo() != null && e.getGrupo().getCategoria() != null) {
+            return e.getGrupo().getCategoria().getPrecioLicencia();
         }
         return 0.0;
     }
@@ -216,9 +237,12 @@ public final class Federacion implements IFederacion {
             instalacion.guardar();
             instalaciones.add(instalacion);
             return instalacion;
-        } catch (IllegalArgumentException | SQLException ex) {
+        } catch (IllegalArgumentException ex) {
             Logger.getLogger(Federacion.class.getName()).log(Level.SEVERE, null, ex);
-            throw new IllegalStateException("No se pudo crear la instalación.");
+            throw new IllegalStateException("Tipo de superficie no válido: " + superficie);
+        } catch (SQLException ex) {
+            Logger.getLogger(Federacion.class.getName()).log(Level.SEVERE, null, ex);
+            throw new IllegalStateException("No se pudo crear la instalación: " + ex.getMessage());
         }
     }
 
