@@ -119,13 +119,27 @@ public class Grupo {
     }
 
     private int categoriaId() throws SQLException {
-        String sql = "SELECT id FROM Categoria WHERE nombre = ?";
-        try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setString(1, categoria.getNombre());
-            ResultSet rs = ps.executeQuery();
-            if (rs.next()) return rs.getInt("id");
-            else throw new SQLException("La categoría no existe en la base de datos.");
+    String sql = "SELECT id FROM Categoria WHERE nombre = ?";
+    try (Connection conn = DatabaseConnection.getConnection();
+            PreparedStatement ps = conn.prepareStatement(sql)) {
+        ps.setString(1, categoria.getNombre());
+        ResultSet rs = ps.executeQuery();
+        if (rs.next()) {
+            return rs.getInt("id");
+        } else {
+            String insertSql = "INSERT INTO Categoria (nombre) VALUES (?)";
+            try (PreparedStatement insert = conn.prepareStatement(insertSql, Statement.RETURN_GENERATED_KEYS)) {
+                insert.setString(1, categoria.getNombre());
+                insert.executeUpdate();
+
+                ResultSet generatedKeys = insert.getGeneratedKeys();
+                if (generatedKeys.next()) {
+                    return generatedKeys.getInt(1);
+                } else {
+                    throw new SQLException("No se pudo obtener el ID de la categoría insertada.");
+                }
+            }
+        }
         }
     }
 
