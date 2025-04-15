@@ -15,7 +15,7 @@ import java.util.List;
 public interface IFederacion {
     /* CLUBES */
     public Club buscarClub(String nombre);
-    public Equipo nuevoEquipo(String letra, Instalacion instalacion, Grupo grupo);
+    public Equipo nuevoEquipo(String letra, Instalacion instalacion, Grupo grupo, Club club);
     public Club nuevoClub(String nombre, LocalDate fechaFundacion, Persona presidente);
     
     /* CATEGORÍAS */
@@ -39,5 +39,3 @@ public interface IFederacion {
     /* INSTALACIÓN */
     public Instalacion nuevaInstalacion(String nombre, String direccion, String superficie);
     public List<Instalacion> buscarInstalaciones(String nombre);
-    
-}
