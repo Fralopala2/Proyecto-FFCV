@@ -1,5 +1,6 @@
 package proyectoffcv.logica;
 
+import proyectoffcv.util.DatabaseConnection;
 import entidades.*;
 import java.time.LocalDate;
 import java.util.*;
@@ -7,6 +8,7 @@ import java.sql.SQLException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.UUID;
+import java.sql.*;
 
 public final class Federacion implements IFederacion {
     private static Federacion instancia;
@@ -118,8 +120,8 @@ public final class Federacion implements IFederacion {
     @Override
     public Grupo nuevoGrupo(Categoria c, String nombre) {
         try {
-            // Generar un ID temporal (en una aplicación real debería venir de la base de datos)
-            int nuevoId = categorias.size() + 1;
+            // Generar un nuevo ID único para el grupo
+            int nuevoId = obtenerNuevoIdGrupo();
             Grupo grupo = new Grupo(nuevoId, nombre);
             grupo.setCategoria(c);
             grupo.guardar();
@@ -128,6 +130,19 @@ public final class Federacion implements IFederacion {
         } catch (SQLException ex) {
             Logger.getLogger(Federacion.class.getName()).log(Level.SEVERE, null, ex);
             throw new IllegalStateException("No se pudo crear el grupo: " + ex.getMessage());
+        }
+    }
+
+    // Método auxiliar para obtener un nuevo ID único para Grupo
+    private int obtenerNuevoIdGrupo() throws SQLException {
+        String sql = "SELECT MAX(id) as max_id FROM Grupo";
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+            if (rs.next()) {
+                return rs.getInt("max_id") + 1;
+            }
+            return 1; // Si no hay grupos, empezamos con ID 1
         }
     }
 
