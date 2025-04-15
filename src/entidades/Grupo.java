@@ -5,6 +5,9 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
+import entidades.Categoria;
+import entidades.Equipo;
+
 public class Grupo {
 
     // Atributos
@@ -16,7 +19,7 @@ public class Grupo {
     // Constructor
     public Grupo(int id, String nombre) {
         this.id = id;
-        this.nombre = nombre;
+        this.setNombre(nombre);
         this.equipos = new ArrayList<>();
     }
 
@@ -38,7 +41,7 @@ public class Grupo {
             throw new IllegalArgumentException("La categoría no puede ser nula.");
         }
         this.categoria = categoria;
-        if (!categoria.getGrupos().contains(this)) {
+        if (categoria.getGrupos() != null && !categoria.getGrupos().contains(this)) {
             categoria.getGrupos().add(this);
         }
     }
@@ -119,27 +122,29 @@ public class Grupo {
     }
 
     private int categoriaId() throws SQLException {
-    String sql = "SELECT id FROM Categoria WHERE nombre = ?";
-    try (Connection conn = DatabaseConnection.getConnection();
-            PreparedStatement ps = conn.prepareStatement(sql)) {
-        ps.setString(1, categoria.getNombre());
-        ResultSet rs = ps.executeQuery();
-        if (rs.next()) {
-            return rs.getInt("id");
-        } else {
-            String insertSql = "INSERT INTO Categoria (nombre) VALUES (?)";
-            try (PreparedStatement insert = conn.prepareStatement(insertSql, Statement.RETURN_GENERATED_KEYS)) {
-                insert.setString(1, categoria.getNombre());
-                insert.executeUpdate();
+        if (categoria == null) throw new IllegalStateException("Categoría no establecida.");
 
-                ResultSet generatedKeys = insert.getGeneratedKeys();
-                if (generatedKeys.next()) {
-                    return generatedKeys.getInt(1);
-                } else {
-                    throw new SQLException("No se pudo obtener el ID de la categoría insertada.");
+        String sql = "SELECT id FROM Categoria WHERE nombre = ?";
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, categoria.getNombre());
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                return rs.getInt("id");
+            } else {
+                String insertSql = "INSERT INTO Categoria (nombre) VALUES (?)";
+                try (PreparedStatement insert = conn.prepareStatement(insertSql, Statement.RETURN_GENERATED_KEYS)) {
+                    insert.setString(1, categoria.getNombre());
+                    insert.executeUpdate();
+
+                    ResultSet generatedKeys = insert.getGeneratedKeys();
+                    if (generatedKeys.next()) {
+                        return generatedKeys.getInt(1);
+                    } else {
+                        throw new SQLException("No se pudo obtener el ID de la categoría insertada.");
+                    }
                 }
             }
-        }
         }
     }
 
