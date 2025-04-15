@@ -20,7 +20,7 @@ public class MainApp2 {
     private IFederacion federacion;
     private JFrame frame;
     private JPanel contentPanel;
-    private JMenuBar menuBar; // Variable de instancia para el JMenuBar
+    private JMenuBar menuBar;
 
     public MainApp2() {
         federacion = Federacion.getInstance();
@@ -37,7 +37,7 @@ public class MainApp2 {
         mainPanel.setBorder(new EmptyBorder(15, 15, 15, 15));
 
         JPanel headerPanel = createHeaderPanel();
-        menuBar = createMenuBar(); // Asigna el JMenuBar a la variable de instancia
+        menuBar = createMenuBar();
         headerPanel.add(menuBar, BorderLayout.SOUTH);
 
         contentPanel = new JPanel(new BorderLayout());
@@ -49,7 +49,7 @@ public class MainApp2 {
         mainPanel.add(contentPanel, BorderLayout.CENTER);
         frame.add(mainPanel);
 
-        setupMenuActions(); // Configura las acciones después de crear el menuBar
+        setupMenuActions();
 
         frame.setVisible(true);
     }
@@ -114,7 +114,7 @@ public class MainApp2 {
     }
 
     private void setupMenuActions() {
-        JMenu gestionMenu = menuBar.getMenu(0); // Usa la variable de instancia directamente
+        JMenu gestionMenu = menuBar.getMenu(0);
         gestionMenu.getItem(0).addActionListener(e -> switchPanel(createCategoriaPanel()));
         gestionMenu.getItem(1).addActionListener(e -> switchPanel(createClubPanel()));
         gestionMenu.getItem(2).addActionListener(e -> switchPanel(createPersonaPanel()));
@@ -155,7 +155,7 @@ public class MainApp2 {
         panel.setBackground(Color.WHITE);
         panel.setBorder(new EmptyBorder(15, 15, 15, 15));
 
-        JPanel createPanel = createTitledPanel("Crear Nueva Categoría"); // GridBagLayout por defecto
+        JPanel createPanel = createTitledPanel("Crear Nueva Categoría");
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.insets = new Insets(8, 10, 8, 10);
         gbc.fill = GridBagConstraints.HORIZONTAL;
@@ -170,19 +170,18 @@ public class MainApp2 {
         crearButton.addActionListener(event -> {
             if (!validateFields(nombreField, ordenField, precioField)) return;
             try {
-                Categoria categoria = new Categoria(nombreField.getText(), Integer.parseInt(ordenField.getText()), Double.parseDouble(precioField.getText()));
-                categoria.guardar();
+                Categoria categoria = federacion.nuevaCategoria(nombreField.getText(), Integer.parseInt(ordenField.getText()), Double.parseDouble(precioField.getText()));
                 JOptionPane.showMessageDialog(frame, "Categoría creada: " + categoria);
                 clearFields(nombreField, ordenField, precioField);
             } catch (NumberFormatException ex) {
                 JOptionPane.showMessageDialog(frame, "Nivel y precio deben ser numéricos.", "Error", JOptionPane.ERROR_MESSAGE);
-            } catch (SQLException ex) {
+            } catch (Exception ex) {
                 JOptionPane.showMessageDialog(frame, "Error al guardar categoría: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
             }
         });
         gbc.gridx = 0; gbc.gridy = 3; gbc.gridwidth = 2; createPanel.add(crearButton, gbc);
 
-        JPanel listPanel = createTitledPanel("Consultar Categorías", new BorderLayout()); // BorderLayout explícito
+        JPanel listPanel = createTitledPanel("Consultar Categorías", new BorderLayout());
         JButton listarButton = new JButton("Listar Categorías", loadIcon("src/resources/iconos/magnifier.png"));
         styleButton(listarButton, new Color(33, 37, 41), false);
         listarButton.setToolTipText("Muestra todas las categorías registradas");
@@ -199,7 +198,7 @@ public class MainApp2 {
         panel.setBackground(Color.WHITE);
         panel.setBorder(new EmptyBorder(15, 15, 15, 15));
 
-        JPanel createPanel = createTitledPanel("Gestión de Clubes"); // GridBagLayout
+        JPanel createPanel = createTitledPanel("Gestión de Clubes");
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.insets = new Insets(8, 10, 8, 10);
         gbc.fill = GridBagConstraints.HORIZONTAL;
@@ -220,36 +219,31 @@ public class MainApp2 {
             if (!validateFields(nombreField, fechaField, dniPresField)) return;
             try {
                 LocalDate fecha = LocalDate.parse(fechaField.getText());
-                Persona presidente = Persona.buscarPorDni(dniPresField.getText());
+                Persona presidente = federacion.buscaPersona(dniPresField.getText());
                 if (presidente == null) {
                     JOptionPane.showMessageDialog(frame, "Presidente no encontrado. Regístrelo primero.", "Error", JOptionPane.ERROR_MESSAGE);
                     return;
                 }
-                Club club = new Club(nombreField.getText(), fecha, presidente);
-                club.guardar();
+                Club club = federacion.nuevoClub(nombreField.getText(), fecha, presidente);
                 JOptionPane.showMessageDialog(frame, "Club creado: " + club);
                 clearFields(nombreField, fechaField, dniPresField);
             } catch (DateTimeParseException ex) {
                 JOptionPane.showMessageDialog(frame, "Formato de fecha inválido.", "Error", JOptionPane.ERROR_MESSAGE);
-            } catch (SQLException ex) {
+            } catch (Exception ex) {
                 JOptionPane.showMessageDialog(frame, "Error al guardar club: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
             }
         });
 
         buscarButton.addActionListener(event -> {
             if (!validateFields(buscarField)) return;
-            try {
-                Club club = Club.buscarPorNombre(buscarField.getText());
-                JOptionPane.showMessageDialog(frame, club != null ? "Club encontrado: " + club : "Club no encontrado.");
-            } catch (SQLException ex) {
-                JOptionPane.showMessageDialog(frame, "Error al buscar club: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
-            }
+            Club club = federacion.buscarClub(buscarField.getText());
+            JOptionPane.showMessageDialog(frame, club != null ? "Club encontrado: " + club : "Club no encontrado.");
         });
 
         gbc.gridx = 0; gbc.gridy = 4; gbc.gridwidth = 2; createPanel.add(crearClubButton, gbc);
         gbc.gridy = 5; createPanel.add(buscarButton, gbc);
 
-        JPanel listPanel = createTitledPanel("Listar Clubes", new BorderLayout()); // BorderLayout
+        JPanel listPanel = createTitledPanel("Listar Clubes", new BorderLayout());
         JButton listarButton = new JButton("Listar Clubes", loadIcon("src/resources/iconos/magnifier.png"));
         styleButton(listarButton, new Color(33, 37, 41), false);
         listarButton.setToolTipText("Muestra todos los clubes registrados");
@@ -266,7 +260,7 @@ public class MainApp2 {
         panel.setBackground(Color.WHITE);
         panel.setBorder(new EmptyBorder(15, 15, 15, 15));
 
-        JPanel createPanel = createTitledPanel("Crear Nueva Persona"); // GridBagLayout
+        JPanel createPanel = createTitledPanel("Crear Nueva Persona");
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.insets = new Insets(8, 10, 8, 10);
         gbc.fill = GridBagConstraints.HORIZONTAL;
@@ -277,7 +271,9 @@ public class MainApp2 {
         JTextField apellido2Field = addField(createPanel, gbc, "Apellido 2:", 3);
         JTextField fechaField = addField(createPanel, gbc, "Fecha Nacimiento (YYYY-MM-DD):", 4);
         JTextField poblacionField = addField(createPanel, gbc, "Población:", 5);
-        JTextField buscarDniField = addField(createPanel, gbc, "Buscar por DNI:", 6);
+        JTextField usuarioField = addField(createPanel, gbc, "Usuario:", 6);
+        JTextField passwordField = addField(createPanel, gbc, "Contraseña:", 7);
+        JTextField buscarDniField = addField(createPanel, gbc, "Buscar por DNI:", 8);
 
         JButton crearButton = new JButton("Crear Persona", loadIcon("src/resources/iconos/cross.png"));
         styleButton(crearButton, new Color(211, 47, 47), true);
@@ -290,44 +286,39 @@ public class MainApp2 {
         buscarMultiButton.setToolTipText("Busca personas por nombre y apellidos");
 
         crearButton.addActionListener(event -> {
-            if (!validateFields(dniField, nombreField, apellido1Field, apellido2Field, fechaField, poblacionField)) return;
+            if (!validateFields(dniField, nombreField, apellido1Field, apellido2Field, fechaField, poblacionField, usuarioField, passwordField)) return;
             try {
-                Persona persona = new Persona(dniField.getText(), nombreField.getText(), apellido1Field.getText(), 
-                        apellido2Field.getText(), LocalDate.parse(fechaField.getText()), "user" + dniField.getText(), 
-                        "pass" + dniField.getText(), poblacionField.getText());
-                persona.guardar();
-                JOptionPane.showMessageDialog(frame, "Persona creada: " + persona);
-                clearFields(dniField, nombreField, apellido1Field, apellido2Field, fechaField, poblacionField);
+                Persona persona = federacion.nuevaPersona(dniField.getText(), nombreField.getText(), apellido1Field.getText(), 
+                        apellido2Field.getText(), LocalDate.parse(fechaField.getText()), usuarioField.getText(), 
+                        passwordField.getText(), poblacionField.getText());
+                if (persona != null) {
+                    JOptionPane.showMessageDialog(frame, "Persona creada: " + persona);
+                    clearFields(dniField, nombreField, apellido1Field, apellido2Field, fechaField, poblacionField, usuarioField, passwordField);
+                } else {
+                    JOptionPane.showMessageDialog(frame, "No se pudo crear la persona. Verifique el DNI.", "Error", JOptionPane.ERROR_MESSAGE);
+                }
             } catch (DateTimeParseException ex) {
                 JOptionPane.showMessageDialog(frame, "Formato de fecha inválido.", "Error", JOptionPane.ERROR_MESSAGE);
-            } catch (SQLException ex) {
+            } catch (Exception ex) {
                 JOptionPane.showMessageDialog(frame, "Error al guardar persona: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
             }
         });
 
         buscarButton.addActionListener(event -> {
             if (!validateFields(buscarDniField)) return;
-            try {
-                Persona persona = Persona.buscarPorDni(buscarDniField.getText());
-                JOptionPane.showMessageDialog(frame, persona != null ? "Persona encontrada: " + persona : "Persona no encontrada.");
-            } catch (SQLException ex) {
-                JOptionPane.showMessageDialog(frame, "Error al buscar persona: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
-            }
+            Persona persona = federacion.buscaPersona(buscarDniField.getText());
+            JOptionPane.showMessageDialog(frame, persona != null ? "Persona encontrada: " + persona : "Persona no encontrada.");
         });
 
         buscarMultiButton.addActionListener(event -> {
             if (!validateFields(nombreField, apellido1Field, apellido2Field)) return;
-            try {
-                List<Persona> personas = Persona.buscarPorNombreYApellidos(nombreField.getText(), apellido1Field.getText(), apellido2Field.getText());
-                showListResult(personas, "Personas encontradas:");
-            } catch (SQLException ex) {
-                JOptionPane.showMessageDialog(frame, "Error al buscar personas: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
-            }
+            List<Persona> personas = federacion.buscaPersonas(nombreField.getText(), apellido1Field.getText(), apellido2Field.getText());
+            showListResult(personas, "Personas encontradas:");
         });
 
-        gbc.gridx = 0; gbc.gridy = 7; gbc.gridwidth = 2; createPanel.add(crearButton, gbc);
-        gbc.gridy = 8; createPanel.add(buscarButton, gbc);
-        gbc.gridy = 9; createPanel.add(buscarMultiButton, gbc);
+        gbc.gridx = 0; gbc.gridy = 9; gbc.gridwidth = 2; createPanel.add(crearButton, gbc);
+        gbc.gridy = 10; createPanel.add(buscarButton, gbc);
+        gbc.gridy = 11; createPanel.add(buscarMultiButton, gbc);
 
         panel.add(createPanel, BorderLayout.NORTH);
         return panel;
@@ -338,7 +329,7 @@ public class MainApp2 {
         panel.setBackground(Color.WHITE);
         panel.setBorder(new EmptyBorder(15, 15, 15, 15));
 
-        JPanel createPanel = createTitledPanel("Crear Nuevo Empleado"); // GridBagLayout
+        JPanel createPanel = createTitledPanel("Crear Nuevo Empleado");
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.insets = new Insets(8, 10, 8, 10);
         gbc.fill = GridBagConstraints.HORIZONTAL;
@@ -349,34 +340,36 @@ public class MainApp2 {
         JTextField apellido2Field = addField(createPanel, gbc, "Apellido 2:", 3);
         JTextField fechaField = addField(createPanel, gbc, "Fecha Nacimiento (YYYY-MM-DD):", 4);
         JTextField numEmpField = addField(createPanel, gbc, "Número Empleado:", 5);
-        JTextField puestoField = addField(createPanel, gbc, "Puesto:", 6);
-        JTextField inicioContratoField = addField(createPanel, gbc, "Inicio Contrato (YYYY-MM-DD):", 7);
-        JTextField segSocialField = addField(createPanel, gbc, "Seguridad Social:", 8);
+        JTextField inicioContratoField = addField(createPanel, gbc, "Inicio Contrato (YYYY-MM-DD):", 6);
+        JTextField segSocialField = addField(createPanel, gbc, "Seguridad Social:", 7);
 
         JButton crearButton = new JButton("Crear Empleado", loadIcon("src/resources/iconos/cross.png"));
         styleButton(crearButton, new Color(211, 47, 47), true);
         crearButton.setToolTipText("Crea un nuevo empleado con los datos ingresados");
 
         crearButton.addActionListener(event -> {
-            if (!validateFields(dniField, nombreField, apellido1Field, apellido2Field, fechaField, numEmpField, puestoField, inicioContratoField, segSocialField)) return;
+            if (!validateFields(dniField, nombreField, apellido1Field, apellido2Field, fechaField, numEmpField, inicioContratoField, segSocialField)) return;
             try {
-                Empleado empleado = new Empleado(dniField.getText(), nombreField.getText(), apellido1Field.getText(), 
-                        apellido2Field.getText(), LocalDate.parse(fechaField.getText()), "user" + numEmpField.getText(), 
-                        "pass" + numEmpField.getText(), "Población", puestoField.getText(), Integer.parseInt(numEmpField.getText()), 
+                Empleado empleado = federacion.nuevoEmpleado(dniField.getText(), nombreField.getText(), apellido1Field.getText(), 
+                        apellido2Field.getText(), LocalDate.parse(fechaField.getText()), "user" + dniField.getText(), 
+                        "pass" + dniField.getText(), "Población", Integer.parseInt(numEmpField.getText()), 
                         LocalDate.parse(inicioContratoField.getText()), segSocialField.getText());
-                empleado.guardar();
-                JOptionPane.showMessageDialog(frame, "Empleado creado: " + empleado);
-                clearFields(dniField, nombreField, apellido1Field, apellido2Field, fechaField, numEmpField, puestoField, inicioContratoField, segSocialField);
+                if (empleado != null) {
+                    JOptionPane.showMessageDialog(frame, "Empleado creado: " + empleado);
+                    clearFields(dniField, nombreField, apellido1Field, apellido2Field, fechaField, numEmpField, inicioContratoField, segSocialField);
+                } else {
+                    JOptionPane.showMessageDialog(frame, "No se pudo crear el empleado. Verifique los datos.", "Error", JOptionPane.ERROR_MESSAGE);
+                }
             } catch (DateTimeParseException ex) {
                 JOptionPane.showMessageDialog(frame, "Formato de fecha inválido.", "Error", JOptionPane.ERROR_MESSAGE);
             } catch (NumberFormatException ex) {
                 JOptionPane.showMessageDialog(frame, "Número de empleado debe ser numérico.", "Error", JOptionPane.ERROR_MESSAGE);
-            } catch (SQLException ex) {
+            } catch (Exception ex) {
                 JOptionPane.showMessageDialog(frame, "Error al guardar empleado: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
             }
         });
 
-        gbc.gridx = 0; gbc.gridy = 9; gbc.gridwidth = 2; createPanel.add(crearButton, gbc);
+        gbc.gridx = 0; gbc.gridy = 8; gbc.gridwidth = 2; createPanel.add(crearButton, gbc);
 
         panel.add(createPanel, BorderLayout.NORTH);
         return panel;
@@ -387,7 +380,7 @@ public class MainApp2 {
         panel.setBackground(Color.WHITE);
         panel.setBorder(new EmptyBorder(15, 15, 15, 15));
 
-        JPanel createPanel = createTitledPanel("Crear Nueva Instalación"); // GridBagLayout
+        JPanel createPanel = createTitledPanel("Crear Nueva Instalación");
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.insets = new Insets(8, 10, 8, 10);
         gbc.fill = GridBagConstraints.HORIZONTAL;
@@ -412,23 +405,19 @@ public class MainApp2 {
         crearButton.addActionListener(event -> {
             if (!validateFields(nombreField, direccionField)) return;
             try {
-                Instalacion instalacion = new Instalacion(nombreField.getText(), direccionField.getText(), (Instalacion.TipoSuperficie) superficieCombo.getSelectedItem());
-                instalacion.guardar();
+                Instalacion instalacion = federacion.nuevaInstalacion(nombreField.getText(), direccionField.getText(), 
+                        ((Instalacion.TipoSuperficie) superficieCombo.getSelectedItem()).name());
                 JOptionPane.showMessageDialog(frame, "Instalación creada: " + instalacion);
                 clearFields(nombreField, direccionField);
-            } catch (SQLException ex) {
+            } catch (Exception ex) {
                 JOptionPane.showMessageDialog(frame, "Error al guardar instalación: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
             }
         });
 
         buscarButton.addActionListener(event -> {
             if (!validateFields(buscarField)) return;
-            try {
-                List<Instalacion> instalaciones = Instalacion.buscarPorNombreParcial(buscarField.getText());
-                showListResult(instalaciones, "Instalaciones encontradas:");
-            } catch (SQLException ex) {
-                JOptionPane.showMessageDialog(frame, "Error al buscar instalaciones: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
-            }
+            List<Instalacion> instalaciones = federacion.buscarInstalaciones(buscarField.getText());
+            showListResult(instalaciones, "Instalaciones encontradas:");
         });
 
         gbc.gridx = 0; gbc.gridy = 4; gbc.gridwidth = 2; createPanel.add(crearButton, gbc);
@@ -443,7 +432,7 @@ public class MainApp2 {
         panel.setBackground(Color.WHITE);
         panel.setBorder(new EmptyBorder(15, 15, 15, 15));
 
-        JPanel createPanel = createTitledPanel("Crear Nuevo Grupo"); // GridBagLayout
+        JPanel createPanel = createTitledPanel("Crear Nuevo Grupo");
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.insets = new Insets(8, 10, 8, 10);
         gbc.fill = GridBagConstraints.HORIZONTAL;
@@ -466,12 +455,10 @@ public class MainApp2 {
                     JOptionPane.showMessageDialog(frame, "Categoría no encontrada.", "Error", JOptionPane.ERROR_MESSAGE);
                     return;
                 }
-                Grupo grupo = new Grupo(nombreField.getText());
-                grupo.setCategoria(categoria);
-                grupo.guardar();
+                Grupo grupo = federacion.nuevoGrupo(categoria, nombreField.getText());
                 JOptionPane.showMessageDialog(frame, "Grupo creado: " + grupo);
                 clearFields(categoriaField, nombreField);
-            } catch (SQLException ex) {
+            } catch (Exception ex) {
                 JOptionPane.showMessageDialog(frame, "Error al guardar grupo: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
             }
         });
@@ -484,9 +471,9 @@ public class MainApp2 {
                     JOptionPane.showMessageDialog(frame, "Categoría no encontrada.", "Error", JOptionPane.ERROR_MESSAGE);
                     return;
                 }
-                List<Grupo> grupos = Grupo.obtenerPorCategoria(categoria);
+                List<Grupo> grupos = federacion.obtenerGrupos(categoria);
                 showListResult(grupos, "Grupos en " + categoria.getNombre() + ":");
-            } catch (SQLException ex) {
+            } catch (Exception ex) {
                 JOptionPane.showMessageDialog(frame, "Error al listar grupos: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
             }
         });
@@ -503,7 +490,7 @@ public class MainApp2 {
         panel.setBackground(Color.WHITE);
         panel.setBorder(new EmptyBorder(15, 15, 15, 15));
 
-        JPanel createPanel = createTitledPanel("Crear Nuevo Equipo y Buscar Jugador"); // GridBagLayout
+        JPanel createPanel = createTitledPanel("Crear Nuevo Equipo y Buscar Jugador");
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.insets = new Insets(8, 10, 8, 10);
         gbc.fill = GridBagConstraints.HORIZONTAL;
@@ -511,7 +498,7 @@ public class MainApp2 {
         JTextField letraField = addField(createPanel, gbc, "Letra:", 0);
         JTextField instalacionField = addField(createPanel, gbc, "Nombre Instalación:", 1);
         JTextField grupoField = addField(createPanel, gbc, "Nombre Grupo:", 2);
-        JTextField clubField = addField(createPanel, gbc, "Nombre Club (opcional):", 3);
+        JTextField clubField = addField(createPanel, gbc, "Nombre Club:", 3);
 
         JButton crearButton = new JButton("Crear Equipo", loadIcon("src/resources/iconos/cross.png"));
         styleButton(crearButton, new Color(211, 47, 47), true);
@@ -524,45 +511,42 @@ public class MainApp2 {
         styleButton(buscarJugadorButton, new Color(33, 37, 41), false);
         buscarJugadorButton.setToolTipText("Busca un jugador en el equipo por DNI");
 
-        crearButton.addActionListener(event -> {
-            if (!validateFields(letraField, instalacionField, grupoField)) return;
-            try {
-                Instalacion instalacion = Instalacion.buscarPorNombre(instalacionField.getText());
-                if (instalacion == null) {
-                    int confirm = JOptionPane.showConfirmDialog(frame, "Instalación no encontrada. ¿Crear una nueva con valores por defecto?", "Confirmar", JOptionPane.YES_NO_OPTION);
-                    if (confirm == JOptionPane.YES_OPTION) {
-                        instalacion = new Instalacion(instalacionField.getText(), "Dirección por defecto", Instalacion.TipoSuperficie.CESPED_NATURAL);
-                        instalacion.guardar();
-                    } else {
-                        return;
-                    }
-                }
-                Grupo grupo = Grupo.buscarPorNombre(grupoField.getText());
-                if (grupo == null) {
-                    JOptionPane.showMessageDialog(frame, "Grupo no encontrado. Cree uno primero.", "Error", JOptionPane.ERROR_MESSAGE);
-                    return;
-                }
-                Equipo equipo = new Equipo(letraField.getText(), instalacion, grupo);
-                equipo.guardar();
-                handleClubAssignment(equipo, clubField.getText());
-                JOptionPane.showMessageDialog(frame, "Equipo creado: " + equipo);
-                clearFields(letraField, instalacionField, grupoField, clubField);
-            } catch (SQLException ex) {
-                JOptionPane.showMessageDialog(frame, "Error al guardar equipo: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
-            }
-        });
+//        crearButton.addActionListener(event -> {
+//            if (!validateFields(letraField, instalacionField, grupoField, clubField)) return;
+//            try {
+//                Instalacion instalacion = Instalacion.buscarPorNombre(instalacionField.getText());
+//                if (instalacion == null) {
+//                    JOptionPane.showMessageDialog(frame, "Instalación no encontrada. Cree una primero.", "Error", JOptionPane.ERROR_MESSAGE);
+//                    return;
+//                }
+//                Grupo grupo = Grupo.buscarPorNombre(grupoField.getText());
+//                if (grupo == null) {
+//                    JOptionPane.showMessageDialog(frame, "Grupo no encontrado. Cree uno primero.", "Error", JOptionPane.ERROR_MESSAGE);
+//                    return;
+//                }
+//                Club club = federacion.buscarClub(clubField.getText());
+//                if (club == null) {
+//                    JOptionPane.showMessageDialog(frame, "Club no encontrado. Cree uno primero.", "Error", JOptionPane.ERROR_MESSAGE);
+//                    return;
+//                }
+//                Equipo equipo = federacion.nuevoEquipo(letraField.getText(), instalacion, grupo, club);
+//                JOptionPane.showMessageDialog(frame, "Equipo creado: " + equipo);
+//                clearFields(letraField, instalacionField, grupoField, clubField);
+//            } catch (Exception ex) {
+//                JOptionPane.showMessageDialog(frame, "Error al guardar equipo: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+//            }
+//        });
 
         buscarJugadorButton.addActionListener(event -> {
             if (!validateFields(buscarLetraField, dniField)) return;
             try {
                 Equipo equipo = Equipo.buscarPorLetra(buscarLetraField.getText());
                 if (equipo == null) {
-                    JOptionPane.showMessageDialog(frame, "Equipo no encontrado con la letra: " + buscarLetraField.getText(), "Error", JOptionPane.ERROR_MESSAGE);
+                    JOptionPane.showMessageDialog(frame, "Equipo no encontrado.", "Error", JOptionPane.ERROR_MESSAGE);
                     return;
                 }
                 Persona jugador = equipo.buscarJugador(dniField.getText());
-                JOptionPane.showMessageDialog(frame, jugador != null ? "Jugador encontrado: " + jugador.toString() + "\nEquipo: " + equipo.getLetra() : 
-                        "No se encontró un jugador con DNI: " + dniField.getText() + " en el equipo " + buscarLetraField.getText());
+                JOptionPane.showMessageDialog(frame, jugador != null ? "Jugador encontrado: " + jugador : "Jugador no encontrado en el equipo.");
                 clearFields(buscarLetraField, dniField);
             } catch (SQLException ex) {
                 JOptionPane.showMessageDialog(frame, "Error al buscar jugador: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
@@ -581,13 +565,13 @@ public class MainApp2 {
         panel.setBackground(Color.WHITE);
         panel.setBorder(new EmptyBorder(15, 15, 15, 15));
 
-        JPanel createPanel = createTitledPanel("Gestionar Licencias"); // GridBagLayout
+        JPanel createPanel = createTitledPanel("Gestionar Licencias");
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.insets = new Insets(8, 10, 8, 10);
         gbc.fill = GridBagConstraints.HORIZONTAL;
 
         JTextField dniField = addField(createPanel, gbc, "DNI Persona:", 0);
-        JTextField equipoField = addField(createPanel, gbc, "Letra Equipo (opcional):", 1);
+        JTextField equipoField = addField(createPanel, gbc, "Letra Equipo:", 1);
         JTextField calcularField = addField(createPanel, gbc, "Letra Equipo para Precio:", 2);
 
         JButton crearSimpleButton = new JButton("Crear Licencia Simple", loadIcon("src/resources/iconos/cross.png"));
@@ -603,16 +587,15 @@ public class MainApp2 {
         crearSimpleButton.addActionListener(event -> {
             if (!validateFields(dniField)) return;
             try {
-                Persona persona = Persona.buscarPorDni(dniField.getText());
+                Persona persona = federacion.buscaPersona(dniField.getText());
                 if (persona == null) {
                     JOptionPane.showMessageDialog(frame, "Persona no encontrada.", "Error", JOptionPane.ERROR_MESSAGE);
                     return;
                 }
-                Licencia licencia = new Licencia(persona, "LIC" + System.currentTimeMillis());
-                licencia.guardar();
+                Licencia licencia = federacion.nuevaLicencia(persona);
                 JOptionPane.showMessageDialog(frame, "Licencia creada: " + licencia);
                 clearFields(dniField);
-            } catch (SQLException ex) {
+            } catch (Exception ex) {
                 JOptionPane.showMessageDialog(frame, "Error al guardar licencia: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
             }
         });
@@ -620,18 +603,16 @@ public class MainApp2 {
         crearEquipoButton.addActionListener(event -> {
             if (!validateFields(dniField, equipoField)) return;
             try {
-                Persona persona = Persona.buscarPorDni(dniField.getText());
+                Persona persona = federacion.buscaPersona(dniField.getText());
                 Equipo equipo = Equipo.buscarPorLetra(equipoField.getText());
                 if (persona == null || equipo == null) {
                     JOptionPane.showMessageDialog(frame, persona == null ? "Persona no encontrada." : "Equipo no encontrado.", "Error", JOptionPane.ERROR_MESSAGE);
                     return;
                 }
-                Licencia licencia = new Licencia(persona, "LIC" + System.currentTimeMillis());
-                licencia.guardar();
-                licencia.asignarAEquipo(equipo);
+                Licencia licencia = federacion.nuevaLicencia(persona, equipo);
                 JOptionPane.showMessageDialog(frame, "Licencia con equipo creada: " + licencia);
                 clearFields(dniField, equipoField);
-            } catch (SQLException ex) {
+            } catch (Exception ex) {
                 JOptionPane.showMessageDialog(frame, "Error al gestionar licencia: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
             }
         });
@@ -644,9 +625,10 @@ public class MainApp2 {
                     JOptionPane.showMessageDialog(frame, "Equipo no encontrado.", "Error", JOptionPane.ERROR_MESSAGE);
                     return;
                 }
-                double precio = equipo.calcularPrecioLicencia();
+                double precio = federacion.calcularPrecioLicencia(equipo);
                 JOptionPane.showMessageDialog(frame, "Precio de la licencia: " + precio);
-            } catch (SQLException ex) {
+                clearFields(calcularField);
+            } catch (Exception ex) {
                 JOptionPane.showMessageDialog(frame, "Error al calcular precio: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
             }
         });
@@ -659,7 +641,6 @@ public class MainApp2 {
         return panel;
     }
 
-    // Métodos de utilidad
     private void setFrameIcon(String path) {
         ImageIcon icon = loadIcon(path);
         if (icon != null) frame.setIconImage(icon.getImage());
@@ -718,23 +699,19 @@ public class MainApp2 {
     }
 
     private void listCategorias(JPanel listPanel) {
-        try {
-            List<Categoria> categorias = Categoria.obtenerTodas();
-            JTextArea textArea = new JTextArea(10, 30);
-            textArea.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-            textArea.setText("Categorías:\n");
-            for (Categoria c : categorias) {
-                textArea.append(c.toString() + "\n");
-            }
-            textArea.setEditable(false);
-            listPanel.removeAll();
-            listPanel.add(new JButton("Listar Categorías", loadIcon("src/resources/iconos/magnifier.png")), BorderLayout.NORTH);
-            listPanel.add(new JScrollPane(textArea), BorderLayout.CENTER);
-            listPanel.revalidate();
-            listPanel.repaint();
-        } catch (SQLException ex) {
-            JOptionPane.showMessageDialog(frame, "Error al listar categorías: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        List<Categoria> categorias = federacion.obtenerCategorias();
+        JTextArea textArea = new JTextArea(10, 30);
+        textArea.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        textArea.setText("Categorías:\n");
+        for (Categoria c : categorias) {
+            textArea.append(c.toString() + "\n");
         }
+        textArea.setEditable(false);
+        listPanel.removeAll();
+        listPanel.add(new JButton("Listar Categorías", loadIcon("src/resources/iconos/magnifier.png")), BorderLayout.NORTH);
+        listPanel.add(new JScrollPane(textArea), BorderLayout.CENTER);
+        listPanel.revalidate();
+        listPanel.repaint();
     }
 
     private void listClubes(JPanel listPanel) {
@@ -766,17 +743,6 @@ public class MainApp2 {
         }
         textArea.setEditable(false);
         JOptionPane.showMessageDialog(frame, new JScrollPane(textArea), "Resultados", JOptionPane.INFORMATION_MESSAGE);
-    }
-
-    private void handleClubAssignment(Equipo equipo, String nombreClub) throws SQLException {
-        if (!nombreClub.isEmpty()) {
-            Club club = Club.buscarPorNombre(nombreClub);
-            if (club != null) {
-                club.addEquipo(equipo);
-            } else {
-                JOptionPane.showMessageDialog(frame, "Club no encontrado, equipo creado sin club.", "Advertencia", JOptionPane.WARNING_MESSAGE);
-            }
-        }
     }
 
     private void styleMenu(JMenu menu, Font font, Color foreground, Color hoverColor) {
