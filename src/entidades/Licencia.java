@@ -93,7 +93,7 @@ public class Licencia {
             ps.setString(1, numeroLicencia);
             ResultSet rs = ps.executeQuery();
             if (rs.next()) {
-                Persona persona = Persona.buscarPorDni(rs.getString("persona_dni"));
+                Persona persona = Persona.buscaPersona(rs.getString("persona_dni"));
                 if (persona == null) {
                     throw new SQLException("Persona asociada no encontrada.");
                 }
