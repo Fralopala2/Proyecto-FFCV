@@ -39,3 +39,4 @@ public interface IFederacion {
     /* INSTALACIÓN */
     public Instalacion nuevaInstalacion(String nombre, String direccion, String superficie);
     public List<Instalacion> buscarInstalaciones(String nombre);
+}
