@@ -96,7 +96,7 @@ public class Club{
             ps.setString(1, nombre);
             ResultSet rs = ps.executeQuery();
             if(rs.next()){
-                Persona presidente = Persona.buscarPorDni(rs.getString("presidente_dni"));
+                Persona presidente = Persona.buscaPersona(rs.getString("presidente_dni"));
                 return new Club(rs.getString("nombre"), rs.getDate("fechaFundacion").toLocalDate(), presidente);
             }
             return null;
@@ -174,7 +174,7 @@ public class Club{
         try(Connection conn = DatabaseConnection.getConnection(); PreparedStatement ps = conn.prepareStatement(sql); 
              ResultSet rs = ps.executeQuery()){
             while(rs.next()){
-                Persona presidente = Persona.buscarPorDni(rs.getString("presidente_dni"));
+                Persona presidente = Persona.buscaPersona(rs.getString("presidente_dni"));
                 if (presidente == null){
                     throw new SQLException("Presidente no encontrado para el club: " + rs.getString("nombre"));
                 }

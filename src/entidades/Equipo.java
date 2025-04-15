@@ -110,7 +110,6 @@ public class Equipo {
     public Persona buscarJugador(String dni) throws SQLException {
         for (Licencia licencia : cargarLicencias()) {
             if (licencia.getPersona().getDNI().equals(dni)) {
-            if (licencia.getPersona().getDNI().equals(dni)) {
                 return licencia.getPersona();
             }
         }
@@ -127,7 +126,7 @@ public class Equipo {
             ps.setInt(1, obtenerIdEquipo());
             ResultSet rs = ps.executeQuery();
             while (rs.next()) {
-                Persona persona = Persona.buscarPorDni(rs.getString("dni_persona"));
+                Persona persona = Persona.buscaPersona(rs.getString("dni_persona"));
                 Licencia licencia = new Licencia(persona, rs.getString("numeroLicencia"));
                 licencia.setAbonada(rs.getBoolean("abonada"));
                 licencias.add(licencia);
