@@ -141,7 +141,7 @@ public class Persona {
         return busqueda;
     }
      
-     private void Persistencia()throws SQLException{
+     public void Persistencia()throws SQLException{
      
      String consulta = "INSERT INTO Persona (DNI, apellido1, apellido2, fechaNacimiento, nombre, password, poblacion, usuario)"+ " VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
      
