@@ -5,9 +5,6 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
-import entidades.Categoria;
-import entidades.Equipo;
-
 public class Grupo {
 
     // Atributos
