@@ -33,7 +33,7 @@ public class Categoria {
         try {
             actualizarEnBD();
         } catch (SQLException e) {
-            // Manejar excepción
+            
         }
     }
 
@@ -43,7 +43,7 @@ public class Categoria {
         try {
             actualizarEnBD();
         } catch (SQLException e) {
-            // Manejar excepción
+            
         }
     }
 
@@ -54,7 +54,7 @@ public class Categoria {
         try {
             actualizarEnBD();
         } catch (SQLException e) {
-            // Manejar excepción
+            
         }
     }
     
