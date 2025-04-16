@@ -117,6 +117,38 @@ public class Grupo {
         }
         return grupos;
     }
+    
+    public static List<Grupo> buscarPorCategoria(Categoria categoria) throws SQLException {
+        List<Grupo> grupos = new ArrayList<>();
+        String sql = "SELECT * FROM Grupo WHERE categoria_id = ?";
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, categoria.getId());
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                Grupo grupo = new Grupo(rs.getInt("id"), rs.getString("nombre"));
+                grupo.setCategoria(categoria);
+                grupos.add(grupo);
+            }
+            return grupos;
+        }
+    }
+    
+    public static Grupo buscarPorNombre(String nombre) throws SQLException {
+        String sql = "SELECT * FROM Grupo WHERE nombre = ?";
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, nombre);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                Grupo grupo = new Grupo(rs.getInt("id"), rs.getString("nombre"));
+                Categoria categoria = Categoria.buscarPorId(rs.getInt("categoria_id"));
+                grupo.setCategoria(categoria);
+                return grupo;
+            }
+            return null;
+        }
+    }
 
     private int categoriaId() throws SQLException {
         if (categoria == null) throw new IllegalStateException("Categoría no establecida.");
