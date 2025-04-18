@@ -121,7 +121,7 @@ public class Persona {
     
     
         public static Persona buscaPersona(String dni) throws SQLException {
-            String sql = "SELECT * FROM persona WHERE dni = ?";
+            String sql = "SELECT * FROM Persona WHERE dni = ?";
             try (Connection conn = DatabaseConnection.getConnection();
                  PreparedStatement ps = conn.prepareStatement(sql)) {
                 ps.setString(1, dni);
@@ -144,7 +144,7 @@ public class Persona {
     
         public static ArrayList<Persona> buscaPersonas(String nombre, String apellido1, String apellido2) throws SQLException {
             ArrayList<Persona> busqueda = new ArrayList<>();
-            String sql = "SELECT * FROM persona WHERE nombre LIKE ? AND apellido1 LIKE ? AND apellido2 LIKE ?";
+            String sql = "SELECT * FROM Persona WHERE nombre LIKE ? AND apellido1 LIKE ? AND apellido2 LIKE ?";
             try (Connection conn = DatabaseConnection.getConnection();
                  PreparedStatement ps = conn.prepareStatement(sql)) {
                 ps.setString(1, "%" + nombre + "%");
@@ -170,7 +170,7 @@ public class Persona {
     
      
      public void Persistencia() throws SQLException {
-        String consulta = "INSERT INTO persona (dni, nombre, apellido1, apellido2, fechaNacimiento, usuario, password, poblacion) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+        String consulta = "INSERT INTO Persona (dni, nombre, apellido1, apellido2, fechaNacimiento, usuario, password, poblacion) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
 
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement valor = conn.prepareStatement(consulta)) {
