@@ -51,7 +51,7 @@ public class Empleado extends Persona{
         this.segSocial = segSocial;
     }
     
-    public static Empleado nuevoEmpleado(String dni, String nombre, String apellido1, String apellido2, LocalDate fechaNacimiento, String usuario, String password, String poblacion, int numEmpleado, LocalDate inicioContrato, String segSocial){
+    public static Empleado nuevoEmpleado(String dni, String nombre, String apellido1, String apellido2, LocalDate fechaNacimiento, String usuario, String password, String poblacion, int numEmpleado, LocalDate inicioContrato, String segSocial) throws SQLException{
     
         if (Persona.buscaPersona(dni) == null) {
             return new Empleado(numEmpleado, inicioContrato, segSocial, dni, nombre, apellido1, apellido2, usuario, password, poblacion, fechaNacimiento);

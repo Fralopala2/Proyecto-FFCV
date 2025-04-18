@@ -108,102 +108,85 @@ public class Persona {
     
     
     
-    
-    
-    public static Persona nuevaPersona(String dni, String nombre, String apellido1, String apellido2, LocalDate fechaNacimiento, String usuario, String password, String poblacion) {
-    try {
-        
-    if (buscaPersona(dni) == null) {
-        Persona persona = new Persona(dni, nombre, apellido1, apellido2, usuario, password, poblacion, fechaNacimiento);
-        
-        personas.add(persona);
-        return persona;
-    
-    } else {
-        
-        System.out.println("La persona con DNI " + dni + " ya existe.");
-    }
-    
-    }catch (Exception e) {
-        
-        System.err.println("Error al crear nueva persona");
-    }
-
-    return null;
-    }
-    
-    public static Persona buscaPersona(String dni){
-        
-        for (int i = 0; i < personas.size(); i++){
-            
-            if (personas.get(i).getDNI().equals(dni)) {
-                return personas.get(i);
+    public static Persona nuevaPersona(String dni, String nombre, String apellido1, String apellido2, LocalDate fechaNacimiento, String usuario, String password, String poblacion) throws SQLException {
+            if (buscaPersona(dni) == null) {
+                Persona persona = new Persona(dni, nombre, apellido1, apellido2, usuario, password, poblacion, fechaNacimiento);
+                persona.Persistencia(); // Guardar en la base de datos
+                personas.add(persona); // Agregar a la lista estática
+                return persona;
             }
-        }
-        
-        String consulta = "SELECT * FROM persona WHERE dni = ?";
-    try (Connection conn = DatabaseConnection.getConnection();
-         PreparedStatement st = conn.prepareStatement(consulta)) {
-
-        st.setString(1, dni);
-        ResultSet rs = st.executeQuery();
-
-        if (rs.next()) {
-            Persona persona = new Persona(
-                rs.getString("dni"),
-                rs.getString("nombre"),
-                rs.getString("apellido1"),
-                rs.getString("apellido2"),
-                rs.getString("usuario"),
-                rs.getString("password"),
-                rs.getString("poblacion"),
-                rs.getDate("fechaNacimiento").toLocalDate()
-            );
-            personas.add(persona);
-            return persona;
+            return null;
         }
 
-    } catch (SQLException e) {
-        System.out.println("Error al acceder a la base de datos");
-    }
-        return null;
-    }
     
-     public static ArrayList<Persona> buscaPersonas(String nombre, String apellido1, String apellido2) {
-        ArrayList<Persona> busqueda = new ArrayList<>();
-        for (int i = 0; i < personas.size(); i++) {
-            Persona persona = personas.get(i);
-            if (persona.getNombre() != null && persona.getNombre().equals(nombre) && persona.getApellido1() != null && persona.getApellido1().equals(apellido1) && persona.getApellido2() != null && persona.getApellido2().equals(apellido2))
-            {
-                busqueda.add(persona);
+    
+        public static Persona buscaPersona(String dni) throws SQLException {
+            String sql = "SELECT * FROM persona WHERE dni = ?";
+            try (Connection conn = DatabaseConnection.getConnection();
+                 PreparedStatement ps = conn.prepareStatement(sql)) {
+                ps.setString(1, dni);
+                ResultSet rs = ps.executeQuery();
+                if (rs.next()) {
+                    return new Persona(
+                        rs.getString("dni"),
+                        rs.getString("nombre"),
+                        rs.getString("apellido1"),
+                        rs.getString("apellido2"),
+                        rs.getString("usuario"),
+                        rs.getString("password"),
+                        rs.getString("poblacion"),
+                        rs.getDate("fechaNacimiento").toLocalDate()
+                    );
+                }
+                return null;
             }
+        }
+    
+        public static ArrayList<Persona> buscaPersonas(String nombre, String apellido1, String apellido2) throws SQLException {
+            ArrayList<Persona> busqueda = new ArrayList<>();
+            String sql = "SELECT * FROM persona WHERE nombre LIKE ? AND apellido1 LIKE ? AND apellido2 LIKE ?";
+            try (Connection conn = DatabaseConnection.getConnection();
+                 PreparedStatement ps = conn.prepareStatement(sql)) {
+                ps.setString(1, "%" + nombre + "%");
+                ps.setString(2, "%" + apellido1 + "%");
+                ps.setString(3, "%" + apellido2 + "%");
+                ResultSet rs = ps.executeQuery();
+                while (rs.next()) {
+                    busqueda.add(new Persona(
+                        rs.getString("dni"),
+                        rs.getString("nombre"),
+                        rs.getString("apellido1"),
+                        rs.getString("apellido2"),
+                        rs.getString("usuario"),
+                        rs.getString("password"),
+                        rs.getString("poblacion"),
+                        rs.getDate("fechaNacimiento").toLocalDate()
+                    ));
+                }
             }
             return busqueda;
         }
         
     
      
-     public void Persistencia()throws SQLException{
-     
-     String consulta = "INSERT INTO persona (dni, apellido1, apellido2, fechaNacimiento, usuario, password, poblacion)"+ " VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
-     
-    try(Connection conn = DatabaseConnection.getConnection();
-    
-     PreparedStatement valor = conn.prepareStatement(consulta)){
-     
-     valor.setString(1, DNI);       
-     valor.setString(2, nombre);        
-     valor.setString(3, apellido1);
-     valor.setString(4, apellido2);
-     valor.setDate(5, java.sql.Date.valueOf(fechaNacimiento));
-     valor.setString(6, usuario);
-     valor.setString(7, password);
-     valor.setString(8, poblacion);
-    
-     valor.executeUpdate();
+     public void Persistencia() throws SQLException {
+        String consulta = "INSERT INTO persona (dni, nombre, apellido1, apellido2, fechaNacimiento, usuario, password, poblacion) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement valor = conn.prepareStatement(consulta)) {
+            valor.setString(1, DNI);
+            valor.setString(2, nombre);
+            valor.setString(3, apellido1);
+            valor.setString(4, apellido2);
+            valor.setDate(5, java.sql.Date.valueOf(fechaNacimiento));
+            valor.setString(6, usuario);
+            valor.setString(7, password);
+            valor.setString(8, poblacion);
+
+            valor.executeUpdate();
+        }
     }
-    }
-    
+
    @Override
     public String toString() {
         return "Nombre: "+ nombre + "\n Primer Apellido: " + apellido1 + "\n Segundo Apellido: " + apellido2 + "\n DNI: " + DNI + "\n Fecha de nacimiento: "+ fechaNacimiento +"\n Poblacion: "+ poblacion +"\n Usuario: "+ usuario +"\n Contraseña: "+ password;

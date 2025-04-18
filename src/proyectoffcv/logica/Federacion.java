@@ -189,7 +189,12 @@ public final class Federacion implements IFederacion {
                 return p;
             }
         }
-        Persona persona = Persona.buscaPersona(dni);
+        Persona persona = null;
+        try {
+            persona = Persona.buscaPersona(dni);
+        } catch (SQLException ex) {
+            Logger.getLogger(Federacion.class.getName()).log(Level.SEVERE, null, ex);
+        }
         if (persona != null) {
             afiliados.add(persona);
         }
@@ -198,7 +203,12 @@ public final class Federacion implements IFederacion {
 
     @Override
     public List<Persona> buscaPersonas(String nombre, String apellido1, String apellido2) {
-        return Persona.buscaPersonas(nombre, apellido1, apellido2);
+        try {
+            return Persona.buscaPersonas(nombre, apellido1, apellido2);
+        } catch (SQLException ex) {
+            Logger.getLogger(Federacion.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return null;
     }
 
     @Override
