@@ -33,7 +33,7 @@ public class Club{
     }
 
     private void persistir()throws SQLException{
-        String sql = "INSERT INTO Club (nombre, fechaFundacion, presidente_dni) VALUES (?, ?, ?)";
+        String sql = "INSERT INTO club (nombre, fechaFundacion, presidente_dni) VALUES (?, ?, ?)";
         try(Connection conn = getConnection(); PreparedStatement ps = conn.prepareStatement(sql)){
             ps.setString(1, nombre);
             ps.setDate(2, java.sql.Date.valueOf(fechaFundacion));
@@ -43,7 +43,7 @@ public class Club{
     }
 
     private void actualizarEnBD()throws SQLException{
-        String sql = "UPDATE Club SET fechaFundacion = ?, presidente_dni = ? WHERE nombre = ?";
+        String sql = "UPDATE club SET fechaFundacion = ?, presidente_dni = ? WHERE nombre = ?";
         try(Connection conn = getConnection(); PreparedStatement ps = conn.prepareStatement(sql)){
             ps.setDate(1, java.sql.Date.valueOf(fechaFundacion));
             ps.setString(2, presidente.getDNI());
@@ -53,7 +53,7 @@ public class Club{
     }
 
     private void eliminarDeBD()throws SQLException{
-        String sql = "DELETE FROM Club WHERE nombre = ?";
+        String sql = "DELETE FROM club WHERE nombre = ?";
         try(Connection conn = getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, nombre);
             ps.executeUpdate();
@@ -91,7 +91,7 @@ public class Club{
     }
 
     public static Club buscarPorNombre(String nombre)throws SQLException{
-        String sql = "SELECT * FROM Club WHERE nombre = ?";
+        String sql = "SELECT * FROM club WHERE nombre = ?";
         try(Connection conn = DatabaseConnection.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)){
             ps.setString(1, nombre);
             ResultSet rs = ps.executeQuery();
@@ -105,7 +105,7 @@ public class Club{
 
     public void addEquipo(Equipo equipo)throws SQLException{
         if(!equipos.contains(equipo)){
-            String sql = "INSERT INTO Club_Equipo (club_id, equipo_id) VALUES (?, ?)";
+            String sql = "INSERT INTO club_equipo (club_id, equipo_id) VALUES (?, ?)";
             try(Connection conn = getConnection(); PreparedStatement ps = conn.prepareStatement(sql)){
                 ps.setInt(1, obtenerIdClub());
                 ps.setInt(2, obtenerIdEquipo(equipo));
@@ -119,7 +119,7 @@ public class Club{
 
     public void removeEquipo(Equipo equipo)throws SQLException{
         if(equipos.contains(equipo)){
-            String sql = "DELETE FROM Club_Equipo WHERE club_id = ? AND equipo_id = ?";
+            String sql = "DELETE FROM club_equipo WHERE club_id = ? AND equipo_id = ?";
             try(Connection conn = getConnection(); PreparedStatement ps = conn.prepareStatement(sql)){
                 ps.setInt(1, obtenerIdClub());
                 ps.setInt(2, obtenerIdEquipo(equipo));
@@ -131,7 +131,7 @@ public class Club{
 
     private void cargarEquipos()throws SQLException{
         equipos.clear();
-        String sql = "SELECT e.* FROM Equipo e JOIN Club_Equipo ce ON e.id = ce.equipo_id WHERE ce.club_id = ?";
+        String sql = "SELECT e.* FROM equipo e JOIN club_equipo ce ON e.id = ce.equipo_id WHERE ce.club_id = ?";
         try(Connection conn = getConnection(); PreparedStatement ps = conn.prepareStatement(sql)){
             ps.setInt(1, obtenerIdClub());
             ResultSet rs = ps.executeQuery();
@@ -145,7 +145,7 @@ public class Club{
     }
 
     public int obtenerIdClub()throws SQLException{
-        String sql = "SELECT id FROM Club WHERE nombre = ?";
+        String sql = "SELECT id FROM club WHERE nombre = ?";
         try(Connection conn = getConnection(); PreparedStatement ps = conn.prepareStatement(sql)){
             ps.setString(1, this.getNombre());
             ResultSet rs = ps.executeQuery();
@@ -157,7 +157,7 @@ public class Club{
     }
 
     private int obtenerIdEquipo(Equipo equipo)throws SQLException{
-        String sql = "SELECT id FROM Equipo WHERE letra = ?";
+        String sql = "SELECT id FROM equipo WHERE letra = ?";
         try(Connection conn = getConnection(); PreparedStatement ps = conn.prepareStatement(sql)){
             ps.setString(1, equipo.getLetra());
             ResultSet rs = ps.executeQuery();
@@ -170,7 +170,7 @@ public class Club{
 
     public static List<Club> obtenerTodos()throws SQLException{
         List<Club> clubes = new ArrayList<>();
-        String sql = "SELECT c.nombre, c.fechaFundacion, c.presidente_dni FROM Club c";
+        String sql = "SELECT c.nombre, c.fechaFundacion, c.presidente_dni FROM club c";
         try(Connection conn = DatabaseConnection.getConnection(); PreparedStatement ps = conn.prepareStatement(sql); 
              ResultSet rs = ps.executeQuery()){
             while(rs.next()){

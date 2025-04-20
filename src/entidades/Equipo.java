@@ -27,7 +27,7 @@ public class Equipo {
     }
 
     private void persistir() throws SQLException {
-        String sql = "INSERT INTO Equipo (letra, instalacion_id, grupo_id, club_id) VALUES (?, ?, ?, ?)";
+        String sql = "INSERT INTO equipo (letra, instalacion_id, grupo_id, club_id) VALUES (?, ?, ?, ?)";
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, letra);
@@ -39,7 +39,7 @@ public class Equipo {
     }
 
     private void actualizarEnBD() throws SQLException {
-        String sql = "UPDATE Equipo SET instalacion_id = ?, grupo_id = ? WHERE letra = ?";
+        String sql = "UPDATE equipo SET instalacion_id = ?, grupo_id = ? WHERE letra = ?";
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, obtenerIdInstalacion());
@@ -50,7 +50,7 @@ public class Equipo {
     }
 
     private void eliminarDeBD() throws SQLException {
-        String sql = "DELETE FROM Equipo WHERE letra = ?";
+        String sql = "DELETE FROM equipo WHERE letra = ?";
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, letra);
@@ -93,7 +93,7 @@ public class Equipo {
     } 
     
     public static Equipo buscarPorLetra(String letra) throws SQLException {
-        String sql = "SELECT * FROM Equipo WHERE letra = ?";
+        String sql = "SELECT * FROM equipo WHERE letra = ?";
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, letra);
@@ -120,7 +120,7 @@ public class Equipo {
 
     private List<Licencia> cargarLicencias() throws SQLException {
         licencias.clear();
-        String sql = "SELECT * FROM Licencia WHERE equipo_id = ?";
+        String sql = "SELECT * FROM licencia WHERE equipo_id = ?";
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, obtenerIdEquipo());
@@ -136,7 +136,7 @@ public class Equipo {
     }
 
     private int obtenerIdInstalacion() throws SQLException {
-        String sql = "SELECT id FROM Instalacion WHERE nombre = ?";
+        String sql = "SELECT id FROM instalacion WHERE nombre = ?";
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, instalacion.getNombre());
@@ -149,7 +149,7 @@ public class Equipo {
     }
 
     private int obtenerIdGrupo() throws SQLException {
-        String sql = "SELECT id FROM Grupo WHERE nombre = ?";
+        String sql = "SELECT id FROM grupo WHERE nombre = ?";
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, grupo.getNombre());
@@ -162,7 +162,7 @@ public class Equipo {
     }
 
     private int obtenerIdEquipo() throws SQLException {
-        String sql = "SELECT id FROM Equipo WHERE letra = ?";
+        String sql = "SELECT id FROM equipo WHERE letra = ?";
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, letra);
