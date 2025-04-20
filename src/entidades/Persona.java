@@ -100,6 +100,18 @@ public class Persona {
             return null;
         }
     }
+    
+    public void eliminar() throws SQLException {
+        String sql = "DELETE FROM Persona WHERE dni = ?";
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, dni);
+            int rowsAffected = ps.executeUpdate();
+            if (rowsAffected == 0) {
+                throw new SQLException("No se encontró la persona con DNI: " + dni);
+            }
+        }
+    }
 
     /**
      * Busca personas por nombre y apellidos (búsqueda parcial).
