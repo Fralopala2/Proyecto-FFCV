@@ -1,200 +1,230 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Main.java to edit this template
- */
 package entidades;
+
 import proyectoffcv.util.DatabaseConnection;
 import java.time.LocalDate;
-import java.util.ArrayList;
 import java.sql.Connection;
-import java.sql.*;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.ArrayList;
+
 /**
  *
  * @author david
  */
 public class Persona {
-   
- private String DNI, nombre, apellido1, apellido2, usuario, password, poblacion;
- private LocalDate fechaNacimiento;
- private static ArrayList<Persona> personas;
-        
-  public Persona(String DNI, String nombre, String apellido1, String apellido2, String usuario, String password, String poblacion, LocalDate fechanacimiento){
-  this.DNI = DNI;
-  this.apellido1 = apellido1;
-  this.apellido2 = apellido2;
-  this.fechaNacimiento = fechanacimiento;
-  this.nombre = nombre;
-  this.password = password;
-  this.poblacion = poblacion;
-  this.usuario = usuario;
-  this.personas = new ArrayList<>();
-  }      
 
+    private String dni;
+    private String nombre;
+    private String apellido1;
+    private String apellido2;
+    private String usuario;
+    private String password;
+    private String poblacion;
+    private LocalDate fechaNacimiento;
+
+    /**
+     * Constructor de la clase Persona.
+     */
+    public Persona(String dni, String nombre, String apellido1, String apellido2, String usuario,
+            String password, String poblacion, LocalDate fechaNacimiento) {
+        validateDni(dni);
+        validateString(nombre, "Nombre");
+        validateString(usuario, "Usuario");
+        validateString(password, "Contraseña");
+        this.dni = dni;
+        this.nombre = nombre;
+        this.apellido1 = apellido1 != null ? apellido1 : "";
+        this.apellido2 = apellido2 != null ? apellido2 : "";
+        this.usuario = usuario;
+        this.password = password;
+        this.poblacion = poblacion != null ? poblacion : "";
+        this.fechaNacimiento = fechaNacimiento;
+    }
+
+    /**
+     * Valida que una cadena no sea nula ni esté vacía.
+     */
+    private void validateString(String value, String fieldName) {
+        if (value == null || value.trim().isEmpty()) {
+            throw new IllegalArgumentException(fieldName + " no puede ser nulo ni vacío.");
+        }
+    }
+
+    /**
+     * Valida el formato básico del DNI (8 dígitos + 1 letra).
+     */
+    private void validateDni(String dni) {
+        if (dni == null || dni.trim().isEmpty()) {
+            throw new IllegalArgumentException("El DNI no puede ser nulo ni vacío.");
+        }
+        if (!dni.matches("\\d{8}[A-Za-z]")) {
+            throw new IllegalArgumentException("El DNI debe tener 8 dígitos seguidos de una letra.");
+        }
+    }
+
+    /**
+     * Crea una nueva persona y la persiste en la base de datos.
+     */
+    public static Persona nuevaPersona(String dni, String nombre, String apellido1, String apellido2,
+            LocalDate fechaNacimiento, String usuario, String password,
+            String poblacion) throws SQLException {
+        if (buscaPersona(dni) != null) {
+            return null; // Persona ya existe
+        }
+        Persona persona = new Persona(dni, nombre, apellido1, apellido2, usuario, password, poblacion, fechaNacimiento);
+        persona.Persistencia();
+        return persona;
+    }
+
+    /**
+     * Busca una persona por su DNI en la base de datos.
+     */
+    public static Persona buscaPersona(String dni) throws SQLException {
+        String sql = "SELECT * FROM Persona WHERE dni = ?";
+        try (Connection conn = DatabaseConnection.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, dni);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                return new Persona(
+                        rs.getString("dni"),
+                        rs.getString("nombre"),
+                        rs.getString("apellido1"),
+                        rs.getString("apellido2"),
+                        rs.getString("usuario"),
+                        rs.getString("password"),
+                        rs.getString("poblacion"),
+                        rs.getDate("fechaNacimiento").toLocalDate()
+                );
+            }
+            return null;
+        }
+    }
+
+    /**
+     * Busca personas por nombre y apellidos (búsqueda parcial).
+     */
+    public static ArrayList<Persona> buscaPersonas(String nombre, String apellido1, String apellido2) throws SQLException {
+        ArrayList<Persona> busqueda = new ArrayList<>();
+        String sql = "SELECT * FROM Persona WHERE nombre LIKE ? AND apellido1 LIKE ? AND apellido2 LIKE ?";
+        try (Connection conn = DatabaseConnection.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, "%" + (nombre != null ? nombre : "") + "%");
+            ps.setString(2, "%" + (apellido1 != null ? apellido1 : "") + "%");
+            ps.setString(3, "%" + (apellido2 != null ? apellido2 : "") + "%");
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                busqueda.add(new Persona(
+                        rs.getString("dni"),
+                        rs.getString("nombre"),
+                        rs.getString("apellido1"),
+                        rs.getString("apellido2"),
+                        rs.getString("usuario"),
+                        rs.getString("password"),
+                        rs.getString("poblacion"),
+                        rs.getDate("fechaNacimiento").toLocalDate()
+                ));
+            }
+        }
+        return busqueda;
+    }
+
+    /**
+     * Persiste la persona en la base de datos.
+     */
+    public void Persistencia() throws SQLException {
+        String sql = "INSERT INTO Persona (dni, nombre, apellido1, apellido2, fechaNacimiento, usuario, password, poblacion) "
+                + "VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+        try (Connection conn = DatabaseConnection.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, dni);
+            ps.setString(2, nombre);
+            ps.setString(3, apellido1);
+            ps.setString(4, apellido2);
+            ps.setDate(5, java.sql.Date.valueOf(fechaNacimiento));
+            ps.setString(6, usuario);
+            ps.setString(7, password);
+            ps.setString(8, poblacion);
+            ps.executeUpdate();
+        } catch (SQLException ex) {
+            throw new SQLException("Error al persistir la persona: " + ex.getMessage(), ex);
+        }
+    }
+
+    // Getters y setters
     public String getDNI() {
-        return DNI;
+        return dni;
+    }
+
+    public void setDNI(String dni) {
+        validateDni(dni);
+        this.dni = dni;
     }
 
     public String getNombre() {
         return nombre;
     }
 
+    public void setNombre(String nombre) {
+        validateString(nombre, "Nombre");
+        this.nombre = nombre;
+    }
+
     public String getApellido1() {
         return apellido1;
+    }
+
+    public void setApellido1(String apellido1) {
+        this.apellido1 = apellido1 != null ? apellido1 : "";
     }
 
     public String getApellido2() {
         return apellido2;
     }
 
+    public void setApellido2(String apellido2) {
+        this.apellido2 = apellido2 != null ? apellido2 : "";
+    }
+
     public String getUsuario() {
         return usuario;
+    }
+
+    public void setUsuario(String usuario) {
+        validateString(usuario, "Usuario");
+        this.usuario = usuario;
     }
 
     public String getPassword() {
         return password;
     }
 
+    public void setPassword(String password) {
+        validateString(password, "Contraseña");
+        this.password = password;
+    }
+
     public String getPoblacion() {
         return poblacion;
+    }
+
+    public void setPoblacion(String poblacion) {
+        this.poblacion = poblacion != null ? poblacion : "";
     }
 
     public LocalDate getFechaNacimiento() {
         return fechaNacimiento;
     }
 
-    public void setDNI(String DNI) {
-        
-    if(DNI == null || DNI.trim().isEmpty()){
-        System.out.println("El campo esta vacío o es nulo");
-    }    
-      this.DNI = DNI;
-    }
-
-    public void setNombre(String nombre) {
-        this.nombre = nombre;
-    }
-
-    public void setApellido1(String apellido1) {
-        this.apellido1 = apellido1;
-    }
-
-    public void setApellido2(String apellido2) {
-        this.apellido2 = apellido2;
-    }
-
-    public void setUsuario(String usuario) {
-        this.usuario = usuario;
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
-    }
-
-    public void setPoblacion(String poblacion) {
-        this.poblacion = poblacion;
-    }
-
     public void setFechaNacimiento(LocalDate fechaNacimiento) {
+        if (fechaNacimiento == null) {
+            throw new IllegalArgumentException("La fecha de nacimiento no puede ser nula.");
+        }
         this.fechaNacimiento = fechaNacimiento;
     }
 
-    public static ArrayList<Persona> getPersonas() {
-        return personas;
-    }
-
-    public static void setPersonas(ArrayList<Persona> personas) {
-        Persona.personas = personas;
-    }
-    
-    
-    
-    public static Persona nuevaPersona(String dni, String nombre, String apellido1, String apellido2, LocalDate fechaNacimiento, String usuario, String password, String poblacion) throws SQLException {
-            if (buscaPersona(dni) == null) {
-                Persona persona = new Persona(dni, nombre, apellido1, apellido2, usuario, password, poblacion, fechaNacimiento);
-                persona.Persistencia(); // Guardar en la base de datos
-                personas.add(persona); // Agregar a la lista estática
-                return persona;
-            }
-            return null;
-        }
-
-    
-    
-        public static Persona buscaPersona(String dni) throws SQLException {
-            String sql = "SELECT * FROM Persona WHERE dni = ?";
-            try (Connection conn = DatabaseConnection.getConnection();
-                 PreparedStatement ps = conn.prepareStatement(sql)) {
-                ps.setString(1, dni);
-                ResultSet rs = ps.executeQuery();
-                if (rs.next()) {
-                    return new Persona(
-                        rs.getString("dni"),
-                        rs.getString("nombre"),
-                        rs.getString("apellido1"),
-                        rs.getString("apellido2"),
-                        rs.getString("usuario"),
-                        rs.getString("password"),
-                        rs.getString("poblacion"),
-                        rs.getDate("fechaNacimiento").toLocalDate()
-                    );
-                }
-                return null;
-            }
-        }
-    
-        public static ArrayList<Persona> buscaPersonas(String nombre, String apellido1, String apellido2) throws SQLException {
-            ArrayList<Persona> busqueda = new ArrayList<>();
-            String sql = "SELECT * FROM Persona WHERE nombre LIKE ? AND apellido1 LIKE ? AND apellido2 LIKE ?";
-            try (Connection conn = DatabaseConnection.getConnection();
-                 PreparedStatement ps = conn.prepareStatement(sql)) {
-                ps.setString(1, "%" + nombre + "%");
-                ps.setString(2, "%" + apellido1 + "%");
-                ps.setString(3, "%" + apellido2 + "%");
-                ResultSet rs = ps.executeQuery();
-                while (rs.next()) {
-                    busqueda.add(new Persona(
-                        rs.getString("dni"),
-                        rs.getString("nombre"),
-                        rs.getString("apellido1"),
-                        rs.getString("apellido2"),
-                        rs.getString("usuario"),
-                        rs.getString("password"),
-                        rs.getString("poblacion"),
-                        rs.getDate("fechaNacimiento").toLocalDate()
-                    ));
-                }
-            }
-            return busqueda;
-        }
-        
-    
-     
-     public void Persistencia() throws SQLException {
-        String consulta = "INSERT INTO Persona (dni, nombre, apellido1, apellido2, fechaNacimiento, usuario, password, poblacion) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
-
-        try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement valor = conn.prepareStatement(consulta)) {
-            valor.setString(1, DNI);
-            valor.setString(2, nombre);
-            valor.setString(3, apellido1);
-            valor.setString(4, apellido2);
-            valor.setDate(5, java.sql.Date.valueOf(fechaNacimiento));
-            valor.setString(6, usuario);
-            valor.setString(7, password);
-            valor.setString(8, poblacion);
-
-            valor.executeUpdate();
-        }
-    }
-
-   @Override
+    @Override
     public String toString() {
-        return "Nombre: "+ nombre + "\n Primer Apellido: " + apellido1 + "\n Segundo Apellido: " + apellido2 + "\n DNI: " + DNI + "\n Fecha de nacimiento: "+ fechaNacimiento +"\n Poblacion: "+ poblacion +"\n Usuario: "+ usuario +"\n Contraseña: "+ password;
-    }   
-        
-   
-   
-   
-    
-    
+        return "Nombre: " + nombre + "\nPrimer Apellido: " + apellido1 + "\nSegundo Apellido: "
+                + apellido2 + "\nDNI: " + dni + "\nFecha de nacimiento: " + fechaNacimiento
+                + "\nPoblación: " + poblacion + "\nUsuario: " + usuario + "\nContraseña: " + password;
+    }
 }
