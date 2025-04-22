@@ -200,27 +200,33 @@ public final class Federacion implements IFederacion {
     }
 
     @Override
-    public Empleado nuevoEmpleado(String dni, String nombre, String apellido1, String apellido2, 
-                                 LocalDate fechaNacimiento, String usuario, String password, String poblacion, 
-                                 int numEmpleado, LocalDate inicioContrato, String segSocial) {
-        if (dni == null || nombre == null || usuario == null || password == null || 
-            fechaNacimiento == null || inicioContrato == null || segSocial == null) {
-            throw new IllegalArgumentException("Ningún parámetro obligatorio puede ser nulo.");
-        }
-        try {
-            Empleado empleado = Empleado.nuevoEmpleado(dni, nombre, apellido1, apellido2, fechaNacimiento, 
-                                                      usuario, password, poblacion, numEmpleado, 
-                                                      inicioContrato, segSocial);
-            if (empleado != null) {
-                empleado.guardar();
-                empleados.add(empleado);
+        public Empleado nuevoEmpleado(String dni, String nombre, String apellido1, String apellido2, 
+                                     LocalDate fechaNacimiento, String usuario, String password, String poblacion, 
+                                     int numEmpleado, LocalDate inicioContrato, String segSocial) {
+            if (dni == null || nombre == null || usuario == null || password == null || 
+                fechaNacimiento == null || inicioContrato == null || segSocial == null) {
+                throw new IllegalArgumentException("Ningún parámetro obligatorio puede ser nulo.");
             }
-            return empleado;
-        } catch (SQLException ex) {
-            Logger.getLogger(Federacion.class.getName()).log(Level.SEVERE, "Error al crear empleado", ex);
-            throw new IllegalStateException("No se pudo crear el empleado: " + ex.getMessage());
+            // Verificar si el DNI ya existe
+            if (buscaPersona(dni) != null) {
+                throw new IllegalArgumentException("El DNI ya está registrado.");
+            }
+            try {
+                Empleado empleado = Empleado.nuevoEmpleado(dni, nombre, apellido1, apellido2, fechaNacimiento, 
+                                                          usuario, password, poblacion, numEmpleado, 
+                                                          inicioContrato, segSocial);
+                if (empleado != null) {
+                    empleado.guardar();
+                    empleados.add(empleado);
+                    return empleado;
+                } else {
+                    throw new IllegalStateException("No se pudo crear el empleado: error en Empleado.nuevoEmpleado.");
+                }
+            } catch (SQLException ex) {
+                Logger.getLogger(Federacion.class.getName()).log(Level.SEVERE, "Error al crear empleado", ex);
+                throw new IllegalStateException("No se pudo crear el empleado: " + ex.getMessage());
+            }
         }
-    }
 
     @Override
     public Persona buscaPersona(String dni) {
