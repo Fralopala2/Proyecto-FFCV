@@ -872,7 +872,7 @@ public class MainApp2 {
         gbc.gridx = 0; gbc.gridy = 4; gbc.gridwidth = 2;
         createPanel.add(buttonPanel1, gbc);
 
-        JTextField buscarLetraField = addField(createPanel, gbc, "Letra Equipo para Buscar:", 5);
+        JTextField buscarLetraField = addField(createPanel, gbc, "Letra Equipo Busqueda:", 5);
         JTextField dniField = addField(createPanel, gbc, "DNI Jugador:", 6);
 
         JPanel buttonPanel2 = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10));
