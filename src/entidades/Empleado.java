@@ -76,7 +76,7 @@ public class Empleado extends Persona {
         }
         Empleado empleado = new Empleado(numEmpleado, inicioContrato, segSocial, dni, nombre, 
                                         apellido1, apellido2, usuario, password, poblacion, fechaNacimiento);
-        empleado.Persistencia();
+        empleado.persistencia();
         return empleado;
     }
 
@@ -84,9 +84,9 @@ public class Empleado extends Persona {
      * Persiste el empleado en la base de datos.
      */
     @Override
-    public void Persistencia() throws SQLException {
+    public void persistencia() throws SQLException {
         // Primero persiste la información de Persona
-        super.Persistencia();
+        super.persistencia();
         
         String sql = "INSERT INTO empleado (dni, puesto, numeroEmpleado, inicioContrato, segSocial) " +
                      "VALUES (?, ?, ?, ?, ?)";
@@ -153,7 +153,7 @@ public class Empleado extends Persona {
     public void guardar() throws SQLException {
         validateNumEmpleado(numEmpleado);
         if (Persona.buscaPersona(getDNI()) == null) {
-            Persistencia();
+            persistencia();
         } else {
             throw new IllegalStateException("El empleado ya existe en la base de datos.");
         }
@@ -165,7 +165,7 @@ public class Empleado extends Persona {
     public void actualizar() throws SQLException {
         validateNumEmpleado(numEmpleado);
         if (Persona.buscaPersona(getDNI()) != null) {
-            super.Persistencia(); // Actualiza la información de Persona
+            super.persistencia(); // Actualiza la información de Persona
             actualizarBaseDatos();
         } else {
             throw new IllegalStateException("El empleado no existe en la base de datos.");

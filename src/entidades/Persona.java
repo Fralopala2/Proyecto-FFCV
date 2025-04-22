@@ -73,7 +73,7 @@ public class Persona {
             return null; // Persona ya existe
         }
         Persona persona = new Persona(dni, nombre, apellido1, apellido2, usuario, password, poblacion, fechaNacimiento);
-        persona.Persistencia();
+        persona.persistencia();
         return persona;
     }
 
@@ -139,11 +139,35 @@ public class Persona {
         }
         return busqueda;
     }
+    
+    /**
+     * Actualiza en la base de datos los datos de una persona.
+     */
+    
+    public void actualizar() throws SQLException {
+        String sql = "UPDATE Persona SET nombre = ?, apellido1 = ?, apellido2 = ?, fechaNacimiento = ?, usuario = ?, password = ?, poblacion = ? WHERE dni = ?";
+        try (Connection conn = DatabaseConnection.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, nombre);
+            ps.setString(2, apellido1);
+            ps.setString(3, apellido2);
+            ps.setDate(4, java.sql.Date.valueOf(fechaNacimiento));
+            ps.setString(5, usuario);
+            ps.setString(6, password);
+            ps.setString(7, poblacion);
+            ps.setString(8, dni);
+            int rowsAffected = ps.executeUpdate();
+            if (rowsAffected == 0) {
+                throw new SQLException("No se encontró la persona con DNI: " + dni);
+            }
+        } catch (SQLException ex) {
+            throw new SQLException("Error al actualizar la persona: " + ex.getMessage(), ex);
+        }
+    }
 
     /**
      * Persiste la persona en la base de datos.
      */
-    public void Persistencia() throws SQLException {
+    public void persistencia() throws SQLException {
         String sql = "INSERT INTO Persona (dni, nombre, apellido1, apellido2, fechaNacimiento, usuario, password, poblacion) "
                 + "VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
         try (Connection conn = DatabaseConnection.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
