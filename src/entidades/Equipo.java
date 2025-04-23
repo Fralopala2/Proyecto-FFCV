@@ -1,16 +1,13 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package entidades;
+
 import proyectoffcv.util.DatabaseConnection;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
-/**
- *
- * @author oscar
- */
+
+/*
+Hecho por Oscar
+*/
 
 public class Equipo {
     private String letra;
@@ -26,27 +23,38 @@ public class Equipo {
         this.licencias = new ArrayList<>();
     }
 
-    private void persistir() throws SQLException {
-        String sql = "INSERT INTO equipo (letra, instalacion_id, grupo_id, club_id) VALUES (?, ?, ?, ?)";
+    private void ejecutarConsulta(boolean isInsert) throws SQLException {
+        String sql = isInsert
+                ? "INSERT INTO equipo (letra, instalacion_id, grupo_id, club_id) VALUES (?, ?, ?, ?)"
+                : "UPDATE equipo SET instalacion_id = ?, grupo_id = ?, club_id = ? WHERE letra = ?";
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setString(1, letra);
-            ps.setInt(2, obtenerIdInstalacion());
-            ps.setInt(3, obtenerIdGrupo());
-            ps.setInt(4, clubId);
-            ps.executeUpdate();
+            if (isInsert) {
+                ps.setString(1, letra);
+                ps.setInt(2, obtenerIdInstalacion());
+                ps.setInt(3, obtenerIdGrupo());
+                ps.setInt(4, clubId);
+            } else {
+                ps.setInt(1, obtenerIdInstalacion());
+                ps.setInt(2, obtenerIdGrupo());
+                ps.setInt(3, clubId);
+                ps.setString(4, letra);
+            }
+            int rowsAffected = ps.executeUpdate();
+            if (!isInsert && rowsAffected == 0) {
+                throw new SQLException("No se encontró el equipo con letra: " + letra);
+            }
+        } catch (SQLException ex) {
+            throw new SQLException("Error al " + (isInsert ? "persistir" : "actualizar") + " el equipo: " + ex.getMessage(), ex);
         }
     }
 
+    private void persistir() throws SQLException {
+        ejecutarConsulta(true);
+    }
+
     private void actualizarEnBD() throws SQLException {
-        String sql = "UPDATE equipo SET instalacion_id = ?, grupo_id = ? WHERE letra = ?";
-        try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setInt(1, obtenerIdInstalacion());
-            ps.setInt(2, obtenerIdGrupo());
-            ps.setString(3, letra);
-            ps.executeUpdate();
-        }
+        ejecutarConsulta(false);
     }
 
     private void eliminarDeBD() throws SQLException {
@@ -54,7 +62,12 @@ public class Equipo {
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, letra);
-            ps.executeUpdate();
+            int rowsAffected = ps.executeUpdate();
+            if (rowsAffected == 0) {
+                throw new SQLException("No se encontró el equipo con letra: " + letra);
+            }
+        } catch (SQLException ex) {
+            throw new SQLException("Error al eliminar el equipo: " + ex.getMessage(), ex);
         }
     }
 
@@ -90,8 +103,8 @@ public class Equipo {
 
     public void setClubId(int clubId) {
         this.clubId = clubId;
-    } 
-    
+    }
+
     public static Equipo buscarPorLetra(String letra) throws SQLException {
         String sql = "SELECT * FROM equipo WHERE letra = ?";
         try (Connection conn = DatabaseConnection.getConnection();
@@ -104,6 +117,8 @@ public class Equipo {
                 return new Equipo(rs.getString("letra"), instalacion, grupo);
             }
             return null;
+        } catch (SQLException ex) {
+            throw new SQLException("Error al buscar equipo por letra: " + ex.getMessage(), ex);
         }
     }
 
@@ -115,8 +130,6 @@ public class Equipo {
         }
         return null;
     }
-        
-        
 
     private List<Licencia> cargarLicencias() throws SQLException {
         licencias.clear();
@@ -126,12 +139,17 @@ public class Equipo {
             ps.setInt(1, obtenerIdEquipo());
             ResultSet rs = ps.executeQuery();
             while (rs.next()) {
-                Persona persona = Persona.buscaPersona(rs.getString("dni_persona"));
+                Persona persona = Persona.buscaPersona(rs.getString("persona_dni"));
+                if (persona == null) {
+                    throw new SQLException("Persona con DNI " + rs.getString("persona_dni") + " no encontrada.");
+                }
                 Licencia licencia = new Licencia(persona, rs.getString("numeroLicencia"));
                 licencia.setAbonada(rs.getBoolean("abonada"));
                 licencias.add(licencia);
             }
             return licencias;
+        } catch (SQLException ex) {
+            throw new SQLException("Error al cargar licencias: " + ex.getMessage(), ex);
         }
     }
 
@@ -144,7 +162,9 @@ public class Equipo {
             if (rs.next()) {
                 return rs.getInt("id");
             }
-            throw new SQLException("Instalación no encontrada.");
+            throw new SQLException("Instalación no encontrada: " + instalacion.getNombre());
+        } catch (SQLException ex) {
+            throw new SQLException("Error al obtener ID de instalación: " + ex.getMessage(), ex);
         }
     }
 
@@ -157,7 +177,9 @@ public class Equipo {
             if (rs.next()) {
                 return rs.getInt("id");
             }
-            throw new SQLException("Grupo no encontrado.");
+            throw new SQLException("Grupo no encontrado: " + grupo.getNombre());
+        } catch (SQLException ex) {
+            throw new SQLException("Error al obtener ID de grupo: " + ex.getMessage(), ex);
         }
     }
 
@@ -170,44 +192,46 @@ public class Equipo {
             if (rs.next()) {
                 return rs.getInt("id");
             }
-            throw new SQLException("Equipo no encontrado.");
+            throw new SQLException("Equipo no encontrado: " + letra);
+        } catch (SQLException ex) {
+            throw new SQLException("Error al obtener ID de equipo: " + ex.getMessage(), ex);
         }
     }
-    // Getters y setters
-    public String getLetra(){
+
+    public String getLetra() {
         return letra;
     }
 
-    public void setLetra(String letra){
+    public void setLetra(String letra) {
         this.letra = letra;
     }
 
-    public Instalacion getInstalacion(){
+    public Instalacion getInstalacion() {
         return instalacion;
     }
 
-    public void setInstalacion(Instalacion instalacion){
+    public void setInstalacion(Instalacion instalacion) {
         this.instalacion = instalacion;
     }
 
-    public Grupo getGrupo(){
+    public Grupo getGrupo() {
         return grupo;
     }
 
-    public void setGrupo(Grupo grupo){
+    public void setGrupo(Grupo grupo) {
         this.grupo = grupo;
     }
 
-    public List<Licencia> getLicencias(){
+    public List<Licencia> getLicencias() {
         return licencias;
     }
 
-    public void setLicencias(List<Licencia> licencias){
+    public void setLicencias(List<Licencia> licencias) {
         this.licencias = licencias;
     }
-    
+
     @Override
-    public String toString(){
-        return "Equipo{" +"letra='" + letra + '\'' +", instalacion=" + instalacion.getNombre() +", grupo=" + grupo.getNombre() + ", licencias=" + licencias.size() + " licencias" +'}';
+    public String toString() {
+        return "Equipo{letra='" + letra + "', instalacion=" + instalacion.getNombre() + ", grupo=" + grupo.getNombre() + ", licencias=" + licencias.size() + " licencias}";
     }
 }

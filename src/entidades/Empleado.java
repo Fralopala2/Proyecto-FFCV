@@ -72,7 +72,7 @@ public class Empleado extends Persona {
                                         String poblacion, int numEmpleado, LocalDate inicioContrato, 
                                         String segSocial) throws SQLException {
         if (Persona.buscaPersona(dni) != null) {
-            return null; // Persona ya existe
+            throw new IllegalStateException("El DNI " + dni + " ya está registrado.");
         }
         Empleado empleado = new Empleado(numEmpleado, inicioContrato, segSocial, dni, nombre, 
                                         apellido1, apellido2, usuario, password, poblacion, fechaNacimiento);

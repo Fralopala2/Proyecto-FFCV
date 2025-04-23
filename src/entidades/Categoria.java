@@ -28,34 +28,25 @@ public class Categoria {
 
     // Getters y Setters
     public String getNombre() { return nombre; }
-    public void setNombre(String nombre) { 
-        this.nombre = nombre; 
-        try {
-            actualizarEnBD();
-        } catch (SQLException e) {
-            
+    public void setNombre(String nombre) throws SQLException { 
+        if (nombre == null || nombre.trim().isEmpty()) {
+            throw new IllegalArgumentException("El nombre no puede ser nulo ni vacío.");
         }
+        this.nombre = nombre; 
+        actualizarEnBD();
     }
 
     public int getOrden() { return orden; }
-    public void setOrden(int orden) { 
+    public void setOrden(int orden) throws SQLException { 
         this.orden = orden; 
-        try {
-            actualizarEnBD();
-        } catch (SQLException e) {
-            
-        }
+        actualizarEnBD();
     }
 
     public double getPrecioLicencia() { return precioLicencia; }
-    public void setPrecioLicencia(double precioLicencia) {
+    public void setPrecioLicencia(double precioLicencia) throws SQLException {
         checkPrecioLicencia(precioLicencia);
         this.precioLicencia = precioLicencia;
-        try {
-            actualizarEnBD();
-        } catch (SQLException e) {
-            
-        }
+        actualizarEnBD();
     }
     
     public int getId() { return id; }
@@ -95,7 +86,10 @@ public class Categoria {
             ps.setDouble(2, precioLicencia);
             ps.setString(3, nombre);
             ps.setInt(4, id);
-            ps.executeUpdate();
+            int rowsAffected = ps.executeUpdate();
+            if (rowsAffected == 0) {
+                throw new SQLException("No se encontró la categoría con ID: " + id);
+            }
         }
     }
 

@@ -1,15 +1,12 @@
-/*
- * Hecho por Daniel González Cebrián 
- */
 package entidades;
 
 import proyectoffcv.util.DatabaseConnection;
 import java.sql.*;
-import java.util.UUID;
 
-/**
- * Clase que representa una licencia en el sistema de la federación.
- */
+/*
+Hecho por Daniel
+*/
+
 public class Licencia {
     private Persona persona;
     private String numeroLicencia;
@@ -38,6 +35,8 @@ public class Licencia {
             ps.setBoolean(3, abonada);
             ps.setObject(4, equipo != null ? obtenerIdEquipo(equipo) : null);
             ps.executeUpdate();
+        } catch (SQLException ex) {
+            throw new SQLException("Error al persistir la licencia: " + ex.getMessage(), ex);
         }
     }
 
@@ -49,7 +48,12 @@ public class Licencia {
             ps.setBoolean(2, abonada);
             ps.setObject(3, equipo != null ? obtenerIdEquipo(equipo) : null);
             ps.setString(4, numeroLicencia);
-            ps.executeUpdate();
+            int rowsAffected = ps.executeUpdate();
+            if (rowsAffected == 0) {
+                throw new SQLException("No se encontró la licencia con número: " + numeroLicencia);
+            }
+        } catch (SQLException ex) {
+            throw new SQLException("Error al actualizar la licencia: " + ex.getMessage(), ex);
         }
     }
 
@@ -58,7 +62,12 @@ public class Licencia {
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, numeroLicencia);
-            ps.executeUpdate();
+            int rowsAffected = ps.executeUpdate();
+            if (rowsAffected == 0) {
+                throw new SQLException("No se encontró la licencia con número: " + numeroLicencia);
+            }
+        } catch (SQLException ex) {
+            throw new SQLException("Error al eliminar la licencia: " + ex.getMessage(), ex);
         }
     }
 
@@ -87,6 +96,9 @@ public class Licencia {
     }
 
     public static Licencia buscarPorNumero(String numeroLicencia) throws SQLException {
+        if (numeroLicencia == null || numeroLicencia.trim().isEmpty()) {
+            throw new IllegalArgumentException("El número de licencia no puede ser nulo ni vacío.");
+        }
         String sql = "SELECT * FROM Licencia WHERE numeroLicencia = ?";
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -95,20 +107,32 @@ public class Licencia {
             if (rs.next()) {
                 Persona persona = Persona.buscaPersona(rs.getString("persona_dni"));
                 if (persona == null) {
-                    throw new SQLException("Persona asociada no encontrada.");
+                    throw new SQLException("Persona asociada con DNI " + rs.getString("persona_dni") + " no encontrada.");
                 }
                 Licencia licencia = new Licencia(persona, rs.getString("numeroLicencia"));
                 licencia.setAbonada(rs.getBoolean("abonada"));
                 int equipoId = rs.getInt("equipo_id");
                 if (!rs.wasNull()) {
-                    Equipo equipo = buscarPorId(equipoId);
-                    if (equipo != null) {
-                        licencia.setEquipo(equipo);
+                    String equipoSql = "SELECT * FROM Equipo WHERE id = ?";
+                    try (PreparedStatement equipoPs = conn.prepareStatement(equipoSql);
+                         ResultSet equipoRs = equipoPs.executeQuery()) {
+                        equipoPs.setInt(1, equipoId);
+                        if (equipoRs.next()) {
+                            Instalacion instalacion = Instalacion.buscarPorId(equipoRs.getInt("instalacion_id"));
+                            Grupo grupo = Grupo.buscarPorId(equipoRs.getInt("grupo_id"));
+                            if (instalacion == null || grupo == null) {
+                                throw new SQLException("Instalación o grupo no encontrados para el equipo con ID: " + equipoId);
+                            }
+                            Equipo equipo = new Equipo(equipoRs.getString("letra"), instalacion, grupo);
+                            licencia.setEquipo(equipo);
+                        }
                     }
                 }
                 return licencia;
             }
             return null;
+        } catch (SQLException ex) {
+            throw new SQLException("Error al buscar licencia por número: " + ex.getMessage(), ex);
         }
     }
 
@@ -116,9 +140,39 @@ public class Licencia {
         if (equipo == null) {
             throw new IllegalArgumentException("El equipo no puede ser nulo.");
         }
-        this.equipo = equipo;
-        actualizarEnBD();
-        equipo.getLicencias().add(this);
+        if (Equipo.buscarPorLetra(equipo.getLetra()) == null) {
+            throw new SQLException("El equipo con letra " + equipo.getLetra() + " no existe en la base de datos.");
+        }
+        if (equipo.getGrupo() == null || equipo.getGrupo().getCategoria() == null) {
+            throw new IllegalArgumentException("El equipo debe tener un grupo y una categoría válidos.");
+        }
+        Connection conn = null;
+        try {
+            conn = DatabaseConnection.getConnection();
+            conn.setAutoCommit(false);
+            this.equipo = equipo;
+            actualizarEnBD();
+            equipo.getLicencias().add(this);
+            conn.commit();
+        } catch (SQLException ex) {
+            if (conn != null) {
+                try {
+                    conn.rollback();
+                } catch (SQLException rollbackEx) {
+                    throw new SQLException("Error al revertir la transacción: " + rollbackEx.getMessage(), rollbackEx);
+                }
+            }
+            throw new SQLException("Error al asignar licencia al equipo: " + ex.getMessage(), ex);
+        } finally {
+            if (conn != null) {
+                try {
+                    conn.setAutoCommit(true);
+                    conn.close();
+                } catch (SQLException closeEx) {
+                    throw new SQLException("Error al cerrar la conexión: " + closeEx.getMessage(), closeEx);
+                }
+            }
+        }
     }
 
     private int obtenerIdEquipo(Equipo equipo) throws SQLException {
@@ -130,32 +184,12 @@ public class Licencia {
             if (rs.next()) {
                 return rs.getInt("id");
             }
-            throw new SQLException("Equipo no encontrado.");
+            throw new SQLException("Equipo con letra " + equipo.getLetra() + " no encontrado.");
+        } catch (SQLException ex) {
+            throw new SQLException("Error al obtener ID del equipo: " + ex.getMessage(), ex);
         }
     }
 
-    // Método auxiliar para buscar equipo por ID
-    private static Equipo buscarPorId(int id) throws SQLException {
-        String sql = "SELECT * FROM Equipo WHERE id = ?";
-        try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setInt(1, id);
-            ResultSet rs = ps.executeQuery();
-            if (rs.next()) {
-                Instalacion instalacion = Instalacion.buscarPorId(rs.getInt("instalacion_id"));
-                Grupo grupo = Grupo.buscarPorId(rs.getInt("grupo_id"));
-                if (instalacion == null || grupo == null) {
-                    return null;
-                }
-                Equipo equipo = new Equipo(rs.getString("letra"), instalacion, grupo);
-                equipo.setClubId(rs.getInt("club_id"));
-                return equipo;
-            }
-            return null;
-        }
-    }
-
-    // Getters y setters
     public Persona getPersona() {
         return persona;
     }

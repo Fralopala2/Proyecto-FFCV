@@ -12,9 +12,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.UUID;
 
-/**
- * Clase que implementa la lógica de la federación utilizando el patrón Singleton.
- */
 public final class Federacion implements IFederacion {
     private static Federacion instancia;
     private List<Categoria> categorias;
@@ -23,9 +20,6 @@ public final class Federacion implements IFederacion {
     private List<Club> clubes;
     private List<Instalacion> instalaciones;
 
-    /**
-     * Constructor privado para el patrón Singleton.
-     */
     private Federacion() {
         this.categorias = new ArrayList<>();
         this.empleados = new ArrayList<>();
@@ -33,16 +27,13 @@ public final class Federacion implements IFederacion {
         this.clubes = new ArrayList<>();
         this.instalaciones = new ArrayList<>();
         try {
-            DatabaseConnection.getConnection(); // Verifica la conexión a la base de datos
+            DatabaseConnection.getConnection();
         } catch (SQLException ex) {
             Logger.getLogger(Federacion.class.getName()).log(Level.SEVERE, "Error de conexión a la base de datos", ex);
             throw new IllegalStateException("No se pudo conectar a la base de datos: " + ex.getMessage());
         }
     }
 
-    /**
-     * Obtiene la instancia única de la federación.
-     */
     public static Federacion getInstance() {
         if (instancia == null) {
             instancia = new Federacion();
@@ -62,25 +53,35 @@ public final class Federacion implements IFederacion {
             }
             return club;
         } catch (SQLException ex) {
-            Logger.getLogger(Federacion.class.getName()).log(Level.SEVERE, "Error al buscar club", ex);
-            throw new IllegalStateException("Error al buscar el club: " + ex.getMessage());
+            throw new IllegalStateException("Error al buscar el club: " + ex.getMessage(), ex);
         }
     }
 
     @Override
     public Equipo nuevoEquipo(String letra, Instalacion instalacion, Grupo grupo, Club club) {
-        if (letra == null || instalacion == null || grupo == null || club == null) {
-            throw new IllegalArgumentException("Ningún parámetro puede ser nulo.");
+        if (letra == null || letra.trim().isEmpty() || instalacion == null || grupo == null || club == null) {
+            throw new IllegalArgumentException("Ningún parámetro puede ser nulo o vacío.");
         }
         try {
+            if (Equipo.buscarPorLetra(letra) != null) {
+                throw new IllegalStateException("El equipo con letra " + letra + " ya existe.");
+            }
+            if (Instalacion.buscarPorNombre(instalacion.getNombre()) == null) {
+                throw new IllegalStateException("La instalación " + instalacion.getNombre() + " no existe.");
+            }
+            if (Grupo.buscarPorNombre(grupo.getNombre()) == null) {
+                throw new IllegalStateException("El grupo " + grupo.getNombre() + " no existe.");
+            }
+            if (Club.buscarPorNombre(club.getNombre()) == null) {
+                throw new IllegalStateException("El club " + club.getNombre() + " no existe.");
+            }
             Equipo equipo = new Equipo(letra, instalacion, grupo);
             equipo.setClubId(club.obtenerIdClub());
             equipo.guardar();
             club.addEquipo(equipo);
             return equipo;
         } catch (SQLException ex) {
-            Logger.getLogger(Federacion.class.getName()).log(Level.SEVERE, "Error al crear equipo", ex);
-            throw new IllegalStateException("No se pudo crear el equipo: " + ex.getMessage());
+            throw new IllegalStateException("No se pudo crear el equipo: " + ex.getMessage(), ex);
         }
     }
 
@@ -90,13 +91,18 @@ public final class Federacion implements IFederacion {
             throw new IllegalArgumentException("Ningún parámetro puede ser nulo o vacío.");
         }
         try {
+            if (Club.buscarPorNombre(nombre) != null) {
+                throw new IllegalStateException("El club con nombre " + nombre + " ya existe.");
+            }
+            if (Persona.buscaPersona(presidente.getDNI()) == null) {
+                throw new IllegalStateException("La persona con DNI " + presidente.getDNI() + " no existe.");
+            }
             Club club = new Club(nombre, fechaFundacion, presidente);
             club.guardar();
             clubes.add(club);
             return club;
         } catch (SQLException ex) {
-            Logger.getLogger(Federacion.class.getName()).log(Level.SEVERE, "Error al crear club", ex);
-            throw new IllegalStateException("No se pudo crear el club: " + ex.getMessage());
+            throw new IllegalStateException("No se pudo crear el club: " + ex.getMessage(), ex);
         }
     }
 
@@ -109,13 +115,15 @@ public final class Federacion implements IFederacion {
             throw new IllegalArgumentException("El precio de la licencia no puede ser negativo.");
         }
         try {
+            if (Categoria.buscarPorNombre(nombre) != null) {
+                throw new IllegalStateException("La categoría con nombre " + nombre + " ya existe.");
+            }
             Categoria categoria = new Categoria(nombre, orden, precioLicencia);
             categoria.guardar();
             categorias.add(categoria);
             return categoria;
         } catch (SQLException ex) {
-            Logger.getLogger(Federacion.class.getName()).log(Level.SEVERE, "Error al crear categoría", ex);
-            throw new IllegalStateException("No se pudo crear la categoría: " + ex.getMessage());
+            throw new IllegalStateException("No se pudo crear la categoría: " + ex.getMessage(), ex);
         }
     }
 
@@ -127,8 +135,7 @@ public final class Federacion implements IFederacion {
             categorias.addAll(todasCategorias);
             return new ArrayList<>(categorias);
         } catch (SQLException ex) {
-            Logger.getLogger(Federacion.class.getName()).log(Level.SEVERE, "Error al obtener categorías", ex);
-            throw new IllegalStateException("Error al obtener categorías: " + ex.getMessage());
+            throw new IllegalStateException("Error al obtener categorías: " + ex.getMessage(), ex);
         }
     }
 
@@ -138,10 +145,12 @@ public final class Federacion implements IFederacion {
             throw new IllegalArgumentException("La categoría no puede ser nula.");
         }
         try {
+            if (Categoria.buscarPorNombre(categoria.getNombre()) == null) {
+                throw new IllegalStateException("La categoría " + categoria.getNombre() + " no existe.");
+            }
             return Grupo.buscarPorCategoria(categoria);
         } catch (SQLException ex) {
-            Logger.getLogger(Federacion.class.getName()).log(Level.SEVERE, "Error al obtener grupos", ex);
-            throw new IllegalStateException("Error al obtener grupos: " + ex.getMessage());
+            throw new IllegalStateException("Error al obtener grupos: " + ex.getMessage(), ex);
         }
     }
 
@@ -151,6 +160,12 @@ public final class Federacion implements IFederacion {
             throw new IllegalArgumentException("Ningún parámetro puede ser nulo o vacío.");
         }
         try {
+            if (Categoria.buscarPorNombre(categoria.getNombre()) == null) {
+                throw new IllegalStateException("La categoría " + categoria.getNombre() + " no existe.");
+            }
+            if (Grupo.buscarPorNombre(nombre) != null) {
+                throw new IllegalStateException("El grupo con nombre " + nombre + " ya existe.");
+            }
             int nuevoId = obtenerNuevoIdGrupo();
             Grupo grupo = new Grupo(nuevoId, nombre);
             grupo.setCategoria(categoria);
@@ -158,14 +173,10 @@ public final class Federacion implements IFederacion {
             categoria.getGrupos().add(grupo);
             return grupo;
         } catch (SQLException ex) {
-            Logger.getLogger(Federacion.class.getName()).log(Level.SEVERE, "Error al crear grupo", ex);
-            throw new IllegalStateException("No se pudo crear el grupo: " + ex.getMessage());
+            throw new IllegalStateException("No se pudo crear el grupo: " + ex.getMessage(), ex);
         }
     }
 
-    /**
-     * Obtiene un nuevo ID único para un grupo.
-     */
     private int obtenerNuevoIdGrupo() throws SQLException {
         String sql = "SELECT MAX(id) as max_id FROM Grupo";
         try (Connection conn = DatabaseConnection.getConnection();
@@ -174,7 +185,7 @@ public final class Federacion implements IFederacion {
             if (rs.next()) {
                 return rs.getInt("max_id") + 1;
             }
-            return 1; // Si no hay grupos, empezamos con ID 1
+            return 1;
         } catch (SQLException ex) {
             throw new SQLException("Error al obtener nuevo ID de grupo: " + ex.getMessage(), ex);
         }
@@ -187,6 +198,9 @@ public final class Federacion implements IFederacion {
             throw new IllegalArgumentException("Ningún parámetro obligatorio puede ser nulo.");
         }
         try {
+            if (Persona.buscaPersona(dni) != null) {
+                throw new IllegalStateException("La persona con DNI " + dni + " ya existe.");
+            }
             Persona persona = Persona.nuevaPersona(dni, nombre, apellido1, apellido2, 
                                                  fechaNacimiento, usuario, password, poblacion);
             if (persona != null && !afiliados.contains(persona)) {
@@ -194,39 +208,35 @@ public final class Federacion implements IFederacion {
             }
             return persona;
         } catch (SQLException ex) {
-            Logger.getLogger(Federacion.class.getName()).log(Level.SEVERE, "Error al crear persona", ex);
-            throw new IllegalStateException("No se pudo crear la persona: " + ex.getMessage());
+            throw new IllegalStateException("No se pudo crear la persona: " + ex.getMessage(), ex);
         }
     }
 
     @Override
-        public Empleado nuevoEmpleado(String dni, String nombre, String apellido1, String apellido2, 
-                                     LocalDate fechaNacimiento, String usuario, String password, String poblacion, 
-                                     int numEmpleado, LocalDate inicioContrato, String segSocial) {
-            if (dni == null || nombre == null || usuario == null || password == null || 
-                fechaNacimiento == null || inicioContrato == null || segSocial == null) {
-                throw new IllegalArgumentException("Ningún parámetro obligatorio puede ser nulo.");
-            }
-            // Verificar si el DNI ya existe
-            if (buscaPersona(dni) != null) {
-                throw new IllegalArgumentException("El DNI ya está registrado.");
-            }
-            try {
-                Empleado empleado = Empleado.nuevoEmpleado(dni, nombre, apellido1, apellido2, fechaNacimiento, 
-                                                          usuario, password, poblacion, numEmpleado, 
-                                                          inicioContrato, segSocial);
-                if (empleado != null) {
-                    empleado.guardar();
-                    empleados.add(empleado);
-                    return empleado;
-                } else {
-                    throw new IllegalStateException("No se pudo crear el empleado: error en Empleado.nuevoEmpleado.");
-                }
-            } catch (SQLException ex) {
-                Logger.getLogger(Federacion.class.getName()).log(Level.SEVERE, "Error al crear empleado", ex);
-                throw new IllegalStateException("No se pudo crear el empleado: " + ex.getMessage());
-            }
+    public Empleado nuevoEmpleado(String dni, String nombre, String apellido1, String apellido2, 
+                                 LocalDate fechaNacimiento, String usuario, String password, String poblacion, 
+                                 int numEmpleado, LocalDate inicioContrato, String segSocial) {
+        if (dni == null || nombre == null || usuario == null || password == null || 
+            fechaNacimiento == null || inicioContrato == null || segSocial == null) {
+            throw new IllegalArgumentException("Ningún parámetro obligatorio puede ser nulo.");
         }
+        try {
+            if (Persona.buscaPersona(dni) != null) {
+                throw new IllegalStateException("El DNI " + dni + " ya está registrado.");
+            }
+            Empleado empleado = Empleado.nuevoEmpleado(dni, nombre, apellido1, apellido2, fechaNacimiento, 
+                                                      usuario, password, poblacion, numEmpleado, 
+                                                      inicioContrato, segSocial);
+            if (empleado != null) {
+                empleado.guardar();
+                empleados.add(empleado);
+                return empleado;
+            }
+            throw new IllegalStateException("No se pudo crear el empleado: error en Empleado.nuevoEmpleado.");
+        } catch (SQLException ex) {
+            throw new IllegalStateException("No se pudo crear el empleado: " + ex.getMessage(), ex);
+        }
+    }
 
     @Override
     public Persona buscaPersona(String dni) {
@@ -240,8 +250,7 @@ public final class Federacion implements IFederacion {
             }
             return persona;
         } catch (SQLException ex) {
-            Logger.getLogger(Federacion.class.getName()).log(Level.SEVERE, "Error al buscar persona", ex);
-            throw new IllegalStateException("Error al buscar persona: " + ex.getMessage());
+            throw new IllegalStateException("Error al buscar persona: " + ex.getMessage(), ex);
         }
     }
 
@@ -256,8 +265,7 @@ public final class Federacion implements IFederacion {
             }
             return personas;
         } catch (SQLException ex) {
-            Logger.getLogger(Federacion.class.getName()).log(Level.SEVERE, "Error al buscar personas", ex);
-            throw new IllegalStateException("Error al buscar personas: " + ex.getMessage());
+            throw new IllegalStateException("Error al buscar personas: " + ex.getMessage(), ex);
         }
     }
 
@@ -267,13 +275,24 @@ public final class Federacion implements IFederacion {
             throw new IllegalArgumentException("La persona no puede ser nula.");
         }
         try {
+            if (Persona.buscaPersona(persona.getDNI()) == null) {
+                throw new IllegalStateException("La persona con DNI " + persona.getDNI() + " no existe.");
+            }
+            String sql = "SELECT * FROM Licencia WHERE persona_dni = ?";
+            try (Connection conn = DatabaseConnection.getConnection();
+                 PreparedStatement ps = conn.prepareStatement(sql)) {
+                ps.setString(1, persona.getDNI());
+                ResultSet rs = ps.executeQuery();
+                if (rs.next()) {
+                    throw new IllegalStateException("La persona con DNI " + persona.getDNI() + " ya tiene una licencia.");
+                }
+            }
             String numeroLicencia = UUID.randomUUID().toString();
             Licencia licencia = new Licencia(persona, numeroLicencia);
             licencia.guardar();
             return licencia;
         } catch (SQLException ex) {
-            Logger.getLogger(Federacion.class.getName()).log(Level.SEVERE, "Error al crear licencia", ex);
-            throw new IllegalStateException("No se pudo crear la licencia: " + ex.getMessage());
+            throw new IllegalStateException("No se pudo crear la licencia: " + ex.getMessage(), ex);
         }
     }
 
@@ -283,12 +302,17 @@ public final class Federacion implements IFederacion {
             throw new IllegalArgumentException("Ningún parámetro puede ser nulo.");
         }
         try {
+            if (Persona.buscaPersona(persona.getDNI()) == null) {
+                throw new IllegalStateException("La persona con DNI " + persona.getDNI() + " no existe.");
+            }
+            if (Equipo.buscarPorLetra(equipo.getLetra()) == null) {
+                throw new IllegalStateException("El equipo con letra " + equipo.getLetra() + " no existe.");
+            }
             Licencia licencia = nuevaLicencia(persona);
             licencia.asignarAEquipo(equipo);
             return licencia;
         } catch (SQLException ex) {
-            Logger.getLogger(Federacion.class.getName()).log(Level.SEVERE, "Error al asignar licencia", ex);
-            throw new IllegalStateException("No se pudo asignar la licencia al equipo: " + ex.getMessage());
+            throw new IllegalStateException("No se pudo asignar la licencia al equipo: " + ex.getMessage(), ex);
         }
     }
 
@@ -298,10 +322,15 @@ public final class Federacion implements IFederacion {
             throw new IllegalArgumentException("Ningún parámetro puede ser nulo.");
         }
         try {
+            if (Licencia.buscarPorNumero(licencia.getNumeroLicencia()) == null) {
+                throw new IllegalStateException("La licencia con número " + licencia.getNumeroLicencia() + " no existe.");
+            }
+            if (Equipo.buscarPorLetra(equipo.getLetra()) == null) {
+                throw new IllegalStateException("El equipo con letra " + equipo.getLetra() + " no existe.");
+            }
             licencia.asignarAEquipo(equipo);
         } catch (SQLException ex) {
-            Logger.getLogger(Federacion.class.getName()).log(Level.SEVERE, "Error al asignar licencia", ex);
-            throw new IllegalStateException("No se pudo asignar la licencia al equipo: " + ex.getMessage());
+            throw new IllegalStateException("No se pudo asignar la licencia al equipo: " + ex.getMessage(), ex);
         }
     }
 
@@ -310,7 +339,14 @@ public final class Federacion implements IFederacion {
         if (equipo == null || equipo.getGrupo() == null || equipo.getGrupo().getCategoria() == null) {
             throw new IllegalArgumentException("El equipo o sus relaciones no pueden ser nulos.");
         }
-        return equipo.getGrupo().getCategoria().getPrecioLicencia();
+        try {
+            if (Equipo.buscarPorLetra(equipo.getLetra()) == null) {
+                throw new IllegalStateException("El equipo con letra " + equipo.getLetra() + " no existe.");
+            }
+            return equipo.getGrupo().getCategoria().getPrecioLicencia();
+        } catch (SQLException ex) {
+            throw new IllegalStateException("Error al calcular precio de la licencia: " + ex.getMessage(), ex);
+        }
     }
 
     @Override
@@ -319,17 +355,18 @@ public final class Federacion implements IFederacion {
             throw new IllegalArgumentException("Ningún parámetro puede ser nulo o vacío.");
         }
         try {
+            if (Instalacion.buscarPorNombre(nombre) != null) {
+                throw new IllegalStateException("La instalación con nombre " + nombre + " ya existe.");
+            }
             Instalacion.TipoSuperficie tipo = Instalacion.TipoSuperficie.valueOf(superficie.toUpperCase());
             Instalacion instalacion = new Instalacion(nombre, direccion, tipo);
             instalacion.guardar();
             instalaciones.add(instalacion);
             return instalacion;
         } catch (IllegalArgumentException ex) {
-            Logger.getLogger(Federacion.class.getName()).log(Level.SEVERE, "Tipo de superficie no válido", ex);
-            throw new IllegalStateException("Tipo de superficie no válido: " + superficie);
+            throw new IllegalStateException("Tipo de superficie no válido: " + superficie, ex);
         } catch (SQLException ex) {
-            Logger.getLogger(Federacion.class.getName()).log(Level.SEVERE, "Error al crear instalación", ex);
-            throw new IllegalStateException("No se pudo crear la instalación: " + ex.getMessage());
+            throw new IllegalStateException("No se pudo crear la instalación: " + ex.getMessage(), ex);
         }
     }
 
@@ -347,8 +384,7 @@ public final class Federacion implements IFederacion {
             }
             return resultado;
         } catch (SQLException ex) {
-            Logger.getLogger(Federacion.class.getName()).log(Level.SEVERE, "Error al buscar instalaciones", ex);
-            throw new IllegalStateException("Error al buscar instalaciones: " + ex.getMessage());
+            throw new IllegalStateException("Error al buscar instalaciones: " + ex.getMessage(), ex);
         }
     }
 }

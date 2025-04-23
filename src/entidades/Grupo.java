@@ -160,20 +160,8 @@ public class Grupo {
             ResultSet rs = ps.executeQuery();
             if (rs.next()) {
                 return rs.getInt("id");
-            } else {
-                String insertSql = "INSERT INTO Categoria (nombre) VALUES (?)";
-                try (PreparedStatement insert = conn.prepareStatement(insertSql, Statement.RETURN_GENERATED_KEYS)) {
-                    insert.setString(1, categoria.getNombre());
-                    insert.executeUpdate();
-
-                    ResultSet generatedKeys = insert.getGeneratedKeys();
-                    if (generatedKeys.next()) {
-                        return generatedKeys.getInt(1);
-                    } else {
-                        throw new SQLException("No se pudo obtener el ID de la categoría insertada.");
-                    }
-                }
             }
+            throw new SQLException("Categoría no encontrada: " + categoria.getNombre());
         }
     }
 
