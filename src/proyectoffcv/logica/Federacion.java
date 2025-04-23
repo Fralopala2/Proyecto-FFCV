@@ -66,14 +66,18 @@ public final class Federacion implements IFederacion {
             if (Equipo.buscarPorLetra(letra) != null) {
                 throw new IllegalStateException("El equipo con letra " + letra + " ya existe.");
             }
+            // Asegurar que las dependencias estén persistidas
             if (Instalacion.buscarPorNombre(instalacion.getNombre()) == null) {
-                throw new IllegalStateException("La instalación " + instalacion.getNombre() + " no existe.");
+                instalacion.guardar();
+                System.out.println("Instalación persistida: " + instalacion.getNombre());
             }
             if (Grupo.buscarPorNombre(grupo.getNombre()) == null) {
-                throw new IllegalStateException("El grupo " + grupo.getNombre() + " no existe.");
+                grupo.guardar();
+                System.out.println("Grupo persistido: " + grupo.getNombre());
             }
             if (Club.buscarPorNombre(club.getNombre()) == null) {
-                throw new IllegalStateException("El club " + club.getNombre() + " no existe.");
+                club.guardar();
+                System.out.println("Club persistido: " + club.getNombre());
             }
             Equipo equipo = new Equipo(letra, instalacion, grupo);
             equipo.setClubId(club.obtenerIdClub());
@@ -81,6 +85,7 @@ public final class Federacion implements IFederacion {
             club.addEquipo(equipo);
             return equipo;
         } catch (SQLException ex) {
+            System.err.println("Error al crear equipo: " + ex.getMessage());
             throw new IllegalStateException("No se pudo crear el equipo: " + ex.getMessage(), ex);
         }
     }

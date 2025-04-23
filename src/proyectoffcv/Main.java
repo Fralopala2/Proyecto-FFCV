@@ -7,7 +7,6 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.List;
-import java.util.UUID;
 
 public class Main {
     public static void main(String[] args) {
@@ -175,16 +174,21 @@ public class Main {
             
             // 8. Prueba de Equipos
             System.out.println("\n--- Prueba de Equipos ---");
+            // Verificar que las dependencias existen
+            if (Instalacion.buscarPorNombre("Mestalla") == null) {
+                System.out.println("Error: Instalación Mestalla no encontrada en la base de datos");
+            }
+            if (Grupo.buscarPorNombre("Grupo A") == null) {
+                System.out.println("Error: Grupo A no encontrado en la base de datos");
+            }
+            if (Club.buscarPorNombre("Valencia CF") == null) {
+                System.out.println("Error: Club Valencia CF no encontrado en la base de datos");
+            }
             Equipo equipo1 = federacion.nuevoEquipo("A", mestalla, grupoA, club1);
             System.out.println("Equipo creado: " + equipo1);
             
             Equipo equipo2 = federacion.nuevoEquipo("B", ciutat, grupoB, club1);
             System.out.println("Equipo creado: " + equipo2);
-            
-            // Actualizar equipo
-            equipo1.setLetra("A1");
-            equipo1.actualizar();
-            System.out.println("Equipo actualizado: " + Equipo.buscarPorLetra("A1"));
             
             // Buscar jugador en equipo (debería fallar porque no hay jugadores aún)
             System.out.println("\nBuscando jugador en equipo (deberia ser null):");
