@@ -421,7 +421,7 @@ public final class Federacion implements IFederacion {
         }
     }
 	
-	// Método adicional no definido en la interfaz
+    // Método adicional no definido en la interfaz
     public void limpiarTablas() throws SQLException {
         // Orden de eliminación: Primero tablas con FK, luego independientes
         List<String> tablas = Arrays.asList(

@@ -29,14 +29,19 @@ public class Equipo {
                 : "UPDATE equipo SET instalacion_id = ?, grupo_id = ?, club_id = ? WHERE letra = ?";
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
+            int instalacionId = obtenerIdInstalacion();
+            int grupoId = obtenerIdGrupo();
+            if (clubId <= 0) {
+                throw new SQLException("ID del club no válido: " + clubId);
+            }
             if (isInsert) {
                 ps.setString(1, letra);
-                ps.setInt(2, obtenerIdInstalacion());
-                ps.setInt(3, obtenerIdGrupo());
+                ps.setInt(2, instalacionId);
+                ps.setInt(3, grupoId);
                 ps.setInt(4, clubId);
             } else {
-                ps.setInt(1, obtenerIdInstalacion());
-                ps.setInt(2, obtenerIdGrupo());
+                ps.setInt(1, instalacionId);
+                ps.setInt(2, grupoId);
                 ps.setInt(3, clubId);
                 ps.setString(4, letra);
             }
@@ -79,7 +84,15 @@ public class Equipo {
             throw new IllegalArgumentException("Instalación y grupo no pueden ser nulos.");
         }
         if (buscarPorLetra(letra) == null) {
-            persistir();
+            try {
+                persistir();
+                // Verificar que el equipo se guardó
+                if (buscarPorLetra(letra) == null) {
+                    throw new SQLException("No se pudo persistir el equipo en la base de datos.");
+                }
+            } catch (SQLException ex) {
+                throw new SQLException("Fallo al guardar el equipo: " + ex.getMessage(), ex);
+            }
         } else {
             throw new IllegalStateException("El equipo ya existe en la base de datos.");
         }
