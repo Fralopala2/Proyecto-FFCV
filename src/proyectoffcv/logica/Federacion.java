@@ -212,29 +212,56 @@ public final class Federacion implements IFederacion {
         }
     }
 
+ 
     @Override
-    public Empleado nuevoEmpleado(String dni, String nombre, String apellido1, String apellido2, 
-                                 LocalDate fechaNacimiento, String usuario, String password, String poblacion, 
-                                 int numEmpleado, LocalDate inicioContrato, String segSocial) {
-        if (dni == null || nombre == null || usuario == null || password == null || 
-            fechaNacimiento == null || inicioContrato == null || segSocial == null) {
-            throw new IllegalArgumentException("Ningún parámetro obligatorio puede ser nulo.");
+    public Empleado nuevoEmpleado(String dni, String nombre, String apellido1, String apellido2,
+                            LocalDate fechaNacimiento, String usuario, String password,
+                            String poblacion, int numEmpleado, LocalDate inicioContrato,
+                            String segSocial) {
+        // Validación básica de parámetros
+        if (dni == null || dni.trim().isEmpty()) {
+            throw new IllegalArgumentException("DNI no puede estar vacío");
         }
-        try {
-            if (Persona.buscaPersona(dni) != null) {
-                throw new IllegalStateException("El DNI " + dni + " ya está registrado.");
+        if (numEmpleado <= 0) {
+            throw new IllegalArgumentException("Número de empleado debe ser positivo");
+        }
+
+        try (Connection conn = DatabaseConnection.getConnection()) {
+            // Verificar si el número de empleado ya existe
+            String checkNumEmp = "SELECT dni FROM empleado WHERE numeroEmpleado = ?";
+            try (PreparedStatement ps = conn.prepareStatement(checkNumEmp)) {
+                ps.setInt(1, numEmpleado);
+                try (ResultSet rs = ps.executeQuery()) {
+                    if (rs.next()) {
+                        throw new IllegalStateException("El número de empleado " + numEmpleado + " ya está registrado");
+                    }
+                }
             }
-            Empleado empleado = Empleado.nuevoEmpleado(dni, nombre, apellido1, apellido2, fechaNacimiento, 
-                                                      usuario, password, poblacion, numEmpleado, 
-                                                      inicioContrato, segSocial);
+
+            // Verificar si el DNI ya existe como empleado
+            String checkDni = "SELECT dni FROM empleado WHERE dni = ?";
+            try (PreparedStatement ps = conn.prepareStatement(checkDni)) {
+                ps.setString(1, dni);
+                try (ResultSet rs = ps.executeQuery()) {
+                    if (rs.next()) {
+                        throw new IllegalStateException("El DNI " + dni + " ya está registrado como empleado");
+                    }
+                }
+            }
+
+            // Crear el empleado usando el método estático de la clase Empleado
+            Empleado empleado = Empleado.nuevoEmpleado(
+                dni, nombre, apellido1, apellido2,
+                fechaNacimiento, usuario, password,
+                poblacion, numEmpleado, inicioContrato, segSocial
+            );
+
             if (empleado != null) {
-                empleado.guardar();
                 empleados.add(empleado);
-                return empleado;
             }
-            throw new IllegalStateException("No se pudo crear el empleado: error en Empleado.nuevoEmpleado.");
-        } catch (SQLException ex) {
-            throw new IllegalStateException("No se pudo crear el empleado: " + ex.getMessage(), ex);
+            return empleado;
+        } catch (SQLException e) {
+            throw new IllegalStateException("Error al crear empleado: " + e.getMessage());
         }
     }
 
@@ -358,13 +385,19 @@ public final class Federacion implements IFederacion {
             if (Instalacion.buscarPorNombre(nombre) != null) {
                 throw new IllegalStateException("La instalación con nombre " + nombre + " ya existe.");
             }
-            Instalacion.TipoSuperficie tipo = Instalacion.TipoSuperficie.valueOf(superficie.toUpperCase());
-            Instalacion instalacion = new Instalacion(nombre, direccion, tipo);
-            instalacion.guardar();
-            instalaciones.add(instalacion);
-            return instalacion;
-        } catch (IllegalArgumentException ex) {
-            throw new IllegalStateException("Tipo de superficie no válido: " + superficie, ex);
+
+            // Convertir la superficie a mayúsculas y validar que sea un tipo válido
+            superficie = superficie.toUpperCase();
+            try {
+                Instalacion.TipoSuperficie tipo = Instalacion.TipoSuperficie.valueOf(superficie);
+                Instalacion instalacion = new Instalacion(nombre, direccion, tipo);
+                instalacion.guardar();
+                instalaciones.add(instalacion);
+                return instalacion;
+            } catch (IllegalArgumentException ex) {
+                throw new IllegalStateException("Tipo de superficie no válido: " + superficie + 
+                    ". Los valores válidos son: " + Arrays.toString(Instalacion.TipoSuperficie.values()));
+            }
         } catch (SQLException ex) {
             throw new IllegalStateException("No se pudo crear la instalación: " + ex.getMessage(), ex);
         }
@@ -385,6 +418,50 @@ public final class Federacion implements IFederacion {
             return resultado;
         } catch (SQLException ex) {
             throw new IllegalStateException("Error al buscar instalaciones: " + ex.getMessage(), ex);
+        }
+    }
+	
+	// Método adicional no definido en la interfaz
+    public void limpiarTablas() throws SQLException {
+        // Orden de eliminación: Primero tablas con FK, luego independientes
+        List<String> tablas = Arrays.asList(
+            "Licencia",    // Depende de Persona y Equipo
+            "Equipo",     // Depende de Instalacion, Grupo y Club
+            "Empleado",   // Depende de Persona
+            "Club",       // Depende de Persona (presidente)
+            "Grupo",      // Depende de Categoria
+            "Instalacion", 
+            "Categoria",
+            "Persona"     // Se borra al final para evitar errores de FK
+        );
+
+        try (Connection conn = DatabaseConnection.getConnection()) {
+            // 1. Desactivar verificación de claves foráneas (MySQL/MariaDB)
+            try (PreparedStatement ps = conn.prepareStatement("SET FOREIGN_KEY_CHECKS = 0")) {
+                ps.execute();
+            }
+
+            // 2. Borrar datos en orden
+            for (String tabla : tablas) {
+                try (PreparedStatement ps = conn.prepareStatement("DELETE FROM " + tabla)) {
+                    System.out.println("[DEBUG] Borrando datos de: " + tabla);
+                    ps.executeUpdate();
+                }
+            }
+
+            // 3. Reactivar verificación de FK
+            try (PreparedStatement ps = conn.prepareStatement("SET FOREIGN_KEY_CHECKS = 1")) {
+                ps.execute();
+            }
+
+            // Limpiar las listas en memoria
+            categorias.clear();
+            empleados.clear();
+            afiliados.clear();
+            clubes.clear();
+            instalaciones.clear();
+
+            System.out.println("[DEBUG] ¡Base de datos limpiada exitosamente!");
         }
     }
 }

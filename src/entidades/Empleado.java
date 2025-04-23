@@ -1,19 +1,9 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package entidades;
 
 import java.time.LocalDate;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
+import java.sql.*;
 import proyectoffcv.util.DatabaseConnection;
 
-/**
- *
- * @author david
- */
 public class Empleado extends Persona {
     
     private String puesto;
@@ -21,176 +11,180 @@ public class Empleado extends Persona {
     private LocalDate inicioContrato;
     private String segSocial;
     
-    /**
-     * Constructor de Empleado.
-     */
     public Empleado(int numEmpleado, LocalDate inicioContrato, String segSocial, String dni, 
                     String nombre, String apellido1, String apellido2, String usuario, 
                     String password, String poblacion, LocalDate fechaNacimiento) {
         super(dni, nombre, apellido1, apellido2, usuario, password, poblacion, fechaNacimiento);
-        validateNumEmpleado(numEmpleado);
-        validateInicioContrato(inicioContrato);
-        validateSegSocial(segSocial);
         this.numEmpleado = numEmpleado;
         this.inicioContrato = inicioContrato;
         this.segSocial = segSocial;
-        this.puesto = "";
+        this.puesto = "Sin puesto";
+        validarDatos();
     }
 
-    /**
-     * Valida que el número de empleado sea positivo.
-     */
-    private void validateNumEmpleado(int numEmpleado) {
-        if (numEmpleado <= 0) {
-            throw new IllegalArgumentException("El número de empleado debe ser mayor a cero.");
-        }
-    }
-
-    /**
-     * Valida que la fecha de inicio de contrato no sea nula.
-     */
-    private void validateInicioContrato(LocalDate inicioContrato) {
-        if (inicioContrato == null) {
-            throw new IllegalArgumentException("La fecha de inicio de contrato no puede ser nula.");
-        }
-    }
-
-    /**
-     * Valida que el número de seguridad social no sea nulo ni vacío.
-     */
-    private void validateSegSocial(String segSocial) {
+    private void validarDatos() {
+        if (numEmpleado <= 0) throw new IllegalArgumentException("Número de empleado debe ser positivo");
+        if (inicioContrato == null) throw new IllegalArgumentException("Fecha de contrato requerida");
         if (segSocial == null || segSocial.trim().isEmpty()) {
-            throw new IllegalArgumentException("El número de seguridad social no puede ser nulo ni vacío.");
+            throw new IllegalArgumentException("Número de seguridad social requerido");
+        }
+        if (inicioContrato.isAfter(LocalDate.now())) {
+            throw new IllegalArgumentException("Fecha de contrato no puede ser futura");
         }
     }
 
-    /**
-     * Crea un nuevo empleado y lo persiste si no existe.
-     */
-    public static Empleado nuevoEmpleado(String dni, String nombre, String apellido1, String apellido2, 
-                                        LocalDate fechaNacimiento, String usuario, String password, 
-                                        String poblacion, int numEmpleado, LocalDate inicioContrato, 
-                                        String segSocial) throws SQLException {
-        if (Persona.buscaPersona(dni) != null) {
-            throw new IllegalStateException("El DNI " + dni + " ya está registrado.");
-        }
-        Empleado empleado = new Empleado(numEmpleado, inicioContrato, segSocial, dni, nombre, 
-                                        apellido1, apellido2, usuario, password, poblacion, fechaNacimiento);
-        empleado.persistencia();
-        return empleado;
-    }
-
-    /**
-     * Persiste el empleado en la base de datos.
-     */
-    @Override
-    public void persistencia() throws SQLException {
-        // Primero persiste la información de Persona
-        super.persistencia();
+    public static Empleado nuevoEmpleado(String dni, String nombre, String apellido1, String apellido2,
+                                       LocalDate fechaNacimiento, String usuario, String password,
+                                       String poblacion, int numEmpleado, LocalDate inicioContrato,
+                                       String segSocial) throws SQLException {
         
+        try (Connection conn = DatabaseConnection.getConnection()) {
+            conn.setAutoCommit(false);
+            
+            try {
+                // Verificación en tabla empleado
+                if (existeRegistro(conn, "SELECT 1 FROM empleado WHERE dni = ?", dni)) {
+                    throw new IllegalStateException("El DNI " + dni + " ya está registrado como empleado");
+                }
+
+                // Verificación en tabla persona
+                boolean personaExiste = existeRegistro(conn, "SELECT 1 FROM persona WHERE dni = ?", dni);
+                
+                if (!personaExiste) {
+                    // Crear nueva persona
+                    Persona.nuevaPersona(
+                        dni, nombre, apellido1, apellido2, 
+                        fechaNacimiento, usuario, password, poblacion
+                    );
+                } else {
+                    // Verificar si los datos coinciden
+                    if (!datosPersonaCoinciden(conn, dni, nombre, apellido1, apellido2)) {
+                        throw new IllegalStateException("El DNI " + dni + " pertenece a otra persona");
+                    }
+                }
+
+                // Crear instancia de empleado
+                Empleado empleado = new Empleado(
+                    numEmpleado, inicioContrato, segSocial, 
+                    dni, nombre, apellido1, apellido2, 
+                    usuario, password, poblacion, fechaNacimiento
+                );
+                
+                // Persistir empleado
+                empleado.persistirEmpleado(conn);
+                conn.commit();
+                return empleado;
+
+            } catch (SQLException e) {
+                conn.rollback();
+                throw new SQLException("Error al crear empleado: " + e.getMessage(), e);
+            }
+        }
+    }
+
+    private static boolean existeRegistro(Connection conn, String sql, String dni) throws SQLException {
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, dni);
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next();
+            }
+        }
+    }
+
+    private static boolean datosPersonaCoinciden(Connection conn, String dni, String nombre, 
+                                               String apellido1, String apellido2) throws SQLException {
+        String sql = "SELECT nombre, apellido1, apellido2 FROM persona WHERE dni = ?";
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, dni);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getString("nombre").equals(nombre) &&
+                           rs.getString("apellido1").equals(apellido1) &&
+                           (apellido2 == null || rs.getString("apellido2").equals(apellido2));
+                }
+                return false;
+            }
+        }
+    }
+
+    private void persistirEmpleado(Connection conn) throws SQLException {
         String sql = "INSERT INTO empleado (dni, puesto, numeroEmpleado, inicioContrato, segSocial) " +
-                     "VALUES (?, ?, ?, ?, ?)";
-        try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+                    "VALUES (?, ?, ?, ?, ?)";
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, getDNI());
             ps.setString(2, puesto);
             ps.setInt(3, numEmpleado);
-            ps.setDate(4, java.sql.Date.valueOf(inicioContrato));
+            ps.setDate(4, Date.valueOf(inicioContrato));
             ps.setString(5, segSocial);
             ps.executeUpdate();
-        } catch (SQLException ex) {
-            throw new SQLException("Error al persistir el empleado: " + ex.getMessage(), ex);
         }
     }
 
-    /**
-     * Actualiza los datos del empleado en la base de datos.
-     */
-    public void actualizarBaseDatos() throws SQLException {
-        String sql = "UPDATE empleado SET puesto = ?, numeroEmpleado = ?, inicioContrato = ?, segSocial = ? WHERE dni = ?";
-        try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setString(1, puesto);
-            ps.setInt(2, numEmpleado);
-            ps.setDate(3, java.sql.Date.valueOf(inicioContrato));
-            ps.setString(4, segSocial);
-            ps.setString(5, getDNI());
-            int rowsAffected = ps.executeUpdate();
-            if (rowsAffected == 0) {
-                throw new SQLException("No se encontró el empleado con DNI: " + getDNI());
-            }
-        } catch (SQLException ex) {
-            throw new SQLException("Error al actualizar el empleado: " + ex.getMessage(), ex);
-        }
-    }
-
-    /**
-     * Elimina el empleado de la base de datos.
-     */
-    public void eliminarBaseDatos() throws SQLException {
-        String sql = "DELETE FROM empleado WHERE dni = ?";
-        try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setString(1, getDNI());
-            int rowsAffected = ps.executeUpdate();
-            if (rowsAffected == 0) {
-                throw new SQLException("No se encontró el empleado con DNI: " + getDNI());
-            }
-            // También elimina la persona asociada
-            sql = "DELETE FROM Persona WHERE dni = ?";
-            try (PreparedStatement psPersona = conn.prepareStatement(sql)) {
-                psPersona.setString(1, getDNI());
-                psPersona.executeUpdate();
-            }
-        } catch (SQLException ex) {
-            throw new SQLException("Error al eliminar el empleado: " + ex.getMessage(), ex);
-        }
-    }
-
-    /**
-     * Guarda el empleado en la base de datos si no existe.
-     */
-    public void guardar() throws SQLException {
-        validateNumEmpleado(numEmpleado);
-        if (Persona.buscaPersona(getDNI()) == null) {
-            persistencia();
-        } else {
-            throw new IllegalStateException("El empleado ya existe en la base de datos.");
-        }
-    }
-
-    /**
-     * Actualiza el empleado en la base de datos si existe.
-     */
     public void actualizar() throws SQLException {
-        validateNumEmpleado(numEmpleado);
-        if (Persona.buscaPersona(getDNI()) != null) {
-            super.persistencia(); // Actualiza la información de Persona
-            actualizarBaseDatos();
-        } else {
-            throw new IllegalStateException("El empleado no existe en la base de datos.");
+        try (Connection conn = DatabaseConnection.getConnection()) {
+            conn.setAutoCommit(false);
+            
+            try {
+                // Actualizar datos de persona
+                super.actualizar();
+                
+                // Actualizar datos de empleado
+                String sql = "UPDATE empleado SET puesto = ?, numeroEmpleado = ?, " +
+                            "inicioContrato = ?, segSocial = ? WHERE dni = ?";
+                try (PreparedStatement ps = conn.prepareStatement(sql)) {
+                    ps.setString(1, puesto);
+                    ps.setInt(2, numEmpleado);
+                    ps.setDate(3, Date.valueOf(inicioContrato));
+                    ps.setString(4, segSocial);
+                    ps.setString(5, getDNI());
+                    
+                    if (ps.executeUpdate() == 0) {
+                        throw new SQLException("Empleado no encontrado para actualizar");
+                    }
+                }
+                
+                conn.commit();
+            } catch (SQLException e) {
+                conn.rollback();
+                throw e;
+            }
         }
     }
 
-    /**
-     * Elimina el empleado de la base de datos si existe.
-     */
     public void eliminar() throws SQLException {
-        validateNumEmpleado(numEmpleado);
-        if (Persona.buscaPersona(getDNI()) != null) {
-            eliminarBaseDatos();
-        } else {
-            throw new IllegalStateException("El empleado no existe en la base de datos.");
+        try (Connection conn = DatabaseConnection.getConnection()) {
+            conn.setAutoCommit(false);
+            
+            try {
+                // Eliminar de empleado primero
+                String sql = "DELETE FROM empleado WHERE dni = ?";
+                try (PreparedStatement ps = conn.prepareStatement(sql)) {
+                    ps.setString(1, getDNI());
+                    ps.executeUpdate();
+                }
+                
+                // Luego eliminar de persona
+                sql = "DELETE FROM persona WHERE dni = ?";
+                try (PreparedStatement ps = conn.prepareStatement(sql)) {
+                    ps.setString(1, getDNI());
+                    ps.executeUpdate();
+                }
+                
+                conn.commit();
+            } catch (SQLException e) {
+                conn.rollback();
+                throw e;
+            }
         }
     }
 
-    // Getters y setters
+    // Getters y Setters
     public String getPuesto() {
         return puesto;
     }
 
     public void setPuesto(String puesto) {
-        this.puesto = puesto != null ? puesto : "";
+        this.puesto = puesto != null ? puesto : "Sin puesto";
     }
 
     public int getNumEmpleado() {
@@ -198,7 +192,9 @@ public class Empleado extends Persona {
     }
 
     public void setNumEmpleado(int numEmpleado) {
-        validateNumEmpleado(numEmpleado);
+        if (numEmpleado <= 0) {
+            throw new IllegalArgumentException("Número de empleado debe ser positivo");
+        }
         this.numEmpleado = numEmpleado;
     }
 
@@ -207,7 +203,9 @@ public class Empleado extends Persona {
     }
 
     public void setInicioContrato(LocalDate inicioContrato) {
-        validateInicioContrato(inicioContrato);
+        if (inicioContrato == null) {
+            throw new IllegalArgumentException("Fecha de contrato requerida");
+        }
         this.inicioContrato = inicioContrato;
     }
 
@@ -216,13 +214,18 @@ public class Empleado extends Persona {
     }
 
     public void setSegSocial(String segSocial) {
-        validateSegSocial(segSocial);
+        if (segSocial == null || segSocial.trim().isEmpty()) {
+            throw new IllegalArgumentException("Número de seguridad social requerido");
+        }
         this.segSocial = segSocial;
     }
 
     @Override
     public String toString() {
-        return super.toString() + "\nPuesto: " + puesto + "\nNúmero de Empleado: " + numEmpleado + 
-               "\nInicio de Contrato: " + inicioContrato + "\nSeguridad Social: " + segSocial;
+        return super.toString() + 
+               "\nPuesto: " + puesto + 
+               "\nNúmero Empleado: " + numEmpleado + 
+               "\nInicio Contrato: " + inicioContrato + 
+               "\nSeguridad Social: " + segSocial;
     }
 }

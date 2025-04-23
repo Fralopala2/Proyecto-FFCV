@@ -16,7 +16,7 @@ public class Instalacion {
     private TipoSuperficie superficie;
 
     public enum TipoSuperficie {
-        CESPED, TIERRA, CEMENTO, CESPED_ARTIFICIAL
+        TIERRA, CESPED_NATURAL, CESPED_ARTIFICIAL
     }
 
     public Instalacion(String nombre, String direccion, TipoSuperficie superficie) {
