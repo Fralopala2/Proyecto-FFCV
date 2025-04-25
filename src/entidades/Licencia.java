@@ -80,6 +80,9 @@ public class Licencia {
     }
 
     public void actualizar() throws SQLException {
+        if (numeroLicencia == null || numeroLicencia.trim().isEmpty()) {
+            throw new IllegalStateException("El número de licencia no puede ser nulo ni vacío.");
+        }
         if (buscarPorNumero(numeroLicencia) != null) {
             actualizarEnBD();
         } else {
@@ -100,37 +103,44 @@ public class Licencia {
             throw new IllegalArgumentException("El número de licencia no puede ser nulo ni vacío.");
         }
         String sql = "SELECT * FROM Licencia WHERE numeroLicencia = ?";
-        try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setString(1, numeroLicencia);
-            ResultSet rs = ps.executeQuery();
-            if (rs.next()) {
-                Persona persona = Persona.buscaPersona(rs.getString("persona_dni"));
-                if (persona == null) {
-                    throw new SQLException("Persona asociada con DNI " + rs.getString("persona_dni") + " no encontrada.");
-                }
-                Licencia licencia = new Licencia(persona, rs.getString("numeroLicencia"));
-                licencia.setAbonada(rs.getBoolean("abonada"));
-                int equipoId = rs.getInt("equipo_id");
-                if (!rs.wasNull()) {
-                    String equipoSql = "SELECT * FROM Equipo WHERE id = ?";
-                    try (PreparedStatement equipoPs = conn.prepareStatement(equipoSql);
-                         ResultSet equipoRs = equipoPs.executeQuery()) {
-                        equipoPs.setInt(1, equipoId);
-                        if (equipoRs.next()) {
-                            Instalacion instalacion = Instalacion.buscarPorId(equipoRs.getInt("instalacion_id"));
-                            Grupo grupo = Grupo.buscarPorId(equipoRs.getInt("grupo_id"));
-                            if (instalacion == null || grupo == null) {
-                                throw new SQLException("Instalación o grupo no encontrados para el equipo con ID: " + equipoId);
-                            }
-                            Equipo equipo = new Equipo(equipoRs.getString("letra"), instalacion, grupo);
-                            licencia.setEquipo(equipo);
-                        }
-                    }
-                }
-                return licencia;
+        try (Connection conn = DatabaseConnection.getConnection()) {
+            if (conn == null || conn.isClosed()) {
+                throw new SQLException("La conexión a la base de datos es nula o está cerrada.");
             }
-            return null;
+            try (PreparedStatement ps = conn.prepareStatement(sql)) {
+                System.out.println("[DEBUG] Buscando licencia con número: " + numeroLicencia);
+                ps.setString(1, numeroLicencia);
+                try (ResultSet rs = ps.executeQuery()) {
+                    if (rs.next()) {
+                        Persona persona = Persona.buscaPersona(rs.getString("persona_dni"));
+                        if (persona == null) {
+                            throw new SQLException("Persona asociada con DNI " + rs.getString("persona_dni") + " no encontrada.");
+                        }
+                        Licencia licencia = new Licencia(persona, rs.getString("numeroLicencia"));
+                        licencia.setAbonada(rs.getBoolean("abonada"));
+                        int equipoId = rs.getInt("equipo_id");
+                        if (!rs.wasNull()) {
+                            String equipoSql = "SELECT * FROM Equipo WHERE id = ?";
+                            try (PreparedStatement equipoPs = conn.prepareStatement(equipoSql)) {
+                                equipoPs.setInt(1, equipoId);
+                                try (ResultSet equipoRs = equipoPs.executeQuery()) {
+                                    if (equipoRs.next()) {
+                                        Instalacion instalacion = Instalacion.buscarPorId(equipoRs.getInt("instalacion_id"));
+                                        Grupo grupo = Grupo.buscarPorId(equipoRs.getInt("grupo_id"));
+                                        if (instalacion == null || grupo == null) {
+                                            throw new SQLException("Instalación o grupo no encontrados para el equipo con ID: " + equipoId);
+                                        }
+                                        Equipo equipo = new Equipo(equipoRs.getString("letra"), instalacion, grupo);
+                                        licencia.setEquipo(equipo);
+                                    }
+                                }
+                            }
+                        }
+                        return licencia;
+                    }
+                    return null;
+                }
+            }
         } catch (SQLException ex) {
             throw new SQLException("Error al buscar licencia por número: " + ex.getMessage(), ex);
         }

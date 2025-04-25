@@ -15,7 +15,7 @@ public class Main {
         System.out.println("=== INICIO DE PRUEBAS ===");
         
         try {
-            // 0. Verificar conexión a la base de datos
+            // 0. Verificar conexion a la base de datos
             System.out.println("Verificando conexion a la base de datos...");
             if (!checkDatabaseConnection()) {
                 throw new RuntimeException("No se pudo conectar a la base de datos.");
@@ -31,7 +31,7 @@ public class Main {
                     LocalDate.of(1990, 1, 1), "juanp", "pass123", "Valencia");
             System.out.println("Persona creada: " + persona1);
             
-            Persona persona2 = federacion.nuevaPersona("87654321B", "María", "Lopez", null, 
+            Persona persona2 = federacion.nuevaPersona("87654321B", "Maria", "Lopez", null, 
                     LocalDate.of(1985, 5, 15), "marial", "pass456", "Alicante");
             System.out.println("Persona creada: " + persona2);
             
@@ -46,7 +46,7 @@ public class Main {
             
             // Prueba de error: DNI duplicado
             try {
-                federacion.nuevaPersona("12345678A", "Ana", "García", null, 
+                federacion.nuevaPersona("12345678A", "Ana", "Garcia", null, 
                         LocalDate.of(1995, 2, 2), "anag", "pass789", "Valencia");
                 System.out.println("Error: Deberia haber fallado (DNI duplicado)");
             } catch (IllegalStateException e) {
@@ -66,14 +66,14 @@ public class Main {
             empleado.actualizar();
             System.out.println("Empleado actualizado: " + federacion.buscaPersona("11223344H"));
             
-            // Prueba de error: número de empleado inválido
+            // Prueba de error: numero de empleado invalido
             try {
                 federacion.nuevoEmpleado("22334455I", "Luis", "Gomez", null,
                         LocalDate.of(1982, 4, 10), "luisg", "pass101", "Valencia", 
                         -1, LocalDate.now(), "987654321098");
                 System.out.println("Error: Deberia haber fallado (numero de empleado invalido)");
             } catch (IllegalArgumentException e) {
-                System.out.println("Prueba de número de empleado invalido correcta: " + e.getMessage());
+                System.out.println("Prueba de numero de empleado invalido correcta: " + e.getMessage());
             }
             
             // 4. Prueba de Clubes
@@ -101,7 +101,7 @@ public class Main {
                 System.out.println("Prueba de nombre de club nulo correcta: " + e.getMessage());
             }
             
-            // 5. Prueba de Categorías
+            // 5. Prueba de Categorias
             System.out.println("\n--- Prueba de Categorias ---");
             Categoria senior = federacion.nuevaCategoria("Senior", 1, 100.0);
             System.out.println("Categoria creada: " + senior);
@@ -109,7 +109,7 @@ public class Main {
             Categoria juvenil = federacion.nuevaCategoria("Juvenil", 2, 75.0);
             System.out.println("Categoria creada: " + juvenil);
             
-            // Listar todas las categorías
+            // Listar todas las categorias
             List<Categoria> categorias = federacion.obtenerCategorias();
             System.out.println("\nTodas las categorias:");
             categorias.forEach(System.out::println);
@@ -130,7 +130,7 @@ public class Main {
             Grupo grupoB = federacion.nuevoGrupo(senior, "Grupo B");
             System.out.println("Grupo creado: " + grupoB);
             
-            // Listar grupos por categoría
+            // Listar grupos por categoria
             List<Grupo> gruposSenior = federacion.obtenerGrupos(senior);
             System.out.println("\nGrupos en categoria Senior:");
             gruposSenior.forEach(System.out::println);
@@ -141,7 +141,7 @@ public class Main {
             System.out.println("Grupo actualizado: " + federacion.obtenerGrupos(senior).stream()
                     .filter(g -> g.getId() == grupoA.getId()).findFirst().orElse(null));
             
-            // Prueba de error: categoría nula
+            // Prueba de error: categoria nula
             try {
                 federacion.nuevoGrupo(null, "Grupo C");
                 System.out.println("Error: Deberia haber fallado (categoria nula)");
@@ -159,12 +159,12 @@ public class Main {
                     "CESPED_ARTIFICIAL");
             System.out.println("Instalacion creada: " + ciutat);
             
-            // Actualizar instalación
+            // Actualizar instalacion
             mestalla.setDireccion("Av. de Suecia 123, Valencia");
             mestalla.actualizar();
             System.out.println("Instalacion actualizada: " + federacion.buscarInstalaciones("Mestalla").get(0));
             
-            // Prueba de error: superficie inválida
+            // Prueba de error: superficie invalida
             try {
                 federacion.nuevaInstalacion("Estadio Nuevo", "Calle Falsa, Valencia", "INVALIDO");
                 System.out.println("Error: Deberia haber fallado (superficie invalida)");
@@ -176,7 +176,7 @@ public class Main {
             System.out.println("\n--- Prueba de Equipos ---");
             // Verificar que las dependencias existen
             if (Instalacion.buscarPorNombre("Mestalla") == null) {
-                System.out.println("Error: Instalación Mestalla no encontrada en la base de datos");
+                System.out.println("Error: Instalacion Mestalla no encontrada en la base de datos");
             }
             if (Grupo.buscarPorNombre("Grupo A") == null) {
                 System.out.println("Error: Grupo A no encontrado en la base de datos");
@@ -190,7 +190,7 @@ public class Main {
             Equipo equipo2 = federacion.nuevoEquipo("B", ciutat, grupoB, club1);
             System.out.println("Equipo creado: " + equipo2);
             
-            // Buscar jugador en equipo (debería fallar porque no hay jugadores aún)
+            // Buscar jugador en equipo (deberia fallar porque no hay jugadores aun)
             System.out.println("\nBuscando jugador en equipo (deberia ser null):");
             Persona jugador = equipo1.buscarJugador("12345678A");
             System.out.println("Jugador encontrado: " + jugador);
@@ -207,22 +207,25 @@ public class Main {
             System.out.println("\n--- Prueba de Licencias ---");
             Licencia licencia1 = federacion.nuevaLicencia(persona1, equipo1);
             System.out.println("Licencia con equipo creada: " + licencia1);
-            
+
             Licencia licencia2 = federacion.nuevaLicencia(persona2);
             System.out.println("Licencia simple creada: " + licencia2);
-            
-            // Prueba de addLicencia
+
             federacion.addLicencia(licencia2, equipo2);
             System.out.println("Licencia asignada a equipo2: " + licencia2);
-            
-            // Calcular precio de licencia
+
             double precioLicencia = federacion.calcularPrecioLicencia(equipo1);
             System.out.println("Precio de licencia para equipo1: " + precioLicencia);
-            
-            // Actualizar licencia
+
+            System.out.println("Numero de licencia1 antes de actualizar: " + licencia1.getNumeroLicencia());
             licencia1.setAbonada(true);
-            licencia1.actualizar();
-            System.out.println("Licencia actualizada: " + Licencia.buscarPorNumero(licencia1.getNumeroLicencia()));
+            try {
+                licencia1.actualizar();
+                System.out.println("Licencia actualizada: " + Licencia.buscarPorNumero(licencia1.getNumeroLicencia()));
+            } catch (SQLException e) {
+                System.err.println("[ERROR] Fallo al actualizar licencia1: " + e.getMessage());
+                e.printStackTrace();
+            }
             
             // Prueba de error: licencia duplicada para persona
             try {
@@ -232,7 +235,7 @@ public class Main {
                 System.out.println("Prueba de licencia duplicada correcta: " + e.getMessage());
             }
             
-            // 10. Pruebas de búsquedas
+            // 10. Pruebas de busquedas
             System.out.println("\n--- Pruebas de Busquedas ---");
             List<Persona> personas = federacion.buscaPersonas("Juan", "Perez", "Gomez");
             System.out.println("Personas encontradas (Juan Perez Gomez):");
@@ -242,50 +245,55 @@ public class Main {
             System.out.println("\nInstalaciones encontradas (Mestalla):");
             instalaciones.forEach(System.out::println);
             
-            // 11. Pruebas de eliminación
+            // 11. Pruebas de eliminacion
             System.out.println("\n--- Pruebas de Eliminacion ---");
             try {
                 // Eliminar en orden inverso para respetar FKs
                 licencia1.eliminar();
                 System.out.println("Licencia1 eliminada");
-                
+
                 licencia2.eliminar();
                 System.out.println("Licencia2 eliminada");
-                
-                equipo2.eliminar();
-                System.out.println("Equipo2 eliminado");
-                
-                equipo1.eliminar();
-                System.out.println("Equipo1 eliminado");
-                
+
+                // Eliminar todos los equipos del club para evitar referencias a grupos
+                Club valenciaCF = federacion.buscarClub("Valencia CF");
+                if (valenciaCF != null) {
+                    List<Equipo> equipos = valenciaCF.getEquipos();
+                    for (Equipo equipo : equipos) {
+                        equipo.eliminar();
+                        System.out.println("Equipo " + equipo.getLetra() + " eliminado");
+                    }
+                }
+
                 grupoB.eliminar();
                 System.out.println("GrupoB eliminado");
-                
+
                 grupoA.eliminar();
                 System.out.println("GrupoA eliminado");
-                
+
                 ciutat.eliminar();
                 System.out.println("Instalacion Ciutat eliminada");
-                
+
                 mestalla.eliminar();
                 System.out.println("Instalacion Mestalla eliminada");
-                
+
                 club2.eliminar();
                 System.out.println("Club2 eliminado");
-                
+
                 club1.eliminar();
                 System.out.println("Club1 eliminado");
-                
+
                 empleado.eliminar();
                 System.out.println("Empleado eliminado");
-                
+
                 persona2.eliminar();
                 System.out.println("Persona2 eliminada");
-                
+
                 persona1.eliminar();
                 System.out.println("Persona1 eliminada");
             } catch (SQLException e) {
                 System.err.println("Error al eliminar: " + e.getMessage());
+                e.printStackTrace();
             }
             
         } catch (SQLException e) {

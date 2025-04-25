@@ -251,6 +251,29 @@ public class Club {
             throw new SQLException("Error al obtener ID del equipo: " + ex.getMessage(), ex);
         }
     }
+    
+    public List<Equipo> getEquipos() throws SQLException {
+        List<Equipo> equipos = new ArrayList<>();
+        String sql = "SELECT e.* FROM Equipo e JOIN club_equipo ce ON e.id = ce.equipo_id WHERE ce.club_id = ?";
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, obtenerIdClub());
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    String letra = rs.getString("letra");
+                    int instalacionId = rs.getInt("instalacion_id");
+                    int grupoId = rs.getInt("grupo_id");
+                    Instalacion instalacion = Instalacion.buscarPorId(instalacionId);
+                    Grupo grupo = Grupo.buscarPorId(grupoId);
+                    if (instalacion != null && grupo != null) {
+                        Equipo equipo = new Equipo(letra, instalacion, grupo);
+                        equipos.add(equipo);
+                    }
+                }
+            }
+        }
+        return equipos;
+    }
 
     public static List<Club> obtenerTodos() throws SQLException {
         List<Club> clubes = new ArrayList<>();
@@ -291,11 +314,7 @@ public class Club {
     public void setFechaFundacion(LocalDate fechaFundacion) {
         this.fechaFundacion = fechaFundacion;
     }
-
-    public List<Equipo> getEquipos() {
-        return equipos;
-    }
-
+    
     public void setEquipos(List<Equipo> equipos) {
         this.equipos = equipos;
     }

@@ -29,7 +29,7 @@ public final class Federacion implements IFederacion {
         try {
             DatabaseConnection.getConnection();
         } catch (SQLException ex) {
-            Logger.getLogger(Federacion.class.getName()).log(Level.SEVERE, "Error de conexión a la base de datos", ex);
+            Logger.getLogger(Federacion.class.getName()).log(Level.SEVERE, "Error de conexion a la base de datos", ex);
             throw new IllegalStateException("No se pudo conectar a la base de datos: " + ex.getMessage());
         }
     }
@@ -44,7 +44,7 @@ public final class Federacion implements IFederacion {
     @Override
     public Club buscarClub(String nombre) {
         if (nombre == null || nombre.trim().isEmpty()) {
-            throw new IllegalArgumentException("El nombre del club no puede ser nulo ni vacío.");
+            throw new IllegalArgumentException("El nombre del club no puede ser nulo ni vacio.");
         }
         try {
             Club club = Club.buscarPorNombre(nombre);
@@ -60,7 +60,7 @@ public final class Federacion implements IFederacion {
     @Override
     public Equipo nuevoEquipo(String letra, Instalacion instalacion, Grupo grupo, Club club) {
         if (letra == null || letra.trim().isEmpty() || instalacion == null || grupo == null || club == null) {
-            throw new IllegalArgumentException("Ningún parámetro puede ser nulo o vacío.");
+            throw new IllegalArgumentException("Ningun parametro puede ser nulo o vacio.");
         }
         try {
             if (Equipo.buscarPorLetra(letra) != null) {
@@ -69,7 +69,7 @@ public final class Federacion implements IFederacion {
             // Asegurar que las dependencias estén persistidas
             if (Instalacion.buscarPorNombre(instalacion.getNombre()) == null) {
                 instalacion.guardar();
-                System.out.println("Instalación persistida: " + instalacion.getNombre());
+                System.out.println("Instalacion persistida: " + instalacion.getNombre());
             }
             if (Grupo.buscarPorNombre(grupo.getNombre()) == null) {
                 grupo.guardar();
@@ -93,7 +93,7 @@ public final class Federacion implements IFederacion {
     @Override
     public Club nuevoClub(String nombre, LocalDate fechaFundacion, Persona presidente) {
         if (nombre == null || nombre.trim().isEmpty() || fechaFundacion == null || presidente == null) {
-            throw new IllegalArgumentException("Ningún parámetro puede ser nulo o vacío.");
+            throw new IllegalArgumentException("Ningun parametro puede ser nulo o vacio.");
         }
         try {
             if (Club.buscarPorNombre(nombre) != null) {
@@ -114,21 +114,21 @@ public final class Federacion implements IFederacion {
     @Override
     public Categoria nuevaCategoria(String nombre, int orden, double precioLicencia) {
         if (nombre == null || nombre.trim().isEmpty()) {
-            throw new IllegalArgumentException("El nombre de la categoría no puede ser nulo ni vacío.");
+            throw new IllegalArgumentException("El nombre de la categoria no puede ser nulo ni vacio.");
         }
         if (precioLicencia < 0) {
             throw new IllegalArgumentException("El precio de la licencia no puede ser negativo.");
         }
         try {
             if (Categoria.buscarPorNombre(nombre) != null) {
-                throw new IllegalStateException("La categoría con nombre " + nombre + " ya existe.");
+                throw new IllegalStateException("La categoria con nombre " + nombre + " ya existe.");
             }
             Categoria categoria = new Categoria(nombre, orden, precioLicencia);
             categoria.guardar();
             categorias.add(categoria);
             return categoria;
         } catch (SQLException ex) {
-            throw new IllegalStateException("No se pudo crear la categoría: " + ex.getMessage(), ex);
+            throw new IllegalStateException("No se pudo crear la categoria: " + ex.getMessage(), ex);
         }
     }
 
@@ -140,18 +140,18 @@ public final class Federacion implements IFederacion {
             categorias.addAll(todasCategorias);
             return new ArrayList<>(categorias);
         } catch (SQLException ex) {
-            throw new IllegalStateException("Error al obtener categorías: " + ex.getMessage(), ex);
+            throw new IllegalStateException("Error al obtener categorias: " + ex.getMessage(), ex);
         }
     }
 
     @Override
     public List<Grupo> obtenerGrupos(Categoria categoria) {
         if (categoria == null) {
-            throw new IllegalArgumentException("La categoría no puede ser nula.");
+            throw new IllegalArgumentException("La categoria no puede ser nula.");
         }
         try {
             if (Categoria.buscarPorNombre(categoria.getNombre()) == null) {
-                throw new IllegalStateException("La categoría " + categoria.getNombre() + " no existe.");
+                throw new IllegalStateException("La categoria " + categoria.getNombre() + " no existe.");
             }
             return Grupo.buscarPorCategoria(categoria);
         } catch (SQLException ex) {
@@ -162,11 +162,11 @@ public final class Federacion implements IFederacion {
     @Override
     public Grupo nuevoGrupo(Categoria categoria, String nombre) {
         if (categoria == null || nombre == null || nombre.trim().isEmpty()) {
-            throw new IllegalArgumentException("Ningún parámetro puede ser nulo o vacío.");
+            throw new IllegalArgumentException("Ningun parametro puede ser nulo o vacio.");
         }
         try {
             if (Categoria.buscarPorNombre(categoria.getNombre()) == null) {
-                throw new IllegalStateException("La categoría " + categoria.getNombre() + " no existe.");
+                throw new IllegalStateException("La categoria " + categoria.getNombre() + " no existe.");
             }
             if (Grupo.buscarPorNombre(nombre) != null) {
                 throw new IllegalStateException("El grupo con nombre " + nombre + " ya existe.");
@@ -200,7 +200,7 @@ public final class Federacion implements IFederacion {
     public Persona nuevaPersona(String dni, String nombre, String apellido1, String apellido2, 
                                LocalDate fechaNacimiento, String usuario, String password, String poblacion) {
         if (dni == null || nombre == null || usuario == null || password == null || fechaNacimiento == null) {
-            throw new IllegalArgumentException("Ningún parámetro obligatorio puede ser nulo.");
+            throw new IllegalArgumentException("Ningun parametro obligatorio puede ser nulo.");
         }
         try {
             if (Persona.buscaPersona(dni) != null) {
@@ -225,10 +225,10 @@ public final class Federacion implements IFederacion {
                             String segSocial) {
         // Validación básica de parámetros
         if (dni == null || dni.trim().isEmpty()) {
-            throw new IllegalArgumentException("DNI no puede estar vacío");
+            throw new IllegalArgumentException("DNI no puede estar vacio");
         }
         if (numEmpleado <= 0) {
-            throw new IllegalArgumentException("Número de empleado debe ser positivo");
+            throw new IllegalArgumentException("Numero de empleado debe ser positivo");
         }
 
         try (Connection conn = DatabaseConnection.getConnection()) {
@@ -238,7 +238,7 @@ public final class Federacion implements IFederacion {
                 ps.setInt(1, numEmpleado);
                 try (ResultSet rs = ps.executeQuery()) {
                     if (rs.next()) {
-                        throw new IllegalStateException("El número de empleado " + numEmpleado + " ya está registrado");
+                        throw new IllegalStateException("El numero de empleado " + numEmpleado + " ya esta registrado");
                     }
                 }
             }
@@ -249,7 +249,7 @@ public final class Federacion implements IFederacion {
                 ps.setString(1, dni);
                 try (ResultSet rs = ps.executeQuery()) {
                     if (rs.next()) {
-                        throw new IllegalStateException("El DNI " + dni + " ya está registrado como empleado");
+                        throw new IllegalStateException("El DNI " + dni + " ya esta registrado como empleado");
                     }
                 }
             }
@@ -331,7 +331,7 @@ public final class Federacion implements IFederacion {
     @Override
     public Licencia nuevaLicencia(Persona persona, Equipo equipo) {
         if (persona == null || equipo == null) {
-            throw new IllegalArgumentException("Ningún parámetro puede ser nulo.");
+            throw new IllegalArgumentException("Ningun parametro puede ser nulo.");
         }
         try {
             if (Persona.buscaPersona(persona.getDNI()) == null) {
@@ -351,11 +351,11 @@ public final class Federacion implements IFederacion {
     @Override
     public void addLicencia(Licencia licencia, Equipo equipo) {
         if (licencia == null || equipo == null) {
-            throw new IllegalArgumentException("Ningún parámetro puede ser nulo.");
+            throw new IllegalArgumentException("Ningun parametro puede ser nulo.");
         }
         try {
             if (Licencia.buscarPorNumero(licencia.getNumeroLicencia()) == null) {
-                throw new IllegalStateException("La licencia con número " + licencia.getNumeroLicencia() + " no existe.");
+                throw new IllegalStateException("La licencia con numero " + licencia.getNumeroLicencia() + " no existe.");
             }
             if (Equipo.buscarPorLetra(equipo.getLetra()) == null) {
                 throw new IllegalStateException("El equipo con letra " + equipo.getLetra() + " no existe.");
@@ -384,11 +384,11 @@ public final class Federacion implements IFederacion {
     @Override
     public Instalacion nuevaInstalacion(String nombre, String direccion, String superficie) {
         if (nombre == null || nombre.trim().isEmpty() || direccion == null || superficie == null) {
-            throw new IllegalArgumentException("Ningún parámetro puede ser nulo o vacío.");
+            throw new IllegalArgumentException("Ningun parametro puede ser nulo o vacio.");
         }
         try {
             if (Instalacion.buscarPorNombre(nombre) != null) {
-                throw new IllegalStateException("La instalación con nombre " + nombre + " ya existe.");
+                throw new IllegalStateException("La instalacion con nombre " + nombre + " ya existe.");
             }
 
             // Convertir la superficie a mayúsculas y validar que sea un tipo válido
@@ -400,18 +400,18 @@ public final class Federacion implements IFederacion {
                 instalaciones.add(instalacion);
                 return instalacion;
             } catch (IllegalArgumentException ex) {
-                throw new IllegalStateException("Tipo de superficie no válido: " + superficie + 
-                    ". Los valores válidos son: " + Arrays.toString(Instalacion.TipoSuperficie.values()));
+                throw new IllegalStateException("Tipo de superficie no valido: " + superficie + 
+                    ". Los valores validos son: " + Arrays.toString(Instalacion.TipoSuperficie.values()));
             }
         } catch (SQLException ex) {
-            throw new IllegalStateException("No se pudo crear la instalación: " + ex.getMessage(), ex);
+            throw new IllegalStateException("No se pudo crear la instalacion: " + ex.getMessage(), ex);
         }
     }
 
     @Override
     public List<Instalacion> buscarInstalaciones(String nombre) {
         if (nombre == null || nombre.trim().isEmpty()) {
-            throw new IllegalArgumentException("El nombre no puede ser nulo ni vacío.");
+            throw new IllegalArgumentException("El nombre no puede ser nulo ni vacio.");
         }
         try {
             List<Instalacion> resultado = Instalacion.buscarPorNombreParcial(nombre);
@@ -430,26 +430,27 @@ public final class Federacion implements IFederacion {
     public void limpiarTablas() throws SQLException {
         // Orden de eliminación: Primero tablas con FK, luego independientes
         List<String> tablas = Arrays.asList(
-            "Licencia",    // Depende de Persona y Equipo
-            "Equipo",     // Depende de Instalacion, Grupo y Club
-            "Empleado",   // Depende de Persona
-            "Club",       // Depende de Persona (presidente)
-            "Grupo",      // Depende de Categoria
-            "Instalacion", 
-            "Categoria",
-            "Persona"     // Se borra al final para evitar errores de FK
+            "licencia",    // Depende de persona y equipo
+            "equipo",     // Depende de instalacion, grupo y club
+            "empleado",   // Depende de persona
+            "club_equipo",// Depende de club y equipo
+            "club",       // Depende de persona (presidente)
+            "grupo",      // Depende de categoria
+            "instalacion",
+            "categoria",
+            "persona"     // Se borra al final para evitar errores de FK
         );
 
         try (Connection conn = DatabaseConnection.getConnection()) {
-            // 1. Desactivar verificación de claves foráneas (MySQL/MariaDB)
+            // 1. Desactivar verificación de claves foráneas
             try (PreparedStatement ps = conn.prepareStatement("SET FOREIGN_KEY_CHECKS = 0")) {
                 ps.execute();
             }
 
-            // 2. Borrar datos en orden
+            // 2. Truncar tablas en orden
             for (String tabla : tablas) {
-                try (PreparedStatement ps = conn.prepareStatement("DELETE FROM " + tabla)) {
-                    System.out.println("[DEBUG] Borrando datos de: " + tabla);
+                try (PreparedStatement ps = conn.prepareStatement("TRUNCATE TABLE " + tabla)) {
+                    System.out.println("[DEBUG] Truncando tabla: " + tabla);
                     ps.executeUpdate();
                 }
             }
@@ -466,7 +467,7 @@ public final class Federacion implements IFederacion {
             clubes.clear();
             instalaciones.clear();
 
-            System.out.println("[DEBUG] ¡Base de datos limpiada exitosamente!");
+            System.out.println("[DEBUG] Base de datos limpiada y contadores reiniciados!");
         }
     }
 }
