@@ -196,7 +196,7 @@ public class MainApp2 {
         // Accion para crear una nueva categoria
         crearButton.addActionListener(event -> {
             if (!validateFields(nombreField, ordenField, precioField)) {
-                return; // Valida que los campos no esten vacios
+                return; // Valida que los campos no estén vacíos
             }
             try {
                 int orden = Integer.parseInt(ordenField.getText()); // Convierte el texto del campo de orden a entero
@@ -204,13 +204,17 @@ public class MainApp2 {
                 if (precio < 0) {
                     throw new IllegalArgumentException("El precio no puede ser negativo."); // Verifica que el precio no sea negativo
                 }
-                Categoria categoria = federacion.nuevaCategoria(nombreField.getText(), orden, precio); // Crea una nueva categoria
-                JOptionPane.showMessageDialog(frame, "Categoria creada: " + categoria); // Muestra un mensaje de exito
+                Categoria categoria = federacion.nuevaCategoria(nombreField.getText(), orden, precio); // Crea una nueva categoría
+                JOptionPane.showMessageDialog(frame, "Categoría creada: " + categoria); // Muestra un mensaje de éxito
                 clearFields(nombreField, ordenField, precioField); // Limpia los campos
             } catch (NumberFormatException ex) {
-                JOptionPane.showMessageDialog(frame, "Nivel y precio deben ser numericos.", "Error", JOptionPane.ERROR_MESSAGE); // Muestra un mensaje de error si la conversion falla
+                JOptionPane.showMessageDialog(frame, "Nivel y precio deben ser numéricos.", "Error", JOptionPane.ERROR_MESSAGE); // Error de conversión numérica
             } catch (IllegalArgumentException ex) {
-                JOptionPane.showMessageDialog(frame, ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE); // Muestra un mensaje de error si el precio es negativo
+                JOptionPane.showMessageDialog(frame, ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE); // Error en parámetros
+            } catch (IllegalStateException ex) {
+                JOptionPane.showMessageDialog(frame, ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE); // Error de categoría existente
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(frame, "Error inesperado: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE); // Otros errores
             }
         });
 
