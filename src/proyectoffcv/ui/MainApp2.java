@@ -1031,7 +1031,7 @@ public class MainApp2 {
         gbc.gridwidth = 2; // Configura la posicion del panel de botones
         createPanel.add(buttonPanel1, gbc); // Añade el panel de botones al panel de crear/actualizar equipo
 
-        JTextField buscarLetraField = addField(createPanel, gbc, "Letra Equipo Busqueda:", 5); // Campo para buscar equipos por letra
+        JTextField buscarLetraField = addField(createPanel, gbc, "Letra Eq. Busqueda:", 5); // Campo para buscar equipos por letra
         JTextField dniField = addField(createPanel, gbc, "DNI Jugador:", 6); // Campo para el DNI del jugador
 
         JPanel buttonPanel2 = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10)); // Panel para los botones de busqueda
