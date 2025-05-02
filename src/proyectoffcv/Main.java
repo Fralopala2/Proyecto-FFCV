@@ -138,8 +138,9 @@ public class Main {
             // Actualizar grupo
             grupoA.setNombre("Grupo A Modificado");
             grupoA.actualizar();
+            final int grupoAId = grupoA.getId(); // Store grupoA ID in a final variable for lambda
             System.out.println("Grupo actualizado: " + federacion.obtenerGrupos(senior).stream()
-                    .filter(g -> g.getId() == grupoA.getId()).findFirst().orElse(null));
+                    .filter(g -> g.getId() == grupoAId).findFirst().orElse(null));
             
             // Prueba de error: categoria nula
             try {
@@ -187,7 +188,7 @@ public class Main {
             Equipo equipo1 = federacion.nuevoEquipo("A", mestalla, grupoA, club1);
             System.out.println("Equipo creado: " + equipo1);
             
-            Equipo equipo2 = federacion.nuevoEquipo("B", ciutat, grupoB, club1);
+            Equipo equipo2 = federacion.nuevoEquipo("B", ciutat, grupoB, club2);
             System.out.println("Equipo creado: " + equipo2);
             
             // Buscar jugador en equipo (deberia fallar porque no hay jugadores aun)
@@ -235,8 +236,8 @@ public class Main {
                 System.out.println("Prueba de licencia duplicada correcta: " + e.getMessage());
             }
             
-            // 10. Pruebas de busquedas
-            System.out.println("\n--- Pruebas de Busquedas ---");
+            // 10. Prueba de Busquedas
+            System.out.println("\n--- Prueba de Busquedas ---");
             List<Persona> personas = federacion.buscaPersonas("Juan", "Perez", "Gomez");
             System.out.println("Personas encontradas (Juan Perez Gomez):");
             personas.forEach(System.out::println);
@@ -245,7 +246,7 @@ public class Main {
             System.out.println("\nInstalaciones encontradas (Mestalla):");
             instalaciones.forEach(System.out::println);
             
-           // 11. Pruebas de eliminacion
+            // 11. Pruebas de Eliminacion
             System.out.println("\n--- Pruebas de Eliminacion ---");
             try {
                 // Eliminar en orden inverso para respetar FKs
@@ -255,10 +256,18 @@ public class Main {
                 licencia2.eliminar();
                 System.out.println("Licencia2 eliminada");
 
-                // Eliminar todos los equipos del club para evitar referencias a grupos
+                // Eliminar todos los equipos primero
                 Club valenciaCF = federacion.buscarClub("Valencia CF");
                 if (valenciaCF != null) {
                     List<Equipo> equipos = valenciaCF.getEquipos();
+                    for (Equipo equipo : equipos) {
+                        equipo.eliminar();
+                        System.out.println("Equipo " + equipo.getLetra() + " eliminado");
+                    }
+                }
+                Club villarrealCF = federacion.buscarClub("Villarreal CF");
+                if (villarrealCF != null) {
+                    List<Equipo> equipos = villarrealCF.getEquipos();
                     for (Equipo equipo : equipos) {
                         equipo.eliminar();
                         System.out.println("Equipo " + equipo.getLetra() + " eliminado");
@@ -302,6 +311,67 @@ public class Main {
                 e.printStackTrace();
             }
             
+            // 12. Prueba de Anadir Jugador
+            System.out.println("\n--- Prueba de Anadir Jugador ---");
+            // Reutilizar o buscar personas existentes en lugar de recrearlas
+            persona1 = federacion.buscaPersona("12345678A");
+            if (persona1 == null) {
+                persona1 = federacion.nuevaPersona("12345678A", "Juan", "Perez", "Gomez", 
+                        LocalDate.of(1990, 1, 1), "juanp", "pass123", "Valencia");
+            }
+            persona2 = federacion.buscaPersona("87654321B");
+            if (persona2 == null) {
+                persona2 = federacion.nuevaPersona("87654321B", "Maria", "Lopez", null, 
+                        LocalDate.of(1985, 5, 15), "marial", "pass456", "Alicante");
+            }
+            club1 = federacion.buscarClub("Valencia CF");
+            if (club1 == null) {
+                club1 = federacion.nuevoClub("Valencia CF", LocalDate.of(1919, 3, 18), persona1);
+            }
+            senior = federacion.obtenerCategorias().stream().filter(c -> c.getNombre().equals("Senior")).findFirst().orElse(null);
+            if (senior == null) {
+                senior = federacion.nuevaCategoria("Senior", 1, 100.0);
+            }
+            grupoA = federacion.obtenerGrupos(senior).stream().filter(g -> g.getNombre().equals("Grupo A")).findFirst().orElse(null);
+            if (grupoA == null) {
+                grupoA = federacion.nuevoGrupo(senior, "Grupo A");
+            }
+            mestalla = federacion.buscarInstalaciones("Mestalla").stream().findFirst().orElse(null);
+            if (mestalla == null) {
+                mestalla = federacion.nuevaInstalacion("Mestalla", "Av. de Suecia, Valencia", "CESPED_NATURAL");
+            }
+            equipo1 = federacion.nuevoEquipo("A", mestalla, grupoA, club1);
+            
+            // Anadir jugador a equipo por letra y DNI
+            Licencia licencia3 = federacion.nuevaLicencia(persona1, equipo1);
+            federacion.addLicencia(licencia3, equipo1);
+            System.out.println("Jugador anadido al equipo A: " + persona1);
+            
+            // Verificar que el jugador esta en el equipo
+            Persona jugadorEncontrado = equipo1.buscarJugador("12345678A");
+            System.out.println("Jugador encontrado en equipo A: " + jugadorEncontrado);
+            
+            // Prueba de error: anadir jugador a equipo inexistente
+            try {
+                Equipo equipoInvalido = Equipo.buscarPorLetra("Z");
+                if (equipoInvalido == null) {
+                    throw new IllegalArgumentException("Equipo inexistente");
+                }
+                federacion.addLicencia(licencia3, equipoInvalido);
+                System.out.println("Error: Deberia haber fallado (equipo inexistente)");
+            } catch (IllegalArgumentException e) {
+                System.out.println("Prueba de equipo inexistente correcta: " + e.getMessage());
+            }
+            
+            // Prueba de error: anadir jugador duplicado
+            try {
+                Licencia licencia4 = federacion.nuevaLicencia(persona1, equipo1);
+                federacion.addLicencia(licencia4, equipo1);
+                System.out.println("Error: Deberia haber fallado (jugador duplicado)");
+            } catch (IllegalStateException e) {
+                System.out.println("Prueba de jugador duplicado correcta: " + e.getMessage());
+            }
+
         } catch (SQLException e) {
             System.err.println("Error de base de datos:");
             e.printStackTrace();

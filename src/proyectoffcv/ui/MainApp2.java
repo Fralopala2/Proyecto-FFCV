@@ -996,168 +996,212 @@ public class MainApp2 {
 
     // Metodo para crear el panel de equipos
     private JPanel createEquipoPanel() {
-        JPanel panel = new JPanel(new BorderLayout(10, 10)); // Crea el panel de equipos
-        panel.setBackground(Color.WHITE); // Establece el color de fondo del panel
-        panel.setBorder(new EmptyBorder(15, 15, 15, 15)); // Establece un borde vacio alrededor del panel
+        JPanel panel = new JPanel(new BorderLayout(10, 10)); // Crea el panel principal para la gestion de equipos con un layout BorderLayout y un espacio de 10 pixeles entre componentes
+        panel.setBackground(Color.WHITE); // Establece el color de fondo del panel a blanco
+        panel.setBorder(new EmptyBorder(15, 15, 15, 15)); // Anade un borde vacio de 15 pixeles en todos los lados del panel
 
-        JPanel createPanel = createTitledPanel("Crear/Actualizar Equipo y Buscar Jugador"); // Crea el panel para crear/actualizar equipos
-        GridBagConstraints gbc = new GridBagConstraints(); // Configuracion de la cuadricula
-        gbc.insets = new Insets(8, 10, 8, 10); // Espaciado entre componentes
-        gbc.fill = GridBagConstraints.HORIZONTAL; // Rellena el espacio horizontalmente
+        JPanel createPanel = createTitledPanel("Crear/Actualizar Equipo y Buscar Jugador"); // Crea un subpanel titulado para la creacion, actualizacion y busqueda de equipos/jugadores
+        GridBagConstraints gbc = new GridBagConstraints(); // Crea un objeto GridBagConstraints para configurar el layout del subpanel
+        gbc.insets = new Insets(8, 10, 8, 10); // Establece margenes de 8 pixeles arriba/abajo y 10 pixeles izquierda/derecha entre componentes
+        gbc.fill = GridBagConstraints.HORIZONTAL; // Configura los componentes para que se expandan horizontalmente
 
         // Campos para ingresar datos del equipo
-        JTextField letraField = addField(createPanel, gbc, "Letra:", 0); // Campo para la letra del equipo
-        JTextField instalacionField = addField(createPanel, gbc, "Nombre Instalacion:", 1); // Campo para el nombre de la instalacion
-        JTextField grupoField = addField(createPanel, gbc, "Nombre Grupo:", 2); // Campo para el nombre del grupo
-        JTextField clubField = addField(createPanel, gbc, "Nombre Club:", 3); // Campo para el nombre del club
+        JTextField letraField = addField(createPanel, gbc, "Letra:", 0); // Campo de texto para ingresar la letra del equipo, colocado en la fila 0
+        JTextField instalacionField = addField(createPanel, gbc, "Nombre Instalacion:", 1); // Campo de texto para el nombre de la instalacion, colocado en la fila 1
+        JTextField grupoField = addField(createPanel, gbc, "Nombre Grupo:", 2); // Campo de texto para el nombre del grupo, colocado en la fila 2
+        JTextField clubField = addField(createPanel, gbc, "Nombre Club:", 3); // Campo de texto para el nombre del club, colocado en la fila 3
 
-        JPanel buttonPanel1 = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10)); // Panel para los botones
-        buttonPanel1.setBackground(Color.WHITE); // Establece el color de fondo del panel de botones
+        JPanel buttonPanel1 = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10)); // Crea un panel para los botones de crear/actualizar/eliminar con un layout centrado y espacios de 10 pixeles
+        buttonPanel1.setBackground(Color.WHITE); // Establece el color de fondo del panel de botones a blanco
 
-        // Botones para crear, actualizar y eliminar equipos
-        JButton crearButton = new JButton("Crear Equipo", loadIcon("/resources/iconos/cross.png")); // Boton para crear equipo
-        styleButton(crearButton, new Color(211, 47, 47), true); // Estiliza el boton
-        JButton actualizarButton = new JButton("Actualizar Equipo", loadIcon("/resources/iconos/edit.png")); // Boton para actualizar equipo
-        styleButton(actualizarButton, new Color(33, 37, 41), false); // Estiliza el boton
-        JButton eliminarButton = new JButton("Eliminar Equipo", loadIcon("/resources/iconos/delete.png")); // Boton para eliminar equipo
-        styleButton(eliminarButton, new Color(211, 47, 47), true); // Estiliza el boton
+        JButton crearButton = new JButton("Crear Equipo", loadIcon("/resources/iconos/cross.png")); // Boton para crear un equipo con un icono de cruz
+        styleButton(crearButton, new Color(211, 47, 47), true); // Estiliza el boton con color rojo y estilo de boton de creacion
+        JButton actualizarButton = new JButton("Actualizar Equipo", loadIcon("/resources/iconos/edit.png")); // Boton para actualizar un equipo con un icono de edicion
+        styleButton(actualizarButton, new Color(33, 37, 41), false); // Estiliza el boton con color gris oscuro y estilo de boton no-creacion
+        JButton eliminarButton = new JButton("Eliminar Equipo", loadIcon("/resources/iconos/delete.png")); // Boton para eliminar un equipo con un icono de eliminacion
+        styleButton(eliminarButton, new Color(211, 47, 47), true); // Estiliza el boton con color rojo y estilo de boton de creacion
 
-        buttonPanel1.add(crearButton); // Añade el boton de crear al panel de botones
-        buttonPanel1.add(actualizarButton); // Añade el boton de actualizar al panel de botones
-        buttonPanel1.add(eliminarButton); // Añade el boton de eliminar al panel de botones
+        buttonPanel1.add(crearButton); // Anade el boton de crear al panel de botones
+        buttonPanel1.add(actualizarButton); // Anade el boton de actualizar al panel de botones
+        buttonPanel1.add(eliminarButton); // Anade el boton de eliminar al panel de botones
 
-        gbc.gridx = 0;
-        gbc.gridy = 4;
-        gbc.gridwidth = 2; // Configura la posicion del panel de botones
-        createPanel.add(buttonPanel1, gbc); // Añade el panel de botones al panel de crear/actualizar equipo
+        gbc.gridx = 0; // Configura la columna del panel de botones
+        gbc.gridy = 4; // Configura la fila del panel de botones
+        gbc.gridwidth = 2; // Configura que el panel de botones ocupe 2 columnas
+        createPanel.add(buttonPanel1, gbc); // Anade el panel de botones al subpanel de creacion/actualizacion
 
-        JTextField buscarLetraField = addField(createPanel, gbc, "Letra Eq. Busqueda:", 5); // Campo para buscar equipos por letra
-        JTextField dniField = addField(createPanel, gbc, "DNI Jugador:", 6); // Campo para el DNI del jugador
+        // Campos para busqueda de jugador
+        JTextField buscarLetraField = addField(createPanel, gbc, "Letra Eq. Busqueda:", 5); // Campo de texto para buscar equipos por letra, colocado en la fila 5
+        JTextField dniField = addField(createPanel, gbc, "DNI Jugador:", 6); // Campo de texto para el DNI del jugador, colocado en la fila 6
 
-        JPanel buttonPanel2 = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10)); // Panel para los botones de busqueda
-        buttonPanel2.setBackground(Color.WHITE); // Establece el color de fondo del panel de botones
+        // Asegurar que el boton "Buscar Jugador" sea visible
+        JPanel buttonPanel2 = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10)); // Crea un segundo panel para el boton de busqueda con un layout centrado y espacios de 10 pixeles
+        buttonPanel2.setBackground(Color.WHITE); // Establece el color de fondo del segundo panel de botones a blanco
 
-        JButton buscarJugadorButton = new JButton("Buscar Jugador", loadIcon("/resources/iconos/magnifier.png")); // Boton para buscar jugador
-        styleButton(buscarJugadorButton, new Color(33, 37, 41), false); // Estiliza el boton
+        JButton buscarJugadorButton = new JButton("Buscar Jugador", loadIcon("/resources/iconos/magnifier.png")); // Boton para buscar un jugador con un icono de lupa
+        styleButton(buscarJugadorButton, new Color(33, 37, 41), false); // Estiliza el boton con color gris oscuro y estilo de boton no-creacion
 
-        buttonPanel2.add(buscarJugadorButton); // Añade el boton de buscar jugador al panel de botones
+        buttonPanel2.add(buscarJugadorButton); // Anade el boton de buscar jugador al segundo panel de botones
 
-        // Accion para crear un nuevo equipo
-        crearButton.addActionListener(event -> {
-            if (!validateFields(letraField, instalacionField, grupoField, clubField)) {
-                return; // Valida que los campos no esten vacios
+        gbc.gridx = 0; // Configura la columna del segundo panel de botones
+        gbc.gridy = 7; // Configura la fila del segundo panel de botones
+        gbc.gridwidth = 2; // Configura que el segundo panel de botones ocupe 2 columnas
+        createPanel.add(buttonPanel2, gbc); // Anade el segundo panel de botones al subpanel de creacion/actualizacion
+
+        // Campos para anadir un jugador a un equipo
+        JTextField letraEquipoField = addField(createPanel, gbc, "Añadir jugador (Letra):", 8); // Campo de texto para la letra del equipo, colocado en la fila 8
+        JTextField dniJugadorField = addField(createPanel, gbc, "Añadir jugador (DNI):", 9); // Campo de texto para el DNI del jugador, colocado en la fila 9
+
+        JPanel buttonPanel3 = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10)); // Crea un tercer panel para el boton de anadir jugador con un layout centrado y espacios de 10 pixeles
+        buttonPanel3.setBackground(Color.WHITE); // Establece el color de fondo del tercer panel de botones a blanco
+
+        JButton anadirJugadorButton = new JButton("Anadir Jugador a Equipo", loadIcon("/resources/iconos/cross.png")); // Boton para anadir un jugador con un icono de cruz
+        styleButton(anadirJugadorButton, new Color(211, 47, 47), true); // Estiliza el boton con color rojo y estilo de boton de creacion
+
+        buttonPanel3.add(anadirJugadorButton); // Anade el boton de anadir jugador al tercer panel de botones
+
+        gbc.gridx = 0; // Configura la columna del tercer panel de botones
+        gbc.gridy = 10; // Configura la fila del tercer panel de botones
+        gbc.gridwidth = 2; // Configura que el tercer panel de botones ocupe 2 columnas
+        createPanel.add(buttonPanel3, gbc); // Anade el tercer panel de botones al subpanel de creacion/actualizacion
+
+        // Acciones de los botones
+        crearButton.addActionListener(event -> { // Anade un listener al boton de crear equipo
+            if (!validateFields(letraField, instalacionField, grupoField, clubField)) { // Valida que todos los campos necesarios esten llenos
+                return; // Si la validacion falla, termina la ejecucion del evento
             }
             try {
-                Instalacion instalacion = Instalacion.buscarPorNombre(instalacionField.getText()); // Busca la instalacion por nombre
-                if (instalacion == null) {
-                    JOptionPane.showMessageDialog(frame, "Instalacion no encontrada. Cree una primero.", "Error", JOptionPane.ERROR_MESSAGE); // Muestra un mensaje de error si no se encuentra la instalacion
-                    return;
+                Instalacion instalacion = Instalacion.buscarPorNombre(instalacionField.getText()); // Busca la instalacion por el nombre ingresado
+                if (instalacion == null) { // Verifica si la instalacion existe
+                    JOptionPane.showMessageDialog(frame, "Instalacion no encontrada. Cree una primero.", "Error", JOptionPane.ERROR_MESSAGE); // Muestra un mensaje de error si no se encuentra
+                    return; // Termina la ejecucion del evento
                 }
-                Grupo grupo = Grupo.buscarPorNombre(grupoField.getText()); // Busca el grupo por nombre
-                if (grupo == null) {
-                    JOptionPane.showMessageDialog(frame, "Grupo no encontrado. Cree uno primero.", "Error", JOptionPane.ERROR_MESSAGE); // Muestra un mensaje de error si no se encuentra el grupo
-                    return;
+                Grupo grupo = Grupo.buscarPorNombre(grupoField.getText()); // Busca el grupo por el nombre ingresado
+                if (grupo == null) { // Verifica si el grupo existe
+                    JOptionPane.showMessageDialog(frame, "Grupo no encontrado. Cree uno primero.", "Error", JOptionPane.ERROR_MESSAGE); // Muestra un mensaje de error si no se encuentra
+                    return; // Termina la ejecucion del evento
                 }
-                Club club = federacion.buscarClub(clubField.getText()); // Busca el club por nombre
-                if (club == null) {
-                    JOptionPane.showMessageDialog(frame, "Club no encontrado. Cree uno primero.", "Error", JOptionPane.ERROR_MESSAGE); // Muestra un mensaje de error si no se encuentra el club
-                    return;
+                Club club = federacion.buscarClub(clubField.getText()); // Busca el club por el nombre ingresado
+                if (club == null) { // Verifica si el club existe
+                    JOptionPane.showMessageDialog(frame, "Club no encontrado. Cree uno primero.", "Error", JOptionPane.ERROR_MESSAGE); // Muestra un mensaje de error si no se encuentra
+                    return; // Termina la ejecucion del evento
                 }
-                Equipo equipo = federacion.nuevoEquipo(letraField.getText(), instalacion, grupo, club); // Crea un nuevo equipo
-                JOptionPane.showMessageDialog(frame, "Equipo creado: " + equipo); // Muestra un mensaje de exito
-                clearFields(letraField, instalacionField, grupoField, clubField); // Limpia los campos
-            } catch (SQLException ex) {
+                Equipo equipo = federacion.nuevoEquipo(letraField.getText(), instalacion, grupo, club); // Crea un nuevo equipo con los datos ingresados
+                JOptionPane.showMessageDialog(frame, "Equipo creado: " + equipo); // Muestra un mensaje de exito con los datos del equipo creado
+                clearFields(letraField, instalacionField, grupoField, clubField); // Limpia los campos de texto despues de crear el equipo
+            } catch (SQLException ex) { // Captura excepciones de SQL
                 JOptionPane.showMessageDialog(frame, "Error de base de datos: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE); // Muestra un mensaje de error si hay un problema con la base de datos
             }
         });
 
-        // Accion para actualizar un equipo existente
-        actualizarButton.addActionListener(event -> {
-            if (!validateFields(letraField, instalacionField, grupoField, clubField)) {
-                return; // Valida que los campos no esten vacios
+        actualizarButton.addActionListener(event -> { // Anade un listener al boton de actualizar equipo
+            if (!validateFields(letraField, instalacionField, grupoField, clubField)) { // Valida que todos los campos necesarios esten llenos
+                return; // Si la validacion falla, termina la ejecucion del evento
             }
             try {
-                Equipo equipo = Equipo.buscarPorLetra(letraField.getText()); // Busca el equipo por letra
-                if (equipo == null) {
-                    JOptionPane.showMessageDialog(frame, "Equipo no encontrado.", "Error", JOptionPane.ERROR_MESSAGE); // Muestra un mensaje de error si no se encuentra el equipo
-                    return;
+                Equipo equipo = Equipo.buscarPorLetra(letraField.getText()); // Busca el equipo por la letra ingresada
+                if (equipo == null) { // Verifica si el equipo existe
+                    JOptionPane.showMessageDialog(frame, "Equipo no encontrado.", "Error", JOptionPane.ERROR_MESSAGE); // Muestra un mensaje de error si no se encuentra
+                    return; // Termina la ejecucion del evento
                 }
-                Instalacion instalacion = Instalacion.buscarPorNombre(instalacionField.getText()); // Busca la instalacion por nombre
-                if (instalacion == null) {
-                    JOptionPane.showMessageDialog(frame, "Instalacion no encontrada.", "Error", JOptionPane.ERROR_MESSAGE); // Muestra un mensaje de error si no se encuentra la instalacion
-                    return;
+                Instalacion instalacion = Instalacion.buscarPorNombre(instalacionField.getText()); // Busca la instalacion por el nombre ingresado
+                if (instalacion == null) { // Verifica si la instalacion existe
+                    JOptionPane.showMessageDialog(frame, "Instalacion no encontrada.", "Error", JOptionPane.ERROR_MESSAGE); // Muestra un mensaje de error si no se encuentra
+                    return; // Termina la ejecucion del evento
                 }
-                Grupo grupo = Grupo.buscarPorNombre(grupoField.getText()); // Busca el grupo por nombre
-                if (grupo == null) {
-                    JOptionPane.showMessageDialog(frame, "Grupo no encontrado.", "Error", JOptionPane.ERROR_MESSAGE); // Muestra un mensaje de error si no se encuentra el grupo
-                    return;
+                Grupo grupo = Grupo.buscarPorNombre(grupoField.getText()); // Busca el grupo por el nombre ingresado
+                if (grupo == null) { // Verifica si el grupo existe
+                    JOptionPane.showMessageDialog(frame, "Grupo no encontrado.", "Error", JOptionPane.ERROR_MESSAGE); // Muestra un mensaje de error si no se encuentra
+                    return; // Termina la ejecucion del evento
                 }
-                Club club = federacion.buscarClub(clubField.getText()); // Busca el club por nombre
-                if (club == null) {
-                    JOptionPane.showMessageDialog(frame, "Club no encontrado.", "Error", JOptionPane.ERROR_MESSAGE); // Muestra un mensaje de error si no se encuentra el club
-                    return;
+                Club club = federacion.buscarClub(clubField.getText()); // Busca el club por el nombre ingresado
+                if (club == null) { // Verifica si el club existe
+                    JOptionPane.showMessageDialog(frame, "Club no encontrado.", "Error", JOptionPane.ERROR_MESSAGE); // Muestra un mensaje de error si no se encuentra
+                    return; // Termina la ejecucion del evento
                 }
                 equipo.setInstalacion(instalacion); // Actualiza la instalacion del equipo
                 equipo.setGrupo(grupo); // Actualiza el grupo del equipo
                 equipo.setClubId(club.obtenerIdClub()); // Actualiza el ID del club del equipo
-                equipo.actualizar(); // Guarda los cambios en el equipo
-                JOptionPane.showMessageDialog(frame, "Equipo actualizado: " + equipo); // Muestra un mensaje de exito
-                clearFields(letraField, instalacionField, grupoField, clubField); // Limpia los campos
-            } catch (SQLException ex) {
+                equipo.actualizar(); // Guarda los cambios del equipo en la base de datos
+                JOptionPane.showMessageDialog(frame, "Equipo actualizado: " + equipo); // Muestra un mensaje de exito con los datos del equipo actualizado
+                clearFields(letraField, instalacionField, grupoField, clubField); // Limpia los campos de texto despues de actualizar
+            } catch (SQLException ex) { // Captura excepciones de SQL
                 JOptionPane.showMessageDialog(frame, "Error de base de datos: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE); // Muestra un mensaje de error si hay un problema con la base de datos
             }
         });
 
-        // Accion para eliminar un equipo
-        eliminarButton.addActionListener(event -> {
-            if (!validateFields(letraField)) {
-                return; // Valida que el campo no este vacio
+        eliminarButton.addActionListener(event -> { // Anade un listener al boton de eliminar equipo
+            if (!validateFields(letraField)) { // Valida que el campo de letra no este vacio
+                return; // Si la validacion falla, termina la ejecucion del evento
             }
             try {
-                Equipo equipo = Equipo.buscarPorLetra(letraField.getText()); // Busca el equipo por letra
-                if (equipo == null) {
-                    JOptionPane.showMessageDialog(frame, "Equipo no encontrado.", "Error", JOptionPane.ERROR_MESSAGE); // Muestra un mensaje de error si no se encuentra el equipo
-                    return;
+                Equipo equipo = Equipo.buscarPorLetra(letraField.getText()); // Busca el equipo por la letra ingresada
+                if (equipo == null) { // Verifica si el equipo existe
+                    JOptionPane.showMessageDialog(frame, "Equipo no encontrado.", "Error", JOptionPane.ERROR_MESSAGE); // Muestra un mensaje de error si no se encuentra
+                    return; // Termina la ejecucion del evento
                 }
-                equipo.eliminar(); // Elimina el equipo
-                JOptionPane.showMessageDialog(frame, "Equipo eliminado: " + equipo); // Muestra un mensaje de exito
-                clearFields(letraField, instalacionField, grupoField, clubField); // Limpia los campos
-            } catch (SQLException ex) {
+                equipo.eliminar(); // Elimina el equipo de la base de datos
+                JOptionPane.showMessageDialog(frame, "Equipo eliminado: " + equipo); // Muestra un mensaje de exito con los datos del equipo eliminado
+                clearFields(letraField, instalacionField, grupoField, clubField); // Limpia los campos de texto despues de eliminar
+            } catch (SQLException ex) { // Captura excepciones de SQL
                 JOptionPane.showMessageDialog(frame, "Error de base de datos: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE); // Muestra un mensaje de error si hay un problema con la base de datos
             }
         });
 
-        // Accion para buscar un jugador en un equipo
-        buscarJugadorButton.addActionListener(event -> {
-            if (!validateFields(buscarLetraField, dniField)) {
-                return; // Valida que los campos no esten vacios
+        buscarJugadorButton.addActionListener(event -> { // Anade un listener al boton de buscar jugador
+            if (!validateFields(buscarLetraField, dniField)) { // Valida que los campos de busqueda no esten vacios
+                return; // Si la validacion falla, termina la ejecucion del evento
             }
             try {
-                if (!validateDni(dniField.getText())) {
-                    throw new IllegalArgumentException("DNI invalido."); // Verifica el formato del DNI
+                if (!validateDni(dniField.getText())) { // Valida que el DNI ingresado tenga un formato valido
+                    throw new IllegalArgumentException("DNI invalido."); // Lanza una excepcion si el DNI no es valido
                 }
-                Equipo equipo = Equipo.buscarPorLetra(buscarLetraField.getText()); // Busca el equipo por letra
-                if (equipo == null) {
-                    JOptionPane.showMessageDialog(frame, "Equipo no encontrado.", "Error", JOptionPane.ERROR_MESSAGE); // Muestra un mensaje de error si no se encuentra el equipo
-                    return;
+                Equipo equipo = Equipo.buscarPorLetra(buscarLetraField.getText()); // Busca el equipo por la letra ingresada
+                if (equipo == null) { // Verifica si el equipo existe
+                    JOptionPane.showMessageDialog(frame, "Equipo no encontrado.", "Error", JOptionPane.ERROR_MESSAGE); // Muestra un mensaje de error si no se encuentra
+                    return; // Termina la ejecucion del evento
                 }
-                Persona jugador = equipo.buscarJugador(dniField.getText()); // Busca el jugador por DNI en el equipo
-                JOptionPane.showMessageDialog(frame, jugador != null ? "Jugador encontrado: " + jugador : "Jugador no encontrado en el equipo."); // Muestra un mensaje indicando si se encontro el jugador
-                clearFields(buscarLetraField, dniField); // Limpia los campos
-            } catch (IllegalArgumentException ex) {
+                Persona jugador = equipo.buscarJugador(dniField.getText()); // Busca al jugador por DNI dentro del equipo
+                JOptionPane.showMessageDialog(frame, jugador != null ? "Jugador encontrado: " + jugador : "Jugador no encontrado en el equipo."); // Muestra un mensaje indicando si se encontro o no al jugador
+                clearFields(buscarLetraField, dniField); // Limpia los campos de busqueda despues de buscar
+            } catch (IllegalArgumentException ex) { // Captura excepciones de argumentos invalidos
                 JOptionPane.showMessageDialog(frame, ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE); // Muestra un mensaje de error si el DNI es invalido
-            } catch (SQLException ex) {
+            } catch (SQLException ex) { // Captura excepciones de SQL
                 JOptionPane.showMessageDialog(frame, "Error de base de datos: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE); // Muestra un mensaje de error si hay un problema con la base de datos
             }
         });
 
-        gbc.gridx = 0;
-        gbc.gridy = 7;
-        gbc.gridwidth = 2; // Configura la posicion del panel de botones
-        createPanel.add(buttonPanel2, gbc); // Añade el panel de botones de busqueda al panel de crear/actualizar equipo
+        anadirJugadorButton.addActionListener(event -> { // Anade un listener al boton de anadir jugador
+            if (!validateFields(letraEquipoField, dniJugadorField)) { // Valida que los campos de anadir no esten vacios
+                return; // Si la validacion falla, termina la ejecucion del evento
+            }
+            try {
+                if (!validateDni(dniJugadorField.getText())) { // Valida que el DNI ingresado tenga un formato valido
+                    throw new IllegalArgumentException("DNI invalido."); // Lanza una excepcion si el DNI no es valido
+                }
+                Equipo equipo = Equipo.buscarPorLetra(letraEquipoField.getText()); // Busca el equipo por la letra ingresada
+                if (equipo == null) { // Verifica si el equipo existe
+                    JOptionPane.showMessageDialog(frame, "Equipo no encontrado.", "Error", JOptionPane.ERROR_MESSAGE); // Muestra un mensaje de error si no se encuentra
+                    return; // Termina la ejecucion del evento
+                }
+                Persona jugador = federacion.buscaPersona(dniJugadorField.getText()); // Busca al jugador por DNI
+                if (jugador == null) { // Verifica si el jugador existe
+                    JOptionPane.showMessageDialog(frame, "Jugador no encontrado.", "Error", JOptionPane.ERROR_MESSAGE); // Muestra un mensaje de error si no se encuentra
+                    return; // Termina la ejecucion del evento
+                }
+                Licencia licencia = federacion.nuevaLicencia(jugador, equipo); // Crea una nueva licencia asociada al jugador y al equipo
+                federacion.addLicencia(licencia, equipo); // Anade la licencia y al jugador al equipo
+                JOptionPane.showMessageDialog(frame, "Jugador anadido al equipo: " + jugador); // Muestra un mensaje de exito
+                clearFields(letraEquipoField, dniJugadorField); // Limpia los campos despues de anadir
+            } catch (IllegalArgumentException ex) { // Captura excepciones de argumentos invalidos
+                JOptionPane.showMessageDialog(frame, ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE); // Muestra un mensaje de error si el DNI es invalido
+            } catch (SQLException ex) { // Captura excepciones de SQL
+                JOptionPane.showMessageDialog(frame, "Error de base de datos: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE); // Muestra un mensaje de error si hay un problema con la base de datos
+            }
+        });
 
-        panel.add(createPanel, BorderLayout.NORTH); // Añade el panel de crear/actualizar equipo al panel principal
-        return panel; // Devuelve el panel de equipos
+        panel.add(createPanel, BorderLayout.NORTH); // Anade el subpanel de creacion/actualizacion/busqueda al panel principal en la posicion norte
+        return panel; // Devuelve el panel principal de equipos
     }
 
     // Metodo para crear el panel de licencias
