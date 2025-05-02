@@ -245,7 +245,7 @@ public class Main {
             System.out.println("\nInstalaciones encontradas (Mestalla):");
             instalaciones.forEach(System.out::println);
             
-            // 11. Pruebas de eliminacion
+           // 11. Pruebas de eliminacion
             System.out.println("\n--- Pruebas de Eliminacion ---");
             try {
                 // Eliminar en orden inverso para respetar FKs
@@ -270,6 +270,12 @@ public class Main {
 
                 grupoA.eliminar();
                 System.out.println("GrupoA eliminado");
+
+                juvenil.eliminar();
+                System.out.println("Categoria Juvenil eliminada");
+
+                senior.eliminar();
+                System.out.println("Categoria Senior eliminada");
 
                 ciutat.eliminar();
                 System.out.println("Instalacion Ciutat eliminada");
