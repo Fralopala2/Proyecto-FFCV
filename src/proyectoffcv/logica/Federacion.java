@@ -431,14 +431,14 @@ public final class Federacion implements IFederacion {
         // Orden de eliminación: Primero tablas con FK, luego independientes
         List<String> tablas = Arrays.asList(
             "licencia",    // Depende de persona y equipo
-            "equipo",     // Depende de instalacion, grupo y club
-            "empleado",   // Depende de persona
-            "club_equipo",// Depende de club y equipo
-            "club",       // Depende de persona (presidente)
-            "grupo",      // Depende de categoria
+            "equipo",      // Depende de instalacion, grupo y club
+            "empleado",    // Depende de persona
+            "club_equipo", // Depende de club y equipo
+            "club",        // Depende de persona (presidente)
+            "grupo",       // Depende de categoria
             "instalacion",
             "categoria",
-            "persona"     // Se borra al final para evitar errores de FK
+            "persona"      // Se borra al final para evitar errores de FK
         );
 
         try (Connection conn = DatabaseConnection.getConnection()) {
@@ -452,6 +452,8 @@ public final class Federacion implements IFederacion {
                 try (PreparedStatement ps = conn.prepareStatement("TRUNCATE TABLE " + tabla)) {
                     System.out.println("[DEBUG] Truncando tabla: " + tabla);
                     ps.executeUpdate();
+                } catch (SQLException e) {
+                    System.err.println("Error al truncar tabla " + tabla + ": " + e.getMessage());
                 }
             }
 

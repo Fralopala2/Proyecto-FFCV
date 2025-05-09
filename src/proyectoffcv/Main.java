@@ -23,7 +23,7 @@ public class Main {
             
             // 1. Limpiar toda la base de datos antes de empezar
             System.out.println("Preparando base de datos para pruebas...");
-            federacion.limpiarTablas();
+            federacion.limpiarTablas(); // Limpieza inicial
             
             // 2. Prueba de Personas
             System.out.println("\n--- Prueba de Personas ---");
@@ -378,6 +378,14 @@ public class Main {
         } catch (IllegalArgumentException | IllegalStateException e) {
             System.err.println("Error de validacion:");
             e.printStackTrace();
+        }
+
+        // Limpieza final de la base de datos
+        try {
+            System.out.println("Limpiando la base de datos despues de las pruebas...");
+            federacion.limpiarTablas(); // Limpieza final
+        } catch (SQLException e) {
+            System.err.println("Error al limpiar la base de datos: " + e.getMessage());
         }
         
         System.out.println("\n=== FIN DE PRUEBAS ===");
