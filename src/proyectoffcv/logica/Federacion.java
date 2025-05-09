@@ -102,7 +102,7 @@ public final class Federacion implements IFederacion {
             if (Persona.buscaPersona(presidente.getDNI()) == null) {
                 throw new IllegalStateException("La persona con DNI " + presidente.getDNI() + " no existe.");
             }
-            Club club = new Club(nombre, fechaFundacion, presidente);
+            Club club = new Club(nombre, fechaFundacion, presidente); // Usa el nuevo constructor
             club.guardar();
             clubes.add(club);
             return club;

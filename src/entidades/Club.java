@@ -10,15 +10,20 @@ import java.util.List;
 @author Oscar
 */
 
-
 public class Club {
     private int id;
     private String nombre;
     private LocalDate fechaFundacion;
     private List<Equipo> equipos;
     private Persona presidente;
+    private Persona secretario;
 
+    // Nuevo constructor que permite secretario nulo
     public Club(String nombre, LocalDate fechaFundacion, Persona presidente) {
+        this(nombre, fechaFundacion, presidente, null);
+    }
+
+    public Club(String nombre, LocalDate fechaFundacion, Persona presidente, Persona secretario) {
         if (nombre == null || nombre.trim().isEmpty()) {
             throw new IllegalArgumentException("El nombre no puede ser nulo ni vacío.");
         }
@@ -32,6 +37,7 @@ public class Club {
         this.fechaFundacion = fechaFundacion;
         this.equipos = new ArrayList<>();
         this.presidente = presidente;
+        this.secretario = secretario; // Puede ser null
     }
 
     private Connection getConnection() throws SQLException {
@@ -39,11 +45,12 @@ public class Club {
     }
 
     private void persistir() throws SQLException {
-        String sql = "INSERT INTO club (nombre, fechaFundacion, presidente_dni) VALUES (?, ?, ?)";
+        String sql = "INSERT INTO club (nombre, fechaFundacion, presidente_dni, secretario_dni) VALUES (?, ?, ?, ?)";
         try (Connection conn = getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, nombre);
             ps.setDate(2, java.sql.Date.valueOf(fechaFundacion));
             ps.setString(3, presidente.getDNI());
+            ps.setString(4, secretario != null ? secretario.getDNI() : null); // Maneja null para secretario
             ps.executeUpdate();
         } catch (SQLException ex) {
             throw new SQLException("Error al persistir el club: " + ex.getMessage(), ex);
@@ -51,11 +58,12 @@ public class Club {
     }
 
     private void actualizarEnBD() throws SQLException {
-        String sql = "UPDATE club SET fechaFundacion = ?, presidente_dni = ? WHERE nombre = ?";
+        String sql = "UPDATE club SET fechaFundacion = ?, presidente_dni = ?, secretario_dni = ? WHERE nombre = ?";
         try (Connection conn = getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setDate(1, java.sql.Date.valueOf(fechaFundacion));
             ps.setString(2, presidente.getDNI());
-            ps.setString(3, nombre);
+            ps.setString(3, secretario != null ? secretario.getDNI() : null); // Maneja null para secretario
+            ps.setString(4, nombre);
             int rowsAffected = ps.executeUpdate();
             if (rowsAffected == 0) {
                 throw new SQLException("No se encontró el club con nombre: " + nombre);
@@ -87,6 +95,9 @@ public class Club {
         }
         if (Persona.buscaPersona(presidente.getDNI()) == null) {
             throw new IllegalArgumentException("El presidente con DNI " + presidente.getDNI() + " no existe en la base de datos.");
+        }
+        if (secretario != null && Persona.buscaPersona(secretario.getDNI()) == null) {
+            throw new IllegalArgumentException("El secretario con DNI " + secretario.getDNI() + " no existe en la base de datos.");
         }
         if (buscarPorNombre(nombre) == null) {
             persistir();
@@ -121,10 +132,11 @@ public class Club {
             ResultSet rs = ps.executeQuery();
             if (rs.next()) {
                 Persona presidente = Persona.buscaPersona(rs.getString("presidente_dni"));
+                Persona secretario = Persona.buscaPersona(rs.getString("secretario_dni")); // Puede ser null
                 if (presidente == null) {
                     throw new SQLException("Presidente con DNI " + rs.getString("presidente_dni") + " no encontrado.");
                 }
-                return new Club(rs.getString("nombre"), rs.getDate("fechaFundacion").toLocalDate(), presidente);
+                return new Club(rs.getString("nombre"), rs.getDate("fechaFundacion").toLocalDate(), presidente, secretario);
             }
             return null;
         } catch (SQLException ex) {
@@ -277,18 +289,20 @@ public class Club {
 
     public static List<Club> obtenerTodos() throws SQLException {
         List<Club> clubes = new ArrayList<>();
-        String sql = "SELECT c.nombre, c.fechaFundacion, c.presidente_dni FROM club c";
+        String sql = "SELECT c.nombre, c.fechaFundacion, c.presidente_dni, c.secretario_dni FROM club c";
         try (Connection conn = DatabaseConnection.getConnection(); PreparedStatement ps = conn.prepareStatement(sql); 
              ResultSet rs = ps.executeQuery()) {
             while (rs.next()) {
                 Persona presidente = Persona.buscaPersona(rs.getString("presidente_dni"));
+                Persona secretario = Persona.buscaPersona(rs.getString("secretario_dni"));
                 if (presidente == null) {
                     throw new SQLException("Presidente no encontrado para el club: " + rs.getString("nombre"));
                 }
                 Club club = new Club(
                     rs.getString("nombre"),
                     rs.getDate("fechaFundacion").toLocalDate(),
-                    presidente
+                    presidente,
+                    secretario
                 );
                 club.cargarEquipos();
                 clubes.add(club);
@@ -327,8 +341,16 @@ public class Club {
         this.presidente = presidente;
     }
 
+    public Persona getSecretario() {
+        return secretario;
+    }
+
+    public void setSecretario(Persona secretario) {
+        this.secretario = secretario;
+    }
+
     @Override
     public String toString() {
-        return "Club{nombre='" + nombre + "', fechaFundacion=" + fechaFundacion + ", presidente=" + presidente.getDNI() + ", equipos=" + equipos.size() + "}";
+        return "Club{nombre='" + nombre + "', fechaFundacion=" + fechaFundacion + ", presidente=" + presidente.getDNI() + ", secretario=" + (secretario != null ? secretario.getDNI() : "null") + ", equipos=" + equipos.size() + "}";
     }
 }
