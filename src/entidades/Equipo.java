@@ -1,6 +1,8 @@
 package entidades;
 
 import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
 import proyectoffcv.util.DatabaseConnection;
 
 public class Equipo {
@@ -129,8 +131,25 @@ public class Equipo {
         return null;
     }
 
+    // Metodo para obtener todos los equipos
+    public static List<Equipo> obtenerTodos() throws SQLException {
+        List<Equipo> equipos = new ArrayList<>();
+        String sql = "SELECT * FROM Equipo";
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql);
+             ResultSet rs = stmt.executeQuery()) {
+            while (rs.next()) {
+                Equipo equipo = buscarPorId(rs.getInt("id"));
+                if (equipo != null) {
+                    equipos.add(equipo);
+                }
+            }
+        }
+        return equipos;
+    }
+
     @Override
     public String toString() {
-        return "Equipo " + letra + " (Club: " + club.getNombre() + ")";
+        return letra + " - " + club.getNombre(); // Mostrar letra y nombre del club en el JComboBox
     }
 }

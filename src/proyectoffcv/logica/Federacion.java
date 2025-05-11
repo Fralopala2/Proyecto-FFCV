@@ -4,6 +4,7 @@ import entidades.*;
 import java.sql.*;
 import proyectoffcv.util.DatabaseConnection;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -39,9 +40,8 @@ public class Federacion implements IFederacion {
     }
 
     @Override
-    public Club nuevoClub(String nombre, LocalDate fechaFundacion, Persona presidente) {
-        Club club = new Club(nombre, fechaFundacion, presidente);
-        clubes.add(club);
+    public Club nuevoClub(String nombre, LocalDate fechaAlta, Persona presidente) {
+        Club club = new Club(nombre, fechaAlta, presidente, ""); // Añade un valor por defecto para direccion
         return club;
     }
 
@@ -77,9 +77,11 @@ public class Federacion implements IFederacion {
     }
 
     @Override
-    public Licencia nuevaLicencia(Persona jugador, Equipo equipo, boolean abonada) {
+    public Licencia nuevaLicencia(Persona jugador, Equipo equipo, LocalDate fechaInicio, LocalDate fechaFin, boolean abonada) {
         String numeroLicencia = UUID.randomUUID().toString();
         Licencia licencia = new Licencia(numeroLicencia, jugador, equipo, abonada);
+        licencia.setFechaInicio(fechaInicio);
+        licencia.setFechaFin(fechaFin);
         return licencia;
     }
 
@@ -217,8 +219,9 @@ public class Federacion implements IFederacion {
     }
 
     @Override
-    public void anadirJugadorAEquipo(Persona jugador, Equipo equipo) {
-        // Persistencia manejada por EquipoJugador
+    public void anadirJugadorAEquipo(Persona jugador, Equipo equipo) throws SQLException {
+        EquipoJugador equipoJugador = new EquipoJugador(equipo, jugador, LocalDateTime.now());
+        equipoJugador.guardar();
     }
 
     @Override

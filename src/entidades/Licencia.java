@@ -1,6 +1,7 @@
 package entidades;
 
 import java.sql.*;
+import java.time.LocalDate;
 import proyectoffcv.util.DatabaseConnection;
 
 public class Licencia {
@@ -8,8 +9,9 @@ public class Licencia {
     private Persona jugador;
     private Equipo equipo;
     private boolean abonada;
+    private LocalDate fechaInicio;
+    private LocalDate fechaFin;
 
-    // Constructor
     public Licencia(String numeroLicencia, Persona jugador, Equipo equipo, boolean abonada) {
         this.numeroLicencia = numeroLicencia;
         this.jugador = jugador;
@@ -24,6 +26,20 @@ public class Licencia {
     public void setEquipo(Equipo equipo) { this.equipo = equipo; }
     public boolean isAbonada() { return abonada; }
     public void setAbonada(boolean abonada) { this.abonada = abonada; }
+    public LocalDate getFechaInicio() {
+        return fechaInicio;
+    }
+
+    public LocalDate getFechaFin() {
+        return fechaFin;
+    }
+    public void setFechaInicio(LocalDate fechaInicio) {
+        this.fechaInicio = fechaInicio;
+    }
+
+    public void setFechaFin(LocalDate fechaFin) {
+        this.fechaFin = fechaFin;
+    }
 
     // Metodo para guardar en la base de datos
     public void guardar() throws SQLException {

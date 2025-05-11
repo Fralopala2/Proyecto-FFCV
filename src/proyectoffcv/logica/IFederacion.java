@@ -3,6 +3,7 @@ package proyectoffcv.logica;
 import entidades.*;
 import java.time.LocalDate;
 import java.util.List;
+import java.sql.*;
 
 public interface IFederacion {
     Categoria nuevaCategoria(String nombre, int orden, double precioLicencia);
@@ -12,7 +13,7 @@ public interface IFederacion {
     Instalacion nuevaInstalacion(String nombre, String direccion, String superficie);
     Grupo nuevoGrupo(Categoria categoria, String nombre);
     Equipo nuevoEquipo(String letra, Instalacion instalacion, Grupo grupo, Club club);
-    Licencia nuevaLicencia(Persona jugador, Equipo equipo, boolean abonada); // Updated signature
+    Licencia nuevaLicencia(Persona jugador, Equipo equipo, LocalDate fechaInicio, LocalDate fechaFin, boolean abonada);
     Persona buscaPersona(String dni);
     Club buscarClub(String nombre);
     List<Persona> buscaPersonas(String nombre, String apellido1, String apellido2);
@@ -20,6 +21,6 @@ public interface IFederacion {
     List<Categoria> obtenerCategorias();
     List<Grupo> obtenerGrupos(Categoria categoria);
     List<Licencia> obtenerLicencias(Persona jugador);
-    void anadirJugadorAEquipo(Persona jugador, Equipo equipo);
+    void anadirJugadorAEquipo(Persona jugador, Equipo equipo) throws SQLException;
     double calcularPrecioLicencia(Equipo equipo);
 }

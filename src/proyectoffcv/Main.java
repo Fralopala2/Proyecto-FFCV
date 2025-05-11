@@ -134,7 +134,7 @@ public class Main {
                 
                 // Actualizar club
                 if (club1 != null) {
-                    club1.setFechaFundacion(LocalDate.of(1919, 3, 19));
+                    club1.setFechaAlta(LocalDate.of(1919, 3, 19));
                     club1.actualizar();
                     System.out.println("Club actualizado: " + federacion.buscarClub("Valencia CF Test"));
                 }
@@ -321,13 +321,13 @@ public class Main {
             try {
                 System.out.println("\n--- Prueba de Licencias ---");
                 if (persona1 != null && equipo1 != null) {
-                    licencia1 = federacion.nuevaLicencia(persona1, equipo1, false);
+                    licencia1 = federacion.nuevaLicencia(persona1, equipo1, LocalDate.now(), LocalDate.now().plusYears(1), false);
                     licencia1.guardar();
                     System.out.println("Licencia con equipo creada: " + licencia1);
                 }
                 
                 if (persona2 != null && equipo2 != null) {
-                    licencia2 = federacion.nuevaLicencia(persona2, equipo2, false);
+                    licencia2 = federacion.nuevaLicencia(persona2, equipo2, LocalDate.now(), LocalDate.now().plusYears(1), false);
                     licencia2.guardar();
                     System.out.println("Licencia con equipo creada: " + licencia2);
                 }
@@ -349,7 +349,7 @@ public class Main {
                 // Prueba de error: licencia duplicada para persona
                 try {
                     if (persona1 != null && equipo1 != null) {
-                        federacion.nuevaLicencia(persona1, equipo1, false).guardar();
+                        federacion.nuevaLicencia(persona1, equipo1, LocalDate.now(), LocalDate.now().plusYears(1), false).guardar();
                     }
                     System.out.println("Error: Deberia haber fallado (licencia duplicada)");
                 } catch (SQLException e) {
