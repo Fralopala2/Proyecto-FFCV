@@ -1,188 +1,114 @@
 package entidades;
 
-import proyectoffcv.util.DatabaseConnection;
-import java.util.InputMismatchException;
 import java.sql.*;
-import java.util.ArrayList;
-import java.util.List;
+import proyectoffcv.util.DatabaseConnection;
 
 public class Categoria {
-
-    // Atributos
     private String nombre;
     private int orden;
-    private int id;
     private double precioLicencia;
-    private List<Grupo> grupos;
 
-    // Constructores
+    // Constructor
     public Categoria(String nombre, int orden, double precioLicencia) {
         this.nombre = nombre;
         this.orden = orden;
-        if (precioLicencia < 0.0) {
-            throw new InputMismatchException("El precio de la licencia no puede ser menor que cero.");
-        }
         this.precioLicencia = precioLicencia;
-        this.grupos = new ArrayList<>();
     }
 
     // Getters y Setters
     public String getNombre() { return nombre; }
-    public void setNombre(String nombre) throws SQLException { 
-        if (nombre == null || nombre.trim().isEmpty()) {
-            throw new IllegalArgumentException("El nombre no puede ser nulo ni vacío.");
-        }
-        this.nombre = nombre; 
-        actualizarEnBD();
-    }
-
+    public void setNombre(String nombre) { this.nombre = nombre; }
     public int getOrden() { return orden; }
-    public void setOrden(int orden) throws SQLException { 
-        this.orden = orden; 
-        actualizarEnBD();
-    }
-
+    public void setOrden(int orden) { this.orden = orden; }
     public double getPrecioLicencia() { return precioLicencia; }
-    public void setPrecioLicencia(double precioLicencia) throws SQLException {
-        checkPrecioLicencia(precioLicencia);
-        this.precioLicencia = precioLicencia;
-        actualizarEnBD();
-    }
-    
-    public int getId() { return id; }
-    public void setId(int id) { this.id = id; }
+    public void setPrecioLicencia(double precioLicencia) { this.precioLicencia = precioLicencia; }
 
-    public List<Grupo> getGrupos() { return grupos; }
-
-    // Métodos
-    private void checkPrecioLicencia(double p) {
-        if (p < 0.0) {
-            throw new InputMismatchException("El precio de la licencia no puede ser menor que cero.");
+    // Metodo para obtener el ID (suponiendo que la tabla Categoria tiene una columna id)
+    public int getId() throws SQLException {
+        String sql = "SELECT id FROM Categoria WHERE nombre = ?";
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, nombre);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                return rs.getInt("id");
+            }
         }
+        throw new SQLException("No se encontro el ID de la categoria: " + nombre);
     }
 
-    private void persistir() throws SQLException {
+    // Metodo para guardar en la base de datos
+    public void guardar() throws SQLException {
         String sql = "INSERT INTO Categoria (nombre, orden, precioLicencia) VALUES (?, ?, ?)";
         try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
-            ps.setString(1, nombre);
-            ps.setInt(2, orden);
-            ps.setDouble(3, precioLicencia);
-            ps.executeUpdate();
-            
-            // Obtener ID generado
-            ResultSet rs = ps.getGeneratedKeys();
-            if (rs.next()) {
-                this.id = rs.getInt(1);
-            }
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, nombre);
+            stmt.setInt(2, orden);
+            stmt.setDouble(3, precioLicencia);
+            stmt.executeUpdate();
         }
     }
 
-    private void actualizarEnBD() throws SQLException {
-        String sql = "UPDATE Categoria SET orden = ?, precioLicencia = ?, nombre = ? WHERE id = ?";
-        try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setInt(1, orden);
-            ps.setDouble(2, precioLicencia);
-            ps.setString(3, nombre);
-            ps.setInt(4, id);
-            int rowsAffected = ps.executeUpdate();
-            if (rowsAffected == 0) {
-                throw new SQLException("No se encontró la categoría con ID: " + id);
-            }
-        }
-    }
-
-    private void eliminarDeBD() throws SQLException {
-        String sql = "DELETE FROM Categoria WHERE id = ?";
-        try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setInt(1, id);
-            ps.executeUpdate();
-        }
-    }
-
-    public void guardar() throws SQLException {
-        if (nombre == null || nombre.trim().isEmpty()) {
-            throw new IllegalArgumentException("El nombre no puede ser nulo ni vacío.");
-        }
-        if (buscarPorNombre(nombre) == null) {
-            persistir();
-        } else {
-            throw new IllegalStateException("La categoría ya existe en la base de datos.");
-        }
-    }
-
+    // Metodo para actualizar en la base de datos
     public void actualizar() throws SQLException {
-        if (id > 0) {
-            actualizarEnBD();
-        } else {
-            throw new IllegalStateException("La categoría no tiene un ID válido.");
+        String sql = "UPDATE Categoria SET orden = ?, precioLicencia = ? WHERE nombre = ?";
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, orden);
+            stmt.setDouble(2, precioLicencia);
+            stmt.setString(3, nombre);
+            stmt.executeUpdate();
         }
     }
 
+    // Metodo para eliminar de la base de datos
     public void eliminar() throws SQLException {
-        if (id > 0) {
-            eliminarDeBD();
-        } else {
-            throw new IllegalStateException("La categoría no existe en la base de datos.");
+        String sql = "DELETE FROM Categoria WHERE nombre = ?";
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, nombre);
+            stmt.executeUpdate();
         }
     }
 
+    // Metodo para buscar por nombre
     public static Categoria buscarPorNombre(String nombre) throws SQLException {
         String sql = "SELECT * FROM Categoria WHERE nombre = ?";
         try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setString(1, nombre);
-            ResultSet rs = ps.executeQuery();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, nombre);
+            ResultSet rs = stmt.executeQuery();
             if (rs.next()) {
-                Categoria categoria = new Categoria(rs.getString("nombre"), rs.getInt("orden"), rs.getDouble("precioLicencia"));
-                categoria.setId(rs.getInt("id"));
-                return categoria;
+                return new Categoria(
+                    rs.getString("nombre"),
+                    rs.getInt("orden"),
+                    rs.getDouble("precioLicencia")
+                );
             }
-            return null;
         }
+        return null;
     }
 
-    public static List<Categoria> obtenerTodas() throws SQLException {
-        List<Categoria> categorias = new ArrayList<>();
-        String sql = "SELECT * FROM Categoria";
-        try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-            ResultSet rs = ps.executeQuery();
-            while (rs.next()) {
-                Categoria categoria = new Categoria(rs.getString("nombre"), rs.getInt("orden"), rs.getDouble("precioLicencia"));
-                categoria.setId(rs.getInt("id"));
-                
-                // Cargar grupos asociados
-                List<Grupo> grupos = Grupo.buscarPorCategoria(categoria);
-                if (grupos != null) {
-                    categoria.grupos = grupos;
-                }
-                
-                categorias.add(categoria);
-            }
-            return categorias;
-        }
-    }
-
+    // Metodo para buscar por ID
     public static Categoria buscarPorId(int id) throws SQLException {
         String sql = "SELECT * FROM Categoria WHERE id = ?";
         try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setInt(1, id);
-            ResultSet rs = ps.executeQuery();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, id);
+            ResultSet rs = stmt.executeQuery();
             if (rs.next()) {
-                Categoria categoria = new Categoria(rs.getString("nombre"), rs.getInt("orden"), rs.getDouble("precioLicencia"));
-                categoria.setId(rs.getInt("id"));
-                return categoria;
+                return new Categoria(
+                    rs.getString("nombre"),
+                    rs.getInt("orden"),
+                    rs.getDouble("precioLicencia")
+                );
             }
-            return null;
         }
+        return null;
     }
 
     @Override
     public String toString() {
-        return "Categoria{nombre=" + nombre + ", orden=" + orden + ", precioLicencia=" + precioLicencia + "}";
+        return "Categoria{nombre='" + nombre + "', orden=" + orden + ", precioLicencia=" + precioLicencia + "}";
     }
 }

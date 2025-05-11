@@ -1,19 +1,15 @@
 package proyectoffcv.logica;
 
-import proyectoffcv.util.DatabaseConnection;
 import entidades.*;
+import java.sql.*;
+import proyectoffcv.util.DatabaseConnection;
 import java.time.LocalDate;
-import java.util.*;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
-public final class Federacion implements IFederacion {
-    private static Federacion instancia;
+public class Federacion implements IFederacion {
+    private static Federacion instance;
     private List<Categoria> categorias;
     private List<Empleado> empleados;
     private List<Persona> afiliados;
@@ -21,455 +17,310 @@ public final class Federacion implements IFederacion {
     private List<Instalacion> instalaciones;
 
     private Federacion() {
-        this.categorias = new ArrayList<>();
-        this.empleados = new ArrayList<>();
-        this.afiliados = new ArrayList<>();
-        this.clubes = new ArrayList<>();
-        this.instalaciones = new ArrayList<>();
-        try {
-            DatabaseConnection.getConnection();
-        } catch (SQLException ex) {
-            Logger.getLogger(Federacion.class.getName()).log(Level.SEVERE, "Error de conexion a la base de datos", ex);
-            throw new IllegalStateException("No se pudo conectar a la base de datos: " + ex.getMessage());
-        }
+        categorias = new ArrayList<>();
+        empleados = new ArrayList<>();
+        afiliados = new ArrayList<>();
+        clubes = new ArrayList<>();
+        instalaciones = new ArrayList<>();
     }
 
     public static Federacion getInstance() {
-        if (instancia == null) {
-            instancia = new Federacion();
+        if (instance == null) {
+            instance = new Federacion();
         }
-        return instancia;
-    }
-
-    @Override
-    public Club buscarClub(String nombre) {
-        if (nombre == null || nombre.trim().isEmpty()) {
-            throw new IllegalArgumentException("El nombre del club no puede ser nulo ni vacio.");
-        }
-        try {
-            Club club = Club.buscarPorNombre(nombre);
-            if (club != null && !clubes.contains(club)) {
-                clubes.add(club);
-            }
-            return club;
-        } catch (SQLException ex) {
-            throw new IllegalStateException("Error al buscar el club: " + ex.getMessage(), ex);
-        }
-    }
-
-    @Override
-    public Equipo nuevoEquipo(String letra, Instalacion instalacion, Grupo grupo, Club club) {
-        if (letra == null || letra.trim().isEmpty() || instalacion == null || grupo == null || club == null) {
-            throw new IllegalArgumentException("Ningun parametro puede ser nulo o vacio.");
-        }
-        try {
-            if (Equipo.buscarPorLetra(letra) != null) {
-                throw new IllegalStateException("El equipo con letra " + letra + " ya existe.");
-            }
-            // Asegurar que las dependencias estén persistidas
-            if (Instalacion.buscarPorNombre(instalacion.getNombre()) == null) {
-                instalacion.guardar();
-                System.out.println("Instalacion persistida: " + instalacion.getNombre());
-            }
-            if (Grupo.buscarPorNombre(grupo.getNombre()) == null) {
-                grupo.guardar();
-                System.out.println("Grupo persistido: " + grupo.getNombre());
-            }
-            if (Club.buscarPorNombre(club.getNombre()) == null) {
-                club.guardar();
-                System.out.println("Club persistido: " + club.getNombre());
-            }
-            Equipo equipo = new Equipo(letra, instalacion, grupo);
-            equipo.setClubId(club.obtenerIdClub());
-            equipo.guardar();
-            club.addEquipo(equipo);
-            return equipo;
-        } catch (SQLException ex) {
-            System.err.println("Error al crear equipo: " + ex.getMessage());
-            throw new IllegalStateException("No se pudo crear el equipo: " + ex.getMessage(), ex);
-        }
-    }
-
-    @Override
-    public Club nuevoClub(String nombre, LocalDate fechaFundacion, Persona presidente) {
-        if (nombre == null || nombre.trim().isEmpty() || fechaFundacion == null || presidente == null) {
-            throw new IllegalArgumentException("Ningun parametro puede ser nulo o vacio.");
-        }
-        try {
-            if (Club.buscarPorNombre(nombre) != null) {
-                throw new IllegalStateException("El club con nombre " + nombre + " ya existe.");
-            }
-            if (Persona.buscaPersona(presidente.getDNI()) == null) {
-                throw new IllegalStateException("La persona con DNI " + presidente.getDNI() + " no existe.");
-            }
-            Club club = new Club(nombre, fechaFundacion, presidente); // Usa el nuevo constructor
-            club.guardar();
-            clubes.add(club);
-            return club;
-        } catch (SQLException ex) {
-            throw new IllegalStateException("No se pudo crear el club: " + ex.getMessage(), ex);
-        }
+        return instance;
     }
 
     @Override
     public Categoria nuevaCategoria(String nombre, int orden, double precioLicencia) {
-        if (nombre == null || nombre.trim().isEmpty()) {
-            throw new IllegalArgumentException("El nombre de la categoria no puede ser nulo ni vacio.");
-        }
-        if (precioLicencia < 0) {
-            throw new IllegalArgumentException("El precio de la licencia no puede ser negativo.");
-        }
-        try {
-            if (Categoria.buscarPorNombre(nombre) != null) {
-                throw new IllegalStateException("La categoria con nombre " + nombre + " ya existe.");
-            }
-            Categoria categoria = new Categoria(nombre, orden, precioLicencia);
-            categoria.guardar();
-            categorias.add(categoria);
-            return categoria;
-        } catch (SQLException ex) {
-            throw new IllegalStateException("No se pudo crear la categoria: " + ex.getMessage(), ex);
-        }
+        Categoria categoria = new Categoria(nombre, orden, precioLicencia);
+        categorias.add(categoria);
+        return categoria;
     }
 
     @Override
-    public List<Categoria> obtenerCategorias() {
-        try {
-            List<Categoria> todasCategorias = Categoria.obtenerTodas();
-            categorias.clear();
-            categorias.addAll(todasCategorias);
-            return new ArrayList<>(categorias);
-        } catch (SQLException ex) {
-            throw new IllegalStateException("Error al obtener categorias: " + ex.getMessage(), ex);
-        }
+    public Club nuevoClub(String nombre, LocalDate fechaFundacion, Persona presidente) {
+        Club club = new Club(nombre, fechaFundacion, presidente);
+        clubes.add(club);
+        return club;
     }
 
     @Override
-    public List<Grupo> obtenerGrupos(Categoria categoria) {
-        if (categoria == null) {
-            throw new IllegalArgumentException("La categoria no puede ser nula.");
-        }
-        try {
-            if (Categoria.buscarPorNombre(categoria.getNombre()) == null) {
-                throw new IllegalStateException("La categoria " + categoria.getNombre() + " no existe.");
-            }
-            return Grupo.buscarPorCategoria(categoria);
-        } catch (SQLException ex) {
-            throw new IllegalStateException("Error al obtener grupos: " + ex.getMessage(), ex);
-        }
+    public Persona nuevaPersona(String dni, String nombre, String apellido1, String apellido2, LocalDate fechaNacimiento, String usuario, String password, String poblacion) {
+        Persona persona = new Persona(dni, nombre, apellido1, apellido2, fechaNacimiento, usuario, password, poblacion);
+        afiliados.add(persona);
+        return persona;
+    }
+
+    @Override
+    public Empleado nuevoEmpleado(String dni, String nombre, String apellido1, String apellido2, LocalDate fechaNacimiento, String usuario, String password, String poblacion, int numEmpleado, LocalDate inicioContrato, String segSocial) {
+        Empleado empleado = new Empleado(dni, nombre, apellido1, apellido2, fechaNacimiento, usuario, password, poblacion, numEmpleado, inicioContrato, segSocial);
+        empleados.add(empleado);
+        return empleado;
+    }
+
+    @Override
+    public Instalacion nuevaInstalacion(String nombre, String direccion, String superficie) {
+        Instalacion instalacion = new Instalacion(nombre, direccion, Instalacion.TipoSuperficie.valueOf(superficie));
+        instalaciones.add(instalacion);
+        return instalacion;
     }
 
     @Override
     public Grupo nuevoGrupo(Categoria categoria, String nombre) {
-        if (categoria == null || nombre == null || nombre.trim().isEmpty()) {
-            throw new IllegalArgumentException("Ningun parametro puede ser nulo o vacio.");
-        }
-        try {
-            if (Categoria.buscarPorNombre(categoria.getNombre()) == null) {
-                throw new IllegalStateException("La categoria " + categoria.getNombre() + " no existe.");
-            }
-            if (Grupo.buscarPorNombre(nombre) != null) {
-                throw new IllegalStateException("El grupo con nombre " + nombre + " ya existe.");
-            }
-            int nuevoId = obtenerNuevoIdGrupo();
-            Grupo grupo = new Grupo(nuevoId, nombre);
-            grupo.setCategoria(categoria);
-            grupo.guardar();
-            categoria.getGrupos().add(grupo);
-            return grupo;
-        } catch (SQLException ex) {
-            throw new IllegalStateException("No se pudo crear el grupo: " + ex.getMessage(), ex);
-        }
-    }
-
-    private int obtenerNuevoIdGrupo() throws SQLException {
-        String sql = "SELECT MAX(id) as max_id FROM Grupo";
-        try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql);
-             ResultSet rs = ps.executeQuery()) {
-            if (rs.next()) {
-                return rs.getInt("max_id") + 1;
-            }
-            return 1;
-        } catch (SQLException ex) {
-            throw new SQLException("Error al obtener nuevo ID de grupo: " + ex.getMessage(), ex);
-        }
+        return new Grupo(categoria, nombre);
     }
 
     @Override
-    public Persona nuevaPersona(String dni, String nombre, String apellido1, String apellido2, 
-                               LocalDate fechaNacimiento, String usuario, String password, String poblacion) {
-        if (dni == null || nombre == null || usuario == null || password == null || fechaNacimiento == null) {
-            throw new IllegalArgumentException("Ningun parametro obligatorio puede ser nulo.");
-        }
-        try {
-            if (Persona.buscaPersona(dni) != null) {
-                throw new IllegalStateException("La persona con DNI " + dni + " ya existe.");
-            }
-            Persona persona = Persona.nuevaPersona(dni, nombre, apellido1, apellido2, 
-                                                 fechaNacimiento, usuario, password, poblacion);
-            if (persona != null && !afiliados.contains(persona)) {
-                afiliados.add(persona);
-            }
-            return persona;
-        } catch (SQLException ex) {
-            throw new IllegalStateException("No se pudo crear la persona: " + ex.getMessage(), ex);
-        }
+    public Equipo nuevoEquipo(String letra, Instalacion instalacion, Grupo grupo, Club club) {
+        return new Equipo(letra, instalacion, grupo, club);
     }
 
- 
     @Override
-    public Empleado nuevoEmpleado(String dni, String nombre, String apellido1, String apellido2,
-                            LocalDate fechaNacimiento, String usuario, String password,
-                            String poblacion, int numEmpleado, LocalDate inicioContrato,
-                            String segSocial) {
-        // Validación básica de parámetros
-        if (dni == null || dni.trim().isEmpty()) {
-            throw new IllegalArgumentException("DNI no puede estar vacio");
-        }
-        if (numEmpleado <= 0) {
-            throw new IllegalArgumentException("Numero de empleado debe ser positivo");
-        }
-
-        try (Connection conn = DatabaseConnection.getConnection()) {
-            // Verificar si el número de empleado ya existe
-            String checkNumEmp = "SELECT dni FROM empleado WHERE numeroEmpleado = ?";
-            try (PreparedStatement ps = conn.prepareStatement(checkNumEmp)) {
-                ps.setInt(1, numEmpleado);
-                try (ResultSet rs = ps.executeQuery()) {
-                    if (rs.next()) {
-                        throw new IllegalStateException("El numero de empleado " + numEmpleado + " ya esta registrado");
-                    }
-                }
-            }
-
-            // Verificar si el DNI ya existe como empleado
-            String checkDni = "SELECT dni FROM empleado WHERE dni = ?";
-            try (PreparedStatement ps = conn.prepareStatement(checkDni)) {
-                ps.setString(1, dni);
-                try (ResultSet rs = ps.executeQuery()) {
-                    if (rs.next()) {
-                        throw new IllegalStateException("El DNI " + dni + " ya esta registrado como empleado");
-                    }
-                }
-            }
-
-            // Crear el empleado usando el método estático de la clase Empleado
-            Empleado empleado = Empleado.nuevoEmpleado(
-                dni, nombre, apellido1, apellido2,
-                fechaNacimiento, usuario, password,
-                poblacion, numEmpleado, inicioContrato, segSocial
-            );
-
-            if (empleado != null) {
-                empleados.add(empleado);
-            }
-            return empleado;
-        } catch (SQLException e) {
-            throw new IllegalStateException("Error al crear empleado: " + e.getMessage());
-        }
+    public Licencia nuevaLicencia(Persona jugador, Equipo equipo, boolean abonada) {
+        String numeroLicencia = UUID.randomUUID().toString();
+        Licencia licencia = new Licencia(numeroLicencia, jugador, equipo, abonada);
+        return licencia;
     }
 
     @Override
     public Persona buscaPersona(String dni) {
-        if (dni == null || dni.trim().isEmpty()) {
-            throw new IllegalArgumentException("El DNI no puede ser nulo ni vacío.");
-        }
         try {
-            Persona persona = Persona.buscaPersona(dni);
-            if (persona != null && !afiliados.contains(persona)) {
-                afiliados.add(persona);
-            }
-            return persona;
-        } catch (SQLException ex) {
-            throw new IllegalStateException("Error al buscar persona: " + ex.getMessage(), ex);
+            return Persona.buscarPorDni(dni);
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    @Override
+    public Club buscarClub(String nombre) {
+        try {
+            return Club.buscarPorNombre(nombre);
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return null;
         }
     }
 
     @Override
     public List<Persona> buscaPersonas(String nombre, String apellido1, String apellido2) {
-        try {
-            List<Persona> personas = Persona.buscaPersonas(nombre, apellido1, apellido2);
-            for (Persona persona : personas) {
-                if (!afiliados.contains(persona)) {
-                    afiliados.add(persona);
-                }
+        List<Persona> personas = new ArrayList<>();
+        String sql = "SELECT * FROM Persona WHERE nombre LIKE ? AND apellido1 LIKE ? AND (apellido2 LIKE ? OR apellido2 IS NULL)";
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, "%" + nombre + "%");
+            stmt.setString(2, "%" + apellido1 + "%");
+            stmt.setString(3, "%" + (apellido2 != null ? apellido2 : "") + "%");
+            System.out.println("Ejecutando búsqueda: nombre=" + nombre + ", apellido1=" + apellido1 + ", apellido2=" + apellido2);
+            ResultSet rs = stmt.executeQuery();
+            while (rs.next()) {
+                personas.add(new Persona(
+                    rs.getString("dni"),
+                    rs.getString("nombre"),
+                    rs.getString("apellido1"),
+                    rs.getString("apellido2"),
+                    rs.getDate("fechaNacimiento").toLocalDate(),
+                    rs.getString("usuario"),
+                    rs.getString("password"),
+                    rs.getString("poblacion")
+                ));
             }
-            return personas;
-        } catch (SQLException ex) {
-            throw new IllegalStateException("Error al buscar personas: " + ex.getMessage(), ex);
+            System.out.println("Resultados obtenidos: " + personas.size());
+        } catch (SQLException e) {
+            System.err.println("Error en buscaPersonas: " + e.getMessage());
+            e.printStackTrace();
         }
-    }
-
-    @Override
-    public Licencia nuevaLicencia(Persona persona) {
-        if (persona == null) {
-            throw new IllegalArgumentException("La persona no puede ser nula.");
-        }
-        try {
-            if (Persona.buscaPersona(persona.getDNI()) == null) {
-                throw new IllegalStateException("La persona con DNI " + persona.getDNI() + " no existe.");
-            }
-            String sql = "SELECT * FROM Licencia WHERE persona_dni = ?";
-            try (Connection conn = DatabaseConnection.getConnection();
-                 PreparedStatement ps = conn.prepareStatement(sql)) {
-                ps.setString(1, persona.getDNI());
-                ResultSet rs = ps.executeQuery();
-                if (rs.next()) {
-                    throw new IllegalStateException("La persona con DNI " + persona.getDNI() + " ya tiene una licencia.");
-                }
-            }
-            String numeroLicencia = UUID.randomUUID().toString();
-            Licencia licencia = new Licencia(persona, numeroLicencia);
-            licencia.guardar();
-            return licencia;
-        } catch (SQLException ex) {
-            throw new IllegalStateException("No se pudo crear la licencia: " + ex.getMessage(), ex);
-        }
-    }
-
-    @Override
-    public Licencia nuevaLicencia(Persona persona, Equipo equipo) {
-        if (persona == null || equipo == null) {
-            throw new IllegalArgumentException("Ningun parametro puede ser nulo.");
-        }
-        try {
-            if (Persona.buscaPersona(persona.getDNI()) == null) {
-                throw new IllegalStateException("La persona con DNI " + persona.getDNI() + " no existe.");
-            }
-            if (Equipo.buscarPorLetra(equipo.getLetra()) == null) {
-                throw new IllegalStateException("El equipo con letra " + equipo.getLetra() + " no existe.");
-            }
-            Licencia licencia = nuevaLicencia(persona);
-            licencia.asignarAEquipo(equipo);
-            return licencia;
-        } catch (SQLException ex) {
-            throw new IllegalStateException("No se pudo asignar la licencia al equipo: " + ex.getMessage(), ex);
-        }
-    }
-
-    @Override
-    public void addLicencia(Licencia licencia, Equipo equipo) {
-        if (licencia == null || equipo == null) {
-            throw new IllegalArgumentException("Ningun parametro puede ser nulo.");
-        }
-        try {
-            if (Licencia.buscarPorNumero(licencia.getNumeroLicencia()) == null) {
-                throw new IllegalStateException("La licencia con numero " + licencia.getNumeroLicencia() + " no existe.");
-            }
-            if (Equipo.buscarPorLetra(equipo.getLetra()) == null) {
-                throw new IllegalStateException("El equipo con letra " + equipo.getLetra() + " no existe.");
-            }
-            licencia.asignarAEquipo(equipo);
-        } catch (SQLException ex) {
-            throw new IllegalStateException("No se pudo asignar la licencia al equipo: " + ex.getMessage(), ex);
-        }
-    }
-
-    @Override
-    public double calcularPrecioLicencia(Equipo equipo) {
-        if (equipo == null || equipo.getGrupo() == null || equipo.getGrupo().getCategoria() == null) {
-            throw new IllegalArgumentException("El equipo o sus relaciones no pueden ser nulos.");
-        }
-        try {
-            if (Equipo.buscarPorLetra(equipo.getLetra()) == null) {
-                throw new IllegalStateException("El equipo con letra " + equipo.getLetra() + " no existe.");
-            }
-            return equipo.getGrupo().getCategoria().getPrecioLicencia();
-        } catch (SQLException ex) {
-            throw new IllegalStateException("Error al calcular precio de la licencia: " + ex.getMessage(), ex);
-        }
-    }
-
-    @Override
-    public Instalacion nuevaInstalacion(String nombre, String direccion, String superficie) {
-        if (nombre == null || nombre.trim().isEmpty() || direccion == null || superficie == null) {
-            throw new IllegalArgumentException("Ningun parametro puede ser nulo o vacio.");
-        }
-        try {
-            if (Instalacion.buscarPorNombre(nombre) != null) {
-                throw new IllegalStateException("La instalacion con nombre " + nombre + " ya existe.");
-            }
-
-            // Convertir la superficie a mayúsculas y validar que sea un tipo válido
-            superficie = superficie.toUpperCase();
-            try {
-                Instalacion.TipoSuperficie tipo = Instalacion.TipoSuperficie.valueOf(superficie);
-                Instalacion instalacion = new Instalacion(nombre, direccion, tipo);
-                instalacion.guardar();
-                instalaciones.add(instalacion);
-                return instalacion;
-            } catch (IllegalArgumentException ex) {
-                throw new IllegalStateException("Tipo de superficie no valido: " + superficie + 
-                    ". Los valores validos son: " + Arrays.toString(Instalacion.TipoSuperficie.values()));
-            }
-        } catch (SQLException ex) {
-            throw new IllegalStateException("No se pudo crear la instalacion: " + ex.getMessage(), ex);
-        }
+        return personas;
     }
 
     @Override
     public List<Instalacion> buscarInstalaciones(String nombre) {
-        if (nombre == null || nombre.trim().isEmpty()) {
-            throw new IllegalArgumentException("El nombre no puede ser nulo ni vacio.");
+        List<Instalacion> result = new ArrayList<>();
+        String sql = "SELECT * FROM Instalacion WHERE nombre LIKE ?";
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, "%" + nombre + "%");
+            ResultSet rs = stmt.executeQuery();
+            while (rs.next()) {
+                result.add(new Instalacion(
+                    rs.getInt("id"),
+                    rs.getString("nombre"),
+                    rs.getString("direccion"),
+                    Instalacion.TipoSuperficie.valueOf(rs.getString("superficie"))
+                ));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
-        try {
-            List<Instalacion> resultado = Instalacion.buscarPorNombreParcial(nombre);
-            for (Instalacion instalacion : resultado) {
-                if (!instalaciones.contains(instalacion)) {
-                    instalaciones.add(instalacion);
+        return result;
+    }
+
+    @Override
+    public List<Categoria> obtenerCategorias() {
+        List<Categoria> result = new ArrayList<>();
+        String sql = "SELECT * FROM Categoria";
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql);
+             ResultSet rs = stmt.executeQuery()) {
+            while (rs.next()) {
+                result.add(new Categoria(
+                    rs.getString("nombre"),
+                    rs.getInt("orden"),
+                    rs.getDouble("precioLicencia")
+                ));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return result;
+    }
+
+    @Override
+    public List<Grupo> obtenerGrupos(Categoria categoria) {
+        List<Grupo> grupos = new ArrayList<>();
+        String sql = "SELECT * FROM Grupo WHERE categoria_id = ?";
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, categoria.getId());
+            ResultSet rs = stmt.executeQuery();
+            while (rs.next()) {
+                grupos.add(new Grupo(categoria, rs.getString("nombre")));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return grupos;
+    }
+
+    @Override
+    public List<Licencia> obtenerLicencias(Persona jugador) {
+        List<Licencia> licencias = new ArrayList<>();
+        String sql = "SELECT * FROM Licencia WHERE persona_dni = ?";
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, jugador.getDni());
+            ResultSet rs = stmt.executeQuery();
+            while (rs.next()) {
+                Equipo equipo = rs.getInt("equipo_id") != 0 ? Equipo.buscarPorId(rs.getInt("equipo_id")) : null;
+                licencias.add(new Licencia(
+                    rs.getString("numeroLicencia"),
+                    jugador,
+                    equipo,
+                    rs.getBoolean("abonada")
+                ));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return licencias;
+    }
+
+    @Override
+    public void anadirJugadorAEquipo(Persona jugador, Equipo equipo) {
+        // Persistencia manejada por EquipoJugador
+    }
+
+    @Override
+    public double calcularPrecioLicencia(Equipo equipo) {
+        Grupo grupo = equipo.getGrupo();
+        Categoria categoria = grupo.getCategoria();
+        return categoria.getPrecioLicencia();
+    }
+    
+    //Metodo para buscar Jugadores en Equipo
+        public List<Persona> buscarJugadoresEnEquipo(Equipo equipo) throws SQLException {
+        List<Persona> jugadores = new ArrayList<>();
+        String sql = "SELECT p.* FROM persona p JOIN equipo_jugador ej ON p.dni = ej.dni_jugador WHERE ej.equipo_id = ?";
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, equipo.getId());
+            ResultSet rs = stmt.executeQuery();
+            while (rs.next()) {
+                jugadores.add(new Persona(
+                    rs.getString("dni"),
+                    rs.getString("nombre"),
+                    rs.getString("apellido1"),
+                    rs.getString("apellido2"),
+                    rs.getDate("fechaNacimiento").toLocalDate(),
+                    rs.getString("usuario"),
+                    rs.getString("password"),
+                    rs.getString("poblacion")
+                ));
+            }
+        }
+        return jugadores;
+    }
+        
+    //Metodo para buscar Empleado por Numero
+    public Empleado buscaEmpleadoPorNumero(int numeroEmpleado) throws SQLException {
+        String sql = "SELECT p.*, e.numeroEmpleado, e.inicioContrato, e.segSocial FROM persona p " +
+                    "JOIN empleado e ON p.dni = e.dni WHERE e.numeroEmpleado = ?";
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, numeroEmpleado);
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                return new Empleado(
+                    rs.getString("dni"),
+                    rs.getString("nombre"),
+                    rs.getString("apellido1"),
+                    rs.getString("apellido2"),
+                    rs.getDate("fechaNacimiento").toLocalDate(),
+                    rs.getString("usuario"),
+                    rs.getString("password"),
+                    rs.getString("poblacion"),
+                    rs.getInt("numeroEmpleado"),
+                    rs.getDate("inicioContrato").toLocalDate(),
+                    rs.getString("segSocial")
+                );
+            }
+        }
+        return null;
+    }
+    
+    //Metodo para limpiar las tablas en las pruebas
+    public void limpiarTablas() throws SQLException {
+        try (Connection conn = DatabaseConnection.getConnection()) {
+            conn.setAutoCommit(false);
+            // Disable foreign key checks
+            try (PreparedStatement stmt = conn.prepareStatement("SET FOREIGN_KEY_CHECKS = 0")) {
+                stmt.executeUpdate();
+            }
+            String[] tables = {
+                "licencia",
+                "equipo_jugador",
+                "club_equipo",
+                "equipo",
+                "grupo",
+                "categoria",
+                "instalacion",
+                "club",
+                "empleado",
+                "persona"
+            };
+            for (String table : tables) {
+                try (PreparedStatement stmt = conn.prepareStatement("TRUNCATE TABLE " + table)) {
+                    stmt.executeUpdate();
                 }
             }
-            return resultado;
-        } catch (SQLException ex) {
-            throw new IllegalStateException("Error al buscar instalaciones: " + ex.getMessage(), ex);
+            // Re-enable foreign key checks
+            try (PreparedStatement stmt = conn.prepareStatement("SET FOREIGN_KEY_CHECKS = 1")) {
+                stmt.executeUpdate();
+            }
+            conn.commit();
+            System.out.println("Base de datos limpiada exitosamente.");
+        } catch (SQLException e) {
+            throw new SQLException("Error al limpiar tablas: " + e.getMessage(), e);
         }
     }
-	
-    // Método adicional no definido en la interfaz
-    public void limpiarTablas() throws SQLException {
-        // Orden de eliminación: Primero tablas con FK, luego independientes
-        List<String> tablas = Arrays.asList(
-            "licencia",    // Depende de persona y equipo
-            "equipo",      // Depende de instalacion, grupo y club
-            "empleado",    // Depende de persona
-            "club_equipo", // Depende de club y equipo
-            "club",        // Depende de persona (presidente)
-            "grupo",       // Depende de categoria
-            "instalacion",
-            "categoria",
-            "persona"      // Se borra al final para evitar errores de FK
-        );
 
-        try (Connection conn = DatabaseConnection.getConnection()) {
-            // 1. Desactivar verificación de claves foráneas
-            try (PreparedStatement ps = conn.prepareStatement("SET FOREIGN_KEY_CHECKS = 0")) {
-                ps.execute();
-            }
-
-            // 2. Truncar tablas en orden
-            for (String tabla : tablas) {
-                try (PreparedStatement ps = conn.prepareStatement("TRUNCATE TABLE " + tabla)) {
-                    System.out.println("[DEBUG] Truncando tabla: " + tabla);
-                    ps.executeUpdate();
-                } catch (SQLException e) {
-                    System.err.println("Error al truncar tabla " + tabla + ": " + e.getMessage());
-                }
-            }
-
-            // 3. Reactivar verificación de FK
-            try (PreparedStatement ps = conn.prepareStatement("SET FOREIGN_KEY_CHECKS = 1")) {
-                ps.execute();
-            }
-
-            // Limpiar las listas en memoria
-            categorias.clear();
-            empleados.clear();
-            afiliados.clear();
-            clubes.clear();
-            instalaciones.clear();
-
-            System.out.println("[DEBUG] Base de datos limpiada y contadores reiniciados!");
-        }
+    // Metodo para limpiar listas
+    public void limpiarListas() {
+        categorias.clear();
+        empleados.clear();
+        afiliados.clear();
+        clubes.clear();
+        instalaciones.clear();
     }
 }

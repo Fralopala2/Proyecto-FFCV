@@ -10,6 +10,14 @@ public class DatabaseConnection {
     private static final String PASSWORD = "";
 
     public static Connection getConnection() throws SQLException {
-        return DriverManager.getConnection(URL, USER, PASSWORD);
+        try {
+            Connection conn = DriverManager.getConnection(URL, USER, PASSWORD);
+            conn.setAutoCommit(true); // Asegura autoCommit
+            System.out.println("Conexión a la base de datos establecida.");
+            return conn;
+        } catch (SQLException ex) {
+            System.err.println("Error de conexión: " + ex.getMessage());
+            throw ex;
+        }
     }
 }

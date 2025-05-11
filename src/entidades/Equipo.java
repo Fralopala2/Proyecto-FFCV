@@ -1,250 +1,136 @@
 package entidades;
 
-import proyectoffcv.util.DatabaseConnection;
 import java.sql.*;
-import java.util.ArrayList;
-import java.util.List;
-
-/*
-Hecho por Oscar
-*/
+import proyectoffcv.util.DatabaseConnection;
 
 public class Equipo {
+    private int id; // Nuevo campo para el ID
     private String letra;
     private Instalacion instalacion;
     private Grupo grupo;
-    private int clubId;
-    private List<Licencia> licencias;
+    private Club club;
 
-    public Equipo(String letra, Instalacion instalacion, Grupo grupo) {
+    // Constructor
+    public Equipo(String letra, Instalacion instalacion, Grupo grupo, Club club) {
         this.letra = letra;
         this.instalacion = instalacion;
         this.grupo = grupo;
-        this.licencias = new ArrayList<>();
+        this.club = club;
     }
 
-    private void ejecutarConsulta(boolean isInsert) throws SQLException {
-        String sql = isInsert
-                ? "INSERT INTO equipo (letra, instalacion_id, grupo_id, club_id) VALUES (?, ?, ?, ?)"
-                : "UPDATE equipo SET instalacion_id = ?, grupo_id = ?, club_id = ? WHERE letra = ?";
-        try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-            int instalacionId = obtenerIdInstalacion();
-            int grupoId = obtenerIdGrupo();
-            if (clubId <= 0) {
-                throw new SQLException("ID del club no válido: " + clubId);
-            }
-            if (isInsert) {
-                ps.setString(1, letra);
-                ps.setInt(2, instalacionId);
-                ps.setInt(3, grupoId);
-                ps.setInt(4, clubId);
-            } else {
-                ps.setInt(1, instalacionId);
-                ps.setInt(2, grupoId);
-                ps.setInt(3, clubId);
-                ps.setString(4, letra);
-            }
-            int rowsAffected = ps.executeUpdate();
-            if (!isInsert && rowsAffected == 0) {
-                throw new SQLException("No se encontró el equipo con letra: " + letra);
-            }
-        } catch (SQLException ex) {
-            throw new SQLException("Error al " + (isInsert ? "persistir" : "actualizar") + " el equipo: " + ex.getMessage(), ex);
-        }
-    }
+    // Getters y Setters
+    public int getId() { return id; } // Nuevo getter
+    public String getLetra() { return letra; }
+    public Instalacion getInstalacion() { return instalacion; }
+    public void setInstalacion(Instalacion instalacion) { this.instalacion = instalacion; }
+    public Grupo getGrupo() { return grupo; }
+    public void setGrupo(Grupo grupo) { this.grupo = grupo; }
+    public Club getClub() { return club; }
+    public void setClub(Club club) { this.club = club; }
 
-    private void persistir() throws SQLException {
-        ejecutarConsulta(true);
-    }
-
-    private void actualizarEnBD() throws SQLException {
-        ejecutarConsulta(false);
-    }
-
-    private void eliminarDeBD() throws SQLException {
-        String sql = "DELETE FROM equipo WHERE letra = ?";
-        try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setString(1, letra);
-            int rowsAffected = ps.executeUpdate();
-            if (rowsAffected == 0) {
-                throw new SQLException("No se encontró el equipo con letra: " + letra);
-            }
-        } catch (SQLException ex) {
-            throw new SQLException("Error al eliminar el equipo: " + ex.getMessage(), ex);
-        }
-    }
-
+    // Metodo para guardar en la base de datos
     public void guardar() throws SQLException {
-        if (letra == null || letra.trim().isEmpty()) {
-            throw new IllegalArgumentException("La letra no puede ser nula ni vacía.");
-        }
-        if (instalacion == null || grupo == null) {
-            throw new IllegalArgumentException("Instalación y grupo no pueden ser nulos.");
-        }
-        if (buscarPorLetra(letra) == null) {
-            try {
-                persistir();
-                // Verificar que el equipo se guardó
-                if (buscarPorLetra(letra) == null) {
-                    throw new SQLException("No se pudo persistir el equipo en la base de datos.");
-                }
-            } catch (SQLException ex) {
-                throw new SQLException("Fallo al guardar el equipo: " + ex.getMessage(), ex);
-            }
-        } else {
-            throw new IllegalStateException("El equipo ya existe en la base de datos.");
-        }
-    }
-
-    public void actualizar() throws SQLException {
-        if (buscarPorLetra(letra) != null) {
-            actualizarEnBD();
-        } else {
-            throw new IllegalStateException("El equipo no existe en la base de datos.");
-        }
-    }
-
-    public void eliminar() throws SQLException {
-        if (buscarPorLetra(letra) != null) {
-            eliminarDeBD();
-        } else {
-            throw new IllegalStateException("El equipo no existe en la base de datos.");
-        }
-    }
-
-    public void setClubId(int clubId) {
-        this.clubId = clubId;
-    }
-
-    public static Equipo buscarPorLetra(String letra) throws SQLException {
-        String sql = "SELECT * FROM equipo WHERE letra = ?";
+        String sql = "INSERT INTO Equipo (letra, instalacion_id, grupo_id, club_id) VALUES (?, ?, ?, ?)";
         try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setString(1, letra);
-            ResultSet rs = ps.executeQuery();
+             PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+            stmt.setString(1, letra);
+            stmt.setInt(2, instalacion.getId());
+            stmt.setInt(3, grupo.getId());
+            stmt.setInt(4, club.getId());
+            stmt.executeUpdate();
+            ResultSet rs = stmt.getGeneratedKeys();
+            if (rs.next()) {
+                this.id = rs.getInt(1); // Asigna el ID generado
+            }
+        }
+    }
+
+    // Metodo para actualizar en la base de datos
+    public void actualizar() throws SQLException {
+        String sql = "UPDATE Equipo SET instalacion_id = ?, grupo_id = ?, club_id = ? WHERE letra = ? AND club_id = ?";
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, instalacion.getId());
+            stmt.setInt(2, grupo.getId());
+            stmt.setInt(3, club.getId());
+            stmt.setString(4, letra);
+            stmt.setInt(5, club.getId());
+            stmt.executeUpdate();
+        }
+    }
+
+    // Metodo para eliminar de la base de datos
+    public void eliminar() throws SQLException {
+        String sql = "DELETE FROM Equipo WHERE letra = ? AND club_id = ?";
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, letra);
+            stmt.setInt(2, club.getId());
+            stmt.executeUpdate();
+        }
+    }
+
+    // Metodo para buscar por letra y club
+    public static Equipo buscarPorLetraYClub(String letra, String nombreClub) throws SQLException {
+        Club club = Club.buscarPorNombre(nombreClub);
+        if (club == null) return null;
+        String sql = "SELECT * FROM Equipo WHERE letra = ? AND club_id = ?";
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, letra);
+            stmt.setInt(2, club.getId());
+            ResultSet rs = stmt.executeQuery();
             if (rs.next()) {
                 Instalacion instalacion = Instalacion.buscarPorId(rs.getInt("instalacion_id"));
                 Grupo grupo = Grupo.buscarPorId(rs.getInt("grupo_id"));
-                return new Equipo(rs.getString("letra"), instalacion, grupo);
-            }
-            return null;
-        } catch (SQLException ex) {
-            throw new SQLException("Error al buscar equipo por letra: " + ex.getMessage(), ex);
-        }
-    }
-
-    public Persona buscarJugador(String dni) throws SQLException {
-        for (Licencia licencia : cargarLicencias()) {
-            if (licencia.getPersona().getDNI().equals(dni)) {
-                return licencia.getPersona();
+                Equipo equipo = new Equipo(letra, instalacion, grupo, club);
+                equipo.id = rs.getInt("id"); // Asigna el ID
+                return equipo;
             }
         }
         return null;
     }
 
-    private List<Licencia> cargarLicencias() throws SQLException {
-        licencias.clear();
-        String sql = "SELECT * FROM licencia WHERE equipo_id = ?";
+    // Metodo para buscar por letra
+    public static Equipo buscarPorLetra(String letra) throws SQLException {
+        String sql = "SELECT * FROM Equipo WHERE letra = ?";
         try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setInt(1, obtenerIdEquipo());
-            ResultSet rs = ps.executeQuery();
-            while (rs.next()) {
-                Persona persona = Persona.buscaPersona(rs.getString("persona_dni"));
-                if (persona == null) {
-                    throw new SQLException("Persona con DNI " + rs.getString("persona_dni") + " no encontrada.");
-                }
-                Licencia licencia = new Licencia(persona, rs.getString("numeroLicencia"));
-                licencia.setAbonada(rs.getBoolean("abonada"));
-                licencias.add(licencia);
-            }
-            return licencias;
-        } catch (SQLException ex) {
-            throw new SQLException("Error al cargar licencias: " + ex.getMessage(), ex);
-        }
-    }
-
-    private int obtenerIdInstalacion() throws SQLException {
-        String sql = "SELECT id FROM instalacion WHERE nombre = ?";
-        try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setString(1, instalacion.getNombre());
-            ResultSet rs = ps.executeQuery();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, letra);
+            ResultSet rs = stmt.executeQuery();
             if (rs.next()) {
-                return rs.getInt("id");
+                Instalacion instalacion = Instalacion.buscarPorId(rs.getInt("instalacion_id"));
+                Grupo grupo = Grupo.buscarPorId(rs.getInt("grupo_id"));
+                Club club = Club.buscarPorId(rs.getInt("club_id"));
+                Equipo equipo = new Equipo(letra, instalacion, grupo, club);
+                equipo.id = rs.getInt("id"); // Asigna el ID
+                return equipo;
             }
-            throw new SQLException("Instalación no encontrada: " + instalacion.getNombre());
-        } catch (SQLException ex) {
-            throw new SQLException("Error al obtener ID de instalación: " + ex.getMessage(), ex);
         }
+        return null;
     }
 
-    private int obtenerIdGrupo() throws SQLException {
-        String sql = "SELECT id FROM grupo WHERE nombre = ?";
+    // Metodo para buscar por ID
+    public static Equipo buscarPorId(int id) throws SQLException {
+        String sql = "SELECT * FROM Equipo WHERE id = ?";
         try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setString(1, grupo.getNombre());
-            ResultSet rs = ps.executeQuery();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, id);
+            ResultSet rs = stmt.executeQuery();
             if (rs.next()) {
-                return rs.getInt("id");
+                Instalacion instalacion = Instalacion.buscarPorId(rs.getInt("instalacion_id"));
+                Grupo grupo = Grupo.buscarPorId(rs.getInt("grupo_id"));
+                Club club = Club.buscarPorId(rs.getInt("club_id"));
+                Equipo equipo = new Equipo(rs.getString("letra"), instalacion, grupo, club);
+                equipo.id = rs.getInt("id"); // Asigna el ID
+                return equipo;
             }
-            throw new SQLException("Grupo no encontrado: " + grupo.getNombre());
-        } catch (SQLException ex) {
-            throw new SQLException("Error al obtener ID de grupo: " + ex.getMessage(), ex);
         }
-    }
-
-    private int obtenerIdEquipo() throws SQLException {
-        String sql = "SELECT id FROM equipo WHERE letra = ?";
-        try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setString(1, letra);
-            ResultSet rs = ps.executeQuery();
-            if (rs.next()) {
-                return rs.getInt("id");
-            }
-            throw new SQLException("Equipo no encontrado: " + letra);
-        } catch (SQLException ex) {
-            throw new SQLException("Error al obtener ID de equipo: " + ex.getMessage(), ex);
-        }
-    }
-
-    public String getLetra() {
-        return letra;
-    }
-
-    public void setLetra(String letra) {
-        this.letra = letra;
-    }
-
-    public Instalacion getInstalacion() {
-        return instalacion;
-    }
-
-    public void setInstalacion(Instalacion instalacion) {
-        this.instalacion = instalacion;
-    }
-
-    public Grupo getGrupo() {
-        return grupo;
-    }
-
-    public void setGrupo(Grupo grupo) {
-        this.grupo = grupo;
-    }
-
-    public List<Licencia> getLicencias() {
-        return licencias;
-    }
-
-    public void setLicencias(List<Licencia> licencias) {
-        this.licencias = licencias;
+        return null;
     }
 
     @Override
     public String toString() {
-        return "Equipo{letra='" + letra + "', instalacion=" + instalacion.getNombre() + ", grupo=" + grupo.getNombre() + ", licencias=" + licencias.size() + " licencias}";
+        return "Equipo " + letra + " (Club: " + club.getNombre() + ")";
     }
 }
