@@ -104,8 +104,17 @@ public class MainApp2 {
     // Metodo para crear la barra de menu
     private JMenuBar createMenuBar() {
         JMenuBar menuBar = new JMenuBar(); // Crea la barra de menu
-        menuBar.setBackground(new Color(33, 37, 41)); // Establece el color de fondo de la barra de menu
+        menuBar.setBackground(new Color(245, 245, 245)); // Establece el color de fondo de la barra de menu
+        menuBar.setOpaque(true); // Modo opaco para que se vea el rojo mas claro del fondo del menu gestion
         menuBar.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10)); // Establece un borde vacio alrededor de la barra de menu
+        // Forzar el repintado del fondo
+        menuBar.setUI(new javax.swing.plaf.basic.BasicMenuBarUI() {
+            @Override
+            public void paint(Graphics g, JComponent c) {
+                g.setColor(new Color(230, 230, 230)); // Color blanco-gris
+                g.fillRect(0, 0, c.getWidth(), c.getHeight());
+            }
+        });
 
         Font menuFont = new Font("Segoe UI", Font.PLAIN, 16); // Fuente para los elementos del menu
         Color menuForeground = Color.WHITE; // Color del texto de los elementos del menu
@@ -116,9 +125,9 @@ public class MainApp2 {
         gestionMenu.setIcon(loadIcon("/resources/iconos/gestion.png")); // Establece el icono del menu
 
         // Nombres de los elementos del menu
-        String[] menuItems = {"Categorias", "Clubes", "Personas", "Empleados", "Instalaciones", "Grupos", "Equipos", "Licencias"};
+        String[] menuItems = {"Personas", "Empleados", "Categorias", "Instalaciones", "Clubes", "Grupos", "Equipos", "Licencias"};
         // Rutas de los iconos de los elementos del menu
-        String[] iconPaths = {"categorias.png", "club.png", "persona.png", "empleado.png", "instalaciones.png", "grupos.png", "teams.png", "licencia.png"};
+        String[] iconPaths = {"persona.png", "empleado.png", "categorias.png", "instalaciones.png", "club.png", "grupos.png", "teams.png", "licencia.png"};
         JMenuItem[] items = new JMenuItem[menuItems.length]; // Array para almacenar los elementos del menu
 
         // Crea y anade los elementos del menu
@@ -135,11 +144,11 @@ public class MainApp2 {
     // Metodo para configurar las acciones de los elementos del menu
     private void setupMenuActions() {
         JMenu gestionMenu = menuBar.getMenu(0); // Obtiene el primer menu de la barra de menu
-        gestionMenu.getItem(0).addActionListener(e -> switchPanel(createCategoriaPanel())); // Accion para el item "Categorias"
-        gestionMenu.getItem(1).addActionListener(e -> switchPanel(createClubPanel())); // Accion para el item "Clubes"
-        gestionMenu.getItem(2).addActionListener(e -> switchPanel(createPersonaPanel())); // Accion para el item "Personas"
-        gestionMenu.getItem(3).addActionListener(e -> switchPanel(createEmpleadoPanel())); // Accion para el item "Empleados"
-        gestionMenu.getItem(4).addActionListener(e -> switchPanel(createInstalacionPanel())); // Accion para el item "Instalaciones"
+        gestionMenu.getItem(2).addActionListener(e -> switchPanel(createCategoriaPanel())); // Accion para el item "Categorias"
+        gestionMenu.getItem(4).addActionListener(e -> switchPanel(createClubPanel())); // Accion para el item "Clubes"
+        gestionMenu.getItem(0).addActionListener(e -> switchPanel(createPersonaPanel())); // Accion para el item "Personas"
+        gestionMenu.getItem(1).addActionListener(e -> switchPanel(createEmpleadoPanel())); // Accion para el item "Empleados"
+        gestionMenu.getItem(3).addActionListener(e -> switchPanel(createInstalacionPanel())); // Accion para el item "Instalaciones"
         gestionMenu.getItem(5).addActionListener(e -> switchPanel(createGrupoPanel())); // Accion para el item "Grupos"
         gestionMenu.getItem(6).addActionListener(e -> switchPanel(createEquipoPanel())); // Accion para el item "Equipos"
         gestionMenu.getItem(7).addActionListener(e -> switchPanel(createLicenciaPanel())); // Accion para el item "Licencias"
