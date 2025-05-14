@@ -171,302 +171,6 @@ public class MainApp2 {
         return welcomePanel; // Devuelve el panel de bienvenida
     }
 
-    // Metodo para crear el panel de categorias
-    private JPanel createCategoriaPanel() {
-        JPanel panel = new JPanel(new BorderLayout(10, 10)); // Crea el panel de categorias
-        panel.setBackground(Color.WHITE); // Establece el color de fondo del panel
-        panel.setBorder(new EmptyBorder(15, 15, 15, 15)); // Establece un borde vacio alrededor del panel
-
-        JPanel createPanel = createTitledPanel("Crear/Actualizar Categoria"); // Crea el panel para crear/actualizar categorias
-        GridBagConstraints gbc = new GridBagConstraints(); // Configuracion de la cuadricula
-        gbc.insets = new Insets(8, 10, 8, 10); // Espaciado entre componentes
-        gbc.fill = GridBagConstraints.HORIZONTAL; // Rellena el espacio horizontalmente
-        gbc.weightx = 1.0; // Permite que los campos se expandan horizontalmente
-
-        // Campos para ingresar datos de la categoria
-        JTextField nombreField = addField(createPanel, gbc, "Nombre:", 0); // Campo para el nombre
-        JTextField ordenField = addField(createPanel, gbc, "Orden:", 1); // Campo para el orden
-        JTextField precioField = addField(createPanel, gbc, "Precio Licencia:", 2); // Campo para el precio
-
-        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10)); // Panel para los botones
-        buttonPanel.setBackground(Color.WHITE); // Establece el color de fondo del panel de botones
-
-        // Botones para crear, actualizar, eliminar y listar categorias
-        JButton crearButton = new JButton("Crear Categoria", loadIcon("/resources/iconos/cross.png")); // Boton para crear categoria
-        styleButton(crearButton, new Color(211, 47, 47), true); // Estiliza el boton
-        JButton actualizarButton = new JButton("Actualizar Categoria", loadIcon("/resources/iconos/edit.png")); // Boton para actualizar categoria
-        styleButton(actualizarButton, new Color(33, 37, 41), false); // Estiliza el boton
-        JButton eliminarButton = new JButton("Eliminar Categoria", loadIcon("/resources/iconos/delete.png")); // Boton para eliminar categoria
-        styleButton(eliminarButton, new Color(211, 47, 47), true); // Estiliza el boton
-        JButton listarButton = new JButton("Listar Categorias", loadIcon("/resources/iconos/magnifier.png")); // Boton para listar categorias
-        styleButton(listarButton, new Color(33, 37, 41), false); // Estiliza el boton
-
-        // Anade los botones al panel de botones
-        buttonPanel.add(crearButton);
-        buttonPanel.add(actualizarButton);
-        buttonPanel.add(eliminarButton);
-        buttonPanel.add(listarButton);
-
-        // Accion para crear una nueva categoria
-        crearButton.addActionListener(event -> {
-            if (!validateFields(nombreField, ordenField, precioField)) {
-                showError("Todos los campos obligatorios deben estar completos.");
-                return;
-            }
-            try {
-                int orden = Integer.parseInt(ordenField.getText());
-                double precio = Double.parseDouble(precioField.getText());
-                if (orden <= 0) {
-                    showError("El orden debe ser un número positivo.");
-                    return;
-                }
-                if (precio < 0) {
-                    showError("El precio no puede ser negativo.");
-                    return;
-                }
-                Categoria categoria = federacion.nuevaCategoria(nombreField.getText(), orden, precio);
-                categoria.guardar();
-                JOptionPane.showMessageDialog(frame, "Categoría creada con éxito: " + categoria.getNombre(), "Éxito", JOptionPane.INFORMATION_MESSAGE);
-                clearFields(nombreField, ordenField, precioField);
-            } catch (NumberFormatException ex) {
-                showError("Orden y precio deben ser numéricos.");
-            } catch (SQLException ex) {
-                handleError(ex, "Error al guardar categoría en la base de datos.");
-            } catch (Exception ex) {
-                handleError(ex, "Error al crear categoría.");
-            }
-        });
-
-        // Accion para actualizar una categoria existente
-        actualizarButton.addActionListener(event -> {
-            clearFields(nombreField, ordenField, precioField); // Limpia campos y errores
-            if (!validateFields(nombreField, ordenField, precioField)) {
-                return; // Valida que los campos no esten vacios
-            }
-            try {
-                Categoria categoria = Categoria.buscarPorNombre(nombreField.getText()); // Busca la categoria por nombre
-                if (categoria == null) {
-                    showError("Categoria no encontrada.");
-                    return;
-                }
-                int orden = Integer.parseInt(ordenField.getText()); // Convierte el orden a entero
-                double precio = Double.parseDouble(precioField.getText()); // Convierte el precio a double
-                if (orden <= 0) {
-                    showError("El orden debe ser un numero positivo.");
-                    return;
-                }
-                if (precio < 0) {
-                    showError("El precio no puede ser negativo.");
-                    return;
-                }
-                categoria.setOrden(orden); // Actualiza el orden
-                categoria.setPrecioLicencia(precio); // Actualiza el precio
-                categoria.actualizar(); // Guarda los cambios en la base de datos
-                JOptionPane.showMessageDialog(frame, "Categoria actualizada con exito: " + categoria.getNombre(), "Exito", JOptionPane.INFORMATION_MESSAGE); // Muestra mensaje de exito
-                clearFields(nombreField, ordenField, precioField); // Limpia los campos
-            } catch (NumberFormatException ex) {
-                showError("Orden y precio deben ser numericos.");
-            } catch (SQLException ex) {
-                handleError(ex, "Error al actualizar categoria en la base de datos.");
-            } catch (Exception ex) {
-                handleError(ex, "Error al actualizar categoria.");
-            }
-        });
-
-        // Accion para eliminar una categoria
-        eliminarButton.addActionListener(event -> {
-            clearFields(nombreField, ordenField, precioField); // Limpia campos y errores
-            if (!validateFields(nombreField)) {
-                return; // Valida que el campo no este vacio
-            }
-            try {
-                Categoria categoria = Categoria.buscarPorNombre(nombreField.getText()); // Busca la categoria por nombre
-                if (categoria == null) {
-                    showError("Categoria no encontrada.");
-                    return;
-                }
-                categoria.eliminar(); // Elimina la categoria de la base de datos
-                JOptionPane.showMessageDialog(frame, "Categoria eliminada con exito: " + categoria.getNombre(), "Exito", JOptionPane.INFORMATION_MESSAGE); // Muestra mensaje de exito
-                clearFields(nombreField, ordenField, precioField); // Limpia los campos
-            } catch (SQLException ex) {
-                handleError(ex, "Error al eliminar categoria de la base de datos.");
-            } catch (Exception ex) {
-                handleError(ex, "Error al eliminar categoria.");
-            }
-        });
-
-        // Accion para listar categorias
-        listarButton.addActionListener(event -> {
-            clearFields(nombreField, ordenField, precioField); // Limpia campos y errores
-            try {
-                List<Categoria> categorias = federacion.obtenerCategorias(); // Obtiene la lista de categorias
-                showListResult(categorias, "Categorias disponibles:"); // Muestra los resultados
-                clearFields(nombreField, ordenField, precioField); // Limpia los campos
-            } catch (Exception ex) {
-                handleError(ex, "Error al listar categorias.");
-            }
-        });
-
-        gbc.gridx = 0;
-        gbc.gridy = 3;
-        gbc.gridwidth = 2; // Configura la posicion del panel de botones
-        gbc.fill = GridBagConstraints.NONE; // Para que el panel de botones no se estire
-        gbc.anchor = GridBagConstraints.CENTER; // Centra el panel de botones
-        createPanel.add(buttonPanel, gbc); // Anade el panel de botones al panel de crear/actualizar categoria
-
-        // Anade el panel de errores al final del formulario
-        gbc.gridx = 0;
-        gbc.gridy = 4; // Siguiente fila despues del panel de botones
-        gbc.gridwidth = 2;
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        gbc.anchor = GridBagConstraints.SOUTH;
-        gbc.weighty = 0; // No permitir que crezca verticalmente
-        gbc.insets = new Insets(10, 10, 8, 10); // Espaciado
-        createPanel.add(errorScrollPane, gbc);
-
-        panel.add(createPanel, BorderLayout.NORTH); // Anade el panel de crear/actualizar categoria al panel principal
-        return panel; // Devuelve el panel de categorias
-    }
-
-    // Metodo para crear el panel de clubes
-    private JPanel createClubPanel() {
-        JPanel panel = new JPanel(new BorderLayout(10, 10)); // Crea el panel de clubes
-        panel.setBackground(Color.WHITE); // Establece el color de fondo del panel
-        panel.setBorder(new EmptyBorder(15, 15, 15, 15)); // Establece un borde vacio alrededor del panel
-
-        JPanel createPanel = createTitledPanel("Gestionar Clubes"); // Crea el panel para gestionar clubes
-        GridBagConstraints gbc = new GridBagConstraints(); // Configuracion de la cuadricula
-        gbc.insets = new Insets(8, 10, 8, 10); // Espaciado entre componentes
-        gbc.fill = GridBagConstraints.HORIZONTAL; // Rellena el espacio horizontalmente
-        gbc.weightx = 1.0;
-
-        // Campos para ingresar datos del club
-        JTextField nombreField = addField(createPanel, gbc, "Nombre Club:", 0); // Campo para el nombre del club
-        JTextField fechaAltaField = addField(createPanel, gbc, "Fecha Alta (YYYY-MM-DD):", 1); // Campo para la fecha de alta
-        JTextField dniPresidenteField = addField(createPanel, gbc, "DNI Presidente:", 2); // Campo para el DNI del presidente
-
-        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10)); // Panel para los botones
-        buttonPanel.setBackground(Color.WHITE); // Establece el color de fondo del panel de botones
-
-        JButton crearButton = new JButton("Crear Club", loadIcon("/resources/iconos/cross.png")); // Boton para crear club
-        styleButton(crearButton, new Color(211, 47, 47), true); // Estiliza el boton
-        JButton actualizarButton = new JButton("Actualizar Club", loadIcon("/resources/iconos/edit.png")); // Boton para actualizar club
-        styleButton(actualizarButton, new Color(33, 37, 41), false); // Estiliza el boton
-        JButton eliminarButton = new JButton("Eliminar Club", loadIcon("/resources/iconos/delete.png")); // Boton para eliminar club
-        styleButton(eliminarButton, new Color(211, 47, 47), true); // Estiliza el boton
-
-        buttonPanel.add(crearButton); // Anade el boton de crear
-        buttonPanel.add(actualizarButton); // Anade el boton de actualizar
-        buttonPanel.add(eliminarButton); // Anade el boton de eliminar
-
-        gbc.gridx = 0;
-        gbc.gridy = 3; // Mueve los botones a la fila 3 para que no tapen los campos
-        gbc.gridwidth = 2;
-        gbc.fill = GridBagConstraints.NONE;
-        gbc.anchor = GridBagConstraints.CENTER;
-        createPanel.add(buttonPanel, gbc); // Anade el panel de botones al panel de gestionar clubes
-
-        // Anade el panel de errores al final del formulario
-        gbc.gridx = 0;
-        gbc.gridy = 4; // Ajusta la posicion del panel de errores
-        gbc.gridwidth = 2;
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        gbc.anchor = GridBagConstraints.SOUTH;
-        gbc.weighty = 0;
-        gbc.insets = new Insets(10, 10, 8, 10);
-        createPanel.add(errorScrollPane, gbc);
-
-        // Accion para crear un nuevo club
-        crearButton.addActionListener(event -> {
-            if (!validateFields(nombreField, fechaAltaField, dniPresidenteField)) {
-                return; // Valida que los campos no esten vacios
-            }
-            try {
-                String nombre = nombreField.getText().trim();
-                LocalDate fechaAlta = LocalDate.parse(fechaAltaField.getText().trim()); // Parsea la fecha de alta
-                String dniPresidente = dniPresidenteField.getText().trim();
-                Persona presidente = federacion.buscaPersona(dniPresidente);
-                if (presidente == null) {
-                    showError("Presidente no encontrado.");
-                    return;
-                }
-                Club existingClub = federacion.buscarClub(nombre);
-                if (existingClub != null) {
-                    showError("El club ya existe.");
-                    return;
-                }
-                Club club = federacion.nuevoClub(nombre, fechaAlta, presidente); // Crea el club
-                club.guardar(); // Persiste el club en la base de datos
-                JOptionPane.showMessageDialog(frame, "Club creado con exito: " + club.getNombre(), "Exito", JOptionPane.INFORMATION_MESSAGE); // Muestra mensaje de exito
-                clearFields(nombreField, fechaAltaField, dniPresidenteField); // Limpia los campos
-            } catch (DateTimeParseException ex) {
-                showError("Formato de fecha invalido. Use YYYY-MM-DD.");
-            } catch (SQLException ex) {
-                handleError(ex, "Error al guardar club en la base de datos.");
-            } catch (Exception ex) {
-                handleError(ex, "Error al crear club.");
-            }
-        });
-
-        // Accion para actualizar un club existente
-        actualizarButton.addActionListener(event -> {
-            if (!validateFields(nombreField, fechaAltaField, dniPresidenteField)) {
-                return; // Valida que los campos no esten vacios
-            }
-            try {
-                String nombre = nombreField.getText().trim();
-                LocalDate fechaAlta = LocalDate.parse(fechaAltaField.getText().trim()); // Parsea la fecha de alta
-                String dniPresidente = dniPresidenteField.getText().trim();
-                Persona presidente = federacion.buscaPersona(dniPresidente);
-                if (presidente == null) {
-                    showError("Presidente no encontrado.");
-                    return;
-                }
-                Club club = federacion.buscarClub(nombre);
-                if (club == null) {
-                    showError("Club no encontrado.");
-                    return;
-                }
-                club.setFechaAlta(fechaAlta); // Actualiza la fecha de alta
-                club.setPresidente(presidente); // Actualiza el presidente
-                club.actualizar(); // Guarda los cambios en la base de datos
-                JOptionPane.showMessageDialog(frame, "Club actualizado con exito: " + club.getNombre(), "Exito", JOptionPane.INFORMATION_MESSAGE); // Muestra mensaje de exito
-                clearFields(nombreField, fechaAltaField, dniPresidenteField); // Limpia los campos
-            } catch (DateTimeParseException ex) {
-                showError("Formato de fecha invalido. Use YYYY-MM-DD.");
-            } catch (SQLException ex) {
-                handleError(ex, "Error al actualizar club en la base de datos.");
-            } catch (Exception ex) {
-                handleError(ex, "Error al actualizar club.");
-            }
-        });
-
-        // Accion para eliminar un club
-        eliminarButton.addActionListener(event -> {
-            if (!validateFields(nombreField)) {
-                return; // Valida que el campo no este vacio
-            }
-            try {
-                String nombre = nombreField.getText().trim();
-                Club club = federacion.buscarClub(nombre);
-                if (club == null) {
-                    showError("Club no encontrado.");
-                    return;
-                }
-                club.eliminar(); // Elimina el club de la base de datos
-                JOptionPane.showMessageDialog(frame, "Club eliminado con exito: " + club.getNombre(), "Exito", JOptionPane.INFORMATION_MESSAGE); // Muestra mensaje de exito
-                clearFields(nombreField, fechaAltaField, dniPresidenteField); // Limpia los campos
-            } catch (SQLException ex) {
-                handleError(ex, "Error al eliminar club de la base de datos.");
-            } catch (Exception ex) {
-                handleError(ex, "Error al eliminar club.");
-            }
-        });
-
-        panel.add(createPanel, BorderLayout.NORTH); // Anade el panel de gestionar clubes al panel principal
-        return panel; // Devuelve el panel de clubes
-    }
-
     // Metodo para crear el panel de personas
     private JPanel createPersonaPanel() {
         JPanel panel = new JPanel(new BorderLayout(10, 10)); // Crea el panel de personas
@@ -862,6 +566,163 @@ public class MainApp2 {
         return panel; // Devuelve el panel de empleados
     }
 
+    // Metodo para crear el panel de categorias
+    private JPanel createCategoriaPanel() {
+        JPanel panel = new JPanel(new BorderLayout(10, 10)); // Crea el panel de categorias
+        panel.setBackground(Color.WHITE); // Establece el color de fondo del panel
+        panel.setBorder(new EmptyBorder(15, 15, 15, 15)); // Establece un borde vacio alrededor del panel
+
+        JPanel createPanel = createTitledPanel("Crear/Actualizar Categoria"); // Crea el panel para crear/actualizar categorias
+        GridBagConstraints gbc = new GridBagConstraints(); // Configuracion de la cuadricula
+        gbc.insets = new Insets(8, 10, 8, 10); // Espaciado entre componentes
+        gbc.fill = GridBagConstraints.HORIZONTAL; // Rellena el espacio horizontalmente
+        gbc.weightx = 1.0; // Permite que los campos se expandan horizontalmente
+
+        // Campos para ingresar datos de la categoria
+        JTextField nombreField = addField(createPanel, gbc, "Nombre:", 0); // Campo para el nombre
+        JTextField ordenField = addField(createPanel, gbc, "Orden:", 1); // Campo para el orden
+        JTextField precioField = addField(createPanel, gbc, "Precio Licencia:", 2); // Campo para el precio
+
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10)); // Panel para los botones
+        buttonPanel.setBackground(Color.WHITE); // Establece el color de fondo del panel de botones
+
+        // Botones para crear, actualizar, eliminar y listar categorias
+        JButton crearButton = new JButton("Crear Categoria", loadIcon("/resources/iconos/cross.png")); // Boton para crear categoria
+        styleButton(crearButton, new Color(211, 47, 47), true); // Estiliza el boton
+        JButton actualizarButton = new JButton("Actualizar Categoria", loadIcon("/resources/iconos/edit.png")); // Boton para actualizar categoria
+        styleButton(actualizarButton, new Color(33, 37, 41), false); // Estiliza el boton
+        JButton eliminarButton = new JButton("Eliminar Categoria", loadIcon("/resources/iconos/delete.png")); // Boton para eliminar categoria
+        styleButton(eliminarButton, new Color(211, 47, 47), true); // Estiliza el boton
+        JButton listarButton = new JButton("Listar Categorias", loadIcon("/resources/iconos/magnifier.png")); // Boton para listar categorias
+        styleButton(listarButton, new Color(33, 37, 41), false); // Estiliza el boton
+
+        // Anade los botones al panel de botones
+        buttonPanel.add(crearButton);
+        buttonPanel.add(actualizarButton);
+        buttonPanel.add(eliminarButton);
+        buttonPanel.add(listarButton);
+
+        // Accion para crear una nueva categoria
+        crearButton.addActionListener(event -> {
+            if (!validateFields(nombreField, ordenField, precioField)) {
+                showError("Todos los campos obligatorios deben estar completos.");
+                return;
+            }
+            try {
+                int orden = Integer.parseInt(ordenField.getText());
+                double precio = Double.parseDouble(precioField.getText());
+                if (orden <= 0) {
+                    showError("El orden debe ser un número positivo.");
+                    return;
+                }
+                if (precio < 0) {
+                    showError("El precio no puede ser negativo.");
+                    return;
+                }
+                Categoria categoria = federacion.nuevaCategoria(nombreField.getText(), orden, precio);
+                categoria.guardar();
+                JOptionPane.showMessageDialog(frame, "Categoría creada con éxito: " + categoria.getNombre(), "Éxito", JOptionPane.INFORMATION_MESSAGE);
+                clearFields(nombreField, ordenField, precioField);
+            } catch (NumberFormatException ex) {
+                showError("Orden y precio deben ser numéricos.");
+            } catch (SQLException ex) {
+                handleError(ex, "Error al guardar categoría en la base de datos.");
+            } catch (Exception ex) {
+                handleError(ex, "Error al crear categoría.");
+            }
+        });
+
+        // Accion para actualizar una categoria existente
+        actualizarButton.addActionListener(event -> {
+            clearFields(nombreField, ordenField, precioField); // Limpia campos y errores
+            if (!validateFields(nombreField, ordenField, precioField)) {
+                return; // Valida que los campos no esten vacios
+            }
+            try {
+                Categoria categoria = Categoria.buscarPorNombre(nombreField.getText()); // Busca la categoria por nombre
+                if (categoria == null) {
+                    showError("Categoria no encontrada.");
+                    return;
+                }
+                int orden = Integer.parseInt(ordenField.getText()); // Convierte el orden a entero
+                double precio = Double.parseDouble(precioField.getText()); // Convierte el precio a double
+                if (orden <= 0) {
+                    showError("El orden debe ser un numero positivo.");
+                    return;
+                }
+                if (precio < 0) {
+                    showError("El precio no puede ser negativo.");
+                    return;
+                }
+                categoria.setOrden(orden); // Actualiza el orden
+                categoria.setPrecioLicencia(precio); // Actualiza el precio
+                categoria.actualizar(); // Guarda los cambios en la base de datos
+                JOptionPane.showMessageDialog(frame, "Categoria actualizada con exito: " + categoria.getNombre(), "Exito", JOptionPane.INFORMATION_MESSAGE); // Muestra mensaje de exito
+                clearFields(nombreField, ordenField, precioField); // Limpia los campos
+            } catch (NumberFormatException ex) {
+                showError("Orden y precio deben ser numericos.");
+            } catch (SQLException ex) {
+                handleError(ex, "Error al actualizar categoria en la base de datos.");
+            } catch (Exception ex) {
+                handleError(ex, "Error al actualizar categoria.");
+            }
+        });
+
+        // Accion para eliminar una categoria
+        eliminarButton.addActionListener(event -> {
+            clearFields(nombreField, ordenField, precioField); // Limpia campos y errores
+            if (!validateFields(nombreField)) {
+                return; // Valida que el campo no este vacio
+            }
+            try {
+                Categoria categoria = Categoria.buscarPorNombre(nombreField.getText()); // Busca la categoria por nombre
+                if (categoria == null) {
+                    showError("Categoria no encontrada.");
+                    return;
+                }
+                categoria.eliminar(); // Elimina la categoria de la base de datos
+                JOptionPane.showMessageDialog(frame, "Categoria eliminada con exito: " + categoria.getNombre(), "Exito", JOptionPane.INFORMATION_MESSAGE); // Muestra mensaje de exito
+                clearFields(nombreField, ordenField, precioField); // Limpia los campos
+            } catch (SQLException ex) {
+                handleError(ex, "Error al eliminar categoria de la base de datos.");
+            } catch (Exception ex) {
+                handleError(ex, "Error al eliminar categoria.");
+            }
+        });
+
+        // Accion para listar categorias
+        listarButton.addActionListener(event -> {
+            clearFields(nombreField, ordenField, precioField); // Limpia campos y errores
+            try {
+                List<Categoria> categorias = federacion.obtenerCategorias(); // Obtiene la lista de categorias
+                showListResult(categorias, "Categorias disponibles:"); // Muestra los resultados
+                clearFields(nombreField, ordenField, precioField); // Limpia los campos
+            } catch (Exception ex) {
+                handleError(ex, "Error al listar categorias.");
+            }
+        });
+
+        gbc.gridx = 0;
+        gbc.gridy = 3;
+        gbc.gridwidth = 2; // Configura la posicion del panel de botones
+        gbc.fill = GridBagConstraints.NONE; // Para que el panel de botones no se estire
+        gbc.anchor = GridBagConstraints.CENTER; // Centra el panel de botones
+        createPanel.add(buttonPanel, gbc); // Anade el panel de botones al panel de crear/actualizar categoria
+
+        // Anade el panel de errores al final del formulario
+        gbc.gridx = 0;
+        gbc.gridy = 4; // Siguiente fila despues del panel de botones
+        gbc.gridwidth = 2;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.anchor = GridBagConstraints.SOUTH;
+        gbc.weighty = 0; // No permitir que crezca verticalmente
+        gbc.insets = new Insets(10, 10, 8, 10); // Espaciado
+        createPanel.add(errorScrollPane, gbc);
+
+        panel.add(createPanel, BorderLayout.NORTH); // Anade el panel de crear/actualizar categoria al panel principal
+        return panel; // Devuelve el panel de categorias
+    }
+    
     // Metodo para crear el panel de instalaciones
     private JPanel createInstalacionPanel() {
         JPanel panel = new JPanel(new BorderLayout(10, 10)); // Crea el panel de instalaciones
@@ -1000,6 +861,145 @@ public class MainApp2 {
         return panel; // Devuelve el panel de instalaciones
     }
 
+    // Metodo para crear el panel de clubes
+    private JPanel createClubPanel() {
+        JPanel panel = new JPanel(new BorderLayout(10, 10)); // Crea el panel de clubes
+        panel.setBackground(Color.WHITE); // Establece el color de fondo del panel
+        panel.setBorder(new EmptyBorder(15, 15, 15, 15)); // Establece un borde vacio alrededor del panel
+
+        JPanel createPanel = createTitledPanel("Gestionar Clubes"); // Crea el panel para gestionar clubes
+        GridBagConstraints gbc = new GridBagConstraints(); // Configuracion de la cuadricula
+        gbc.insets = new Insets(8, 10, 8, 10); // Espaciado entre componentes
+        gbc.fill = GridBagConstraints.HORIZONTAL; // Rellena el espacio horizontalmente
+        gbc.weightx = 1.0;
+
+        // Campos para ingresar datos del club
+        JTextField nombreField = addField(createPanel, gbc, "Nombre Club:", 0); // Campo para el nombre del club
+        JTextField fechaAltaField = addField(createPanel, gbc, "Fecha Alta (YYYY-MM-DD):", 1); // Campo para la fecha de alta
+        JTextField dniPresidenteField = addField(createPanel, gbc, "DNI Presidente:", 2); // Campo para el DNI del presidente
+
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10)); // Panel para los botones
+        buttonPanel.setBackground(Color.WHITE); // Establece el color de fondo del panel de botones
+
+        JButton crearButton = new JButton("Crear Club", loadIcon("/resources/iconos/cross.png")); // Boton para crear club
+        styleButton(crearButton, new Color(211, 47, 47), true); // Estiliza el boton
+        JButton actualizarButton = new JButton("Actualizar Club", loadIcon("/resources/iconos/edit.png")); // Boton para actualizar club
+        styleButton(actualizarButton, new Color(33, 37, 41), false); // Estiliza el boton
+        JButton eliminarButton = new JButton("Eliminar Club", loadIcon("/resources/iconos/delete.png")); // Boton para eliminar club
+        styleButton(eliminarButton, new Color(211, 47, 47), true); // Estiliza el boton
+
+        buttonPanel.add(crearButton); // Anade el boton de crear
+        buttonPanel.add(actualizarButton); // Anade el boton de actualizar
+        buttonPanel.add(eliminarButton); // Anade el boton de eliminar
+
+        gbc.gridx = 0;
+        gbc.gridy = 3; // Mueve los botones a la fila 3 para que no tapen los campos
+        gbc.gridwidth = 2;
+        gbc.fill = GridBagConstraints.NONE;
+        gbc.anchor = GridBagConstraints.CENTER;
+        createPanel.add(buttonPanel, gbc); // Anade el panel de botones al panel de gestionar clubes
+
+        // Anade el panel de errores al final del formulario
+        gbc.gridx = 0;
+        gbc.gridy = 4; // Ajusta la posicion del panel de errores
+        gbc.gridwidth = 2;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.anchor = GridBagConstraints.SOUTH;
+        gbc.weighty = 0;
+        gbc.insets = new Insets(10, 10, 8, 10);
+        createPanel.add(errorScrollPane, gbc);
+
+        // Accion para crear un nuevo club
+        crearButton.addActionListener(event -> {
+            if (!validateFields(nombreField, fechaAltaField, dniPresidenteField)) {
+                return; // Valida que los campos no esten vacios
+            }
+            try {
+                String nombre = nombreField.getText().trim();
+                LocalDate fechaAlta = LocalDate.parse(fechaAltaField.getText().trim()); // Parsea la fecha de alta
+                String dniPresidente = dniPresidenteField.getText().trim();
+                Persona presidente = federacion.buscaPersona(dniPresidente);
+                if (presidente == null) {
+                    showError("Presidente no encontrado.");
+                    return;
+                }
+                Club existingClub = federacion.buscarClub(nombre);
+                if (existingClub != null) {
+                    showError("El club ya existe.");
+                    return;
+                }
+                Club club = federacion.nuevoClub(nombre, fechaAlta, presidente); // Crea el club
+                club.guardar(); // Persiste el club en la base de datos
+                JOptionPane.showMessageDialog(frame, "Club creado con exito: " + club.getNombre(), "Exito", JOptionPane.INFORMATION_MESSAGE); // Muestra mensaje de exito
+                clearFields(nombreField, fechaAltaField, dniPresidenteField); // Limpia los campos
+            } catch (DateTimeParseException ex) {
+                showError("Formato de fecha invalido. Use YYYY-MM-DD.");
+            } catch (SQLException ex) {
+                handleError(ex, "Error al guardar club en la base de datos.");
+            } catch (Exception ex) {
+                handleError(ex, "Error al crear club.");
+            }
+        });
+
+        // Accion para actualizar un club existente
+        actualizarButton.addActionListener(event -> {
+            if (!validateFields(nombreField, fechaAltaField, dniPresidenteField)) {
+                return; // Valida que los campos no esten vacios
+            }
+            try {
+                String nombre = nombreField.getText().trim();
+                LocalDate fechaAlta = LocalDate.parse(fechaAltaField.getText().trim()); // Parsea la fecha de alta
+                String dniPresidente = dniPresidenteField.getText().trim();
+                Persona presidente = federacion.buscaPersona(dniPresidente);
+                if (presidente == null) {
+                    showError("Presidente no encontrado.");
+                    return;
+                }
+                Club club = federacion.buscarClub(nombre);
+                if (club == null) {
+                    showError("Club no encontrado.");
+                    return;
+                }
+                club.setFechaAlta(fechaAlta); // Actualiza la fecha de alta
+                club.setPresidente(presidente); // Actualiza el presidente
+                club.actualizar(); // Guarda los cambios en la base de datos
+                JOptionPane.showMessageDialog(frame, "Club actualizado con exito: " + club.getNombre(), "Exito", JOptionPane.INFORMATION_MESSAGE); // Muestra mensaje de exito
+                clearFields(nombreField, fechaAltaField, dniPresidenteField); // Limpia los campos
+            } catch (DateTimeParseException ex) {
+                showError("Formato de fecha invalido. Use YYYY-MM-DD.");
+            } catch (SQLException ex) {
+                handleError(ex, "Error al actualizar club en la base de datos.");
+            } catch (Exception ex) {
+                handleError(ex, "Error al actualizar club.");
+            }
+        });
+
+        // Accion para eliminar un club
+        eliminarButton.addActionListener(event -> {
+            if (!validateFields(nombreField)) {
+                return; // Valida que el campo no este vacio
+            }
+            try {
+                String nombre = nombreField.getText().trim();
+                Club club = federacion.buscarClub(nombre);
+                if (club == null) {
+                    showError("Club no encontrado.");
+                    return;
+                }
+                club.eliminar(); // Elimina el club de la base de datos
+                JOptionPane.showMessageDialog(frame, "Club eliminado con exito: " + club.getNombre(), "Exito", JOptionPane.INFORMATION_MESSAGE); // Muestra mensaje de exito
+                clearFields(nombreField, fechaAltaField, dniPresidenteField); // Limpia los campos
+            } catch (SQLException ex) {
+                handleError(ex, "Error al eliminar club de la base de datos.");
+            } catch (Exception ex) {
+                handleError(ex, "Error al eliminar club.");
+            }
+        });
+
+        panel.add(createPanel, BorderLayout.NORTH); // Anade el panel de gestionar clubes al panel principal
+        return panel; // Devuelve el panel de clubes
+    }
+        
     // Metodo para crear el panel de grupos
     private JPanel createGrupoPanel() {
         JPanel panel = new JPanel(new BorderLayout(10, 10)); // Crea el panel de grupos
