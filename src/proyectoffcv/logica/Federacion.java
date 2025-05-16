@@ -1,8 +1,8 @@
 package proyectoffcv.logica;
 
 import entidades.*;
-import java.sql.*;
 import proyectoffcv.util.DatabaseConnection;
+import java.sql.*;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -32,17 +32,58 @@ public class Federacion implements IFederacion {
         return instance;
     }
 
+    // Busca clubes por nombre con coincidencias parciales
+    @Override
+    public List<Club> buscarClubes(String nombre) throws SQLException {
+        List<Club> clubes = new ArrayList<>();
+        String sql = "SELECT c.id, c.nombre, c.fechaFundacion, c.presidente_dni, p.nombre AS presidente_nombre, p.apellido1, p.apellido2 " +
+                     "FROM club c JOIN persona p ON c.presidente_dni = p.dni " +
+                     "WHERE c.nombre LIKE ?";
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, "%" + nombre + "%");
+            ResultSet rs = stmt.executeQuery();
+            while (rs.next()) {
+                // Crear objeto Persona para el presidente
+                Persona presidente = new Persona(
+                    rs.getString("presidente_dni"),
+                    rs.getString("presidente_nombre"),
+                    rs.getString("apellido1"),
+                    rs.getString("apellido2"),
+                    null, // fechaNacimiento no necesaria
+                    null, // usuario no necesario
+                    null, // password no necesario
+                    null  // poblacion no necesaria
+                );
+                // Crear objeto Club con datos obtenidos
+                Club club = new Club(
+                    rs.getInt("id"),
+                    rs.getString("nombre"),
+                    rs.getDate("fechaFundacion").toLocalDate(),
+                    presidente
+                );
+                clubes.add(club);
+            }
+        } catch (SQLException e) {
+            System.err.println("Error en buscarClubes: " + e.getMessage());
+            throw e;
+        }
+        return clubes;
+    }
+
+    // Crear un nuevo club
+    @Override
+    public Club nuevoClub(String nombre, LocalDate fechaFundacion, Persona presidente) {
+        Club club = new Club(nombre, fechaFundacion, presidente);
+        return club;
+    }
+
+    // Resto de los metodos (sin cambios)
     @Override
     public Categoria nuevaCategoria(String nombre, int orden, double precioLicencia) {
         Categoria categoria = new Categoria(nombre, orden, precioLicencia);
         categorias.add(categoria);
         return categoria;
-    }
-
-    @Override
-    public Club nuevoClub(String nombre, LocalDate fechaAlta, Persona presidente) {
-        Club club = new Club(nombre, fechaAlta, presidente, ""); // Añade un valor por defecto para direccion
-        return club;
     }
 
     @Override
@@ -114,7 +155,7 @@ public class Federacion implements IFederacion {
             stmt.setString(1, "%" + nombre + "%");
             stmt.setString(2, "%" + apellido1 + "%");
             stmt.setString(3, "%" + (apellido2 != null ? apellido2 : "") + "%");
-            System.out.println("Ejecutando búsqueda: nombre=" + nombre + ", apellido1=" + apellido1 + ", apellido2=" + apellido2);
+            System.out.println("Ejecutando busqueda: nombre=" + nombre + ", apellido1=" + apellido1 + ", apellido2=" + apellido2);
             ResultSet rs = stmt.executeQuery();
             while (rs.next()) {
                 personas.add(new Persona(
@@ -230,9 +271,9 @@ public class Federacion implements IFederacion {
         Categoria categoria = grupo.getCategoria();
         return categoria.getPrecioLicencia();
     }
-    
-    //Metodo para buscar Jugadores en Equipo
-        public List<Persona> buscarJugadoresEnEquipo(Equipo equipo) throws SQLException {
+
+    // Metodo para buscar Jugadores en Equipo
+    public List<Persona> buscarJugadoresEnEquipo(Equipo equipo) throws SQLException {
         List<Persona> jugadores = new ArrayList<>();
         String sql = "SELECT p.* FROM persona p JOIN equipo_jugador ej ON p.dni = ej.dni_jugador WHERE ej.equipo_id = ?";
         try (Connection conn = DatabaseConnection.getConnection();
@@ -254,8 +295,8 @@ public class Federacion implements IFederacion {
         }
         return jugadores;
     }
-        
-    //Metodo para buscar Empleado por Numero
+
+    // Metodo para buscar Empleado por Numero
     public Empleado buscaEmpleadoPorNumero(int numeroEmpleado) throws SQLException {
         String sql = "SELECT p.*, e.numeroEmpleado, e.inicioContrato, e.segSocial FROM persona p " +
                     "JOIN empleado e ON p.dni = e.dni WHERE e.numeroEmpleado = ?";
@@ -281,8 +322,8 @@ public class Federacion implements IFederacion {
         }
         return null;
     }
-    
-    //Metodo para limpiar las tablas en las pruebas
+
+    // Metodo para limpiar las tablas en las pruebas
     public void limpiarTablas() throws SQLException {
         try (Connection conn = DatabaseConnection.getConnection()) {
             conn.setAutoCommit(false);

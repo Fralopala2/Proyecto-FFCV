@@ -871,45 +871,51 @@ public class MainApp2 {
 
     // Metodo para crear el panel de clubes
     private JPanel createClubPanel() {
-        JPanel panel = new JPanel(new BorderLayout(10, 10)); // Crea el panel de clubes
-        panel.setBackground(Color.WHITE); // Establece el color de fondo del panel
-        panel.setBorder(new EmptyBorder(15, 15, 15, 15)); // Establece un borde vacio alrededor del panel
+        JPanel panel = new JPanel(new BorderLayout(10, 10));
+        panel.setBackground(Color.WHITE);
+        panel.setBorder(new EmptyBorder(15, 15, 15, 15));
 
-        JPanel createPanel = createTitledPanel("Gestionar Clubes"); // Crea el panel para gestionar clubes
-        GridBagConstraints gbc = new GridBagConstraints(); // Configuracion de la cuadricula
-        gbc.insets = new Insets(8, 10, 8, 10); // Espaciado entre componentes
-        gbc.fill = GridBagConstraints.HORIZONTAL; // Rellena el espacio horizontalmente
+        // Crear panel titulado para el formulario
+        JPanel createPanel = createTitledPanel("Gestionar Clubes");
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(8, 10, 8, 10);
+        gbc.fill = GridBagConstraints.HORIZONTAL;
         gbc.weightx = 1.0;
 
-        // Campos para ingresar datos del club
-        JTextField nombreField = addField(createPanel, gbc, "Nombre Club:", 0); // Campo para el nombre del club
-        JTextField fechaAltaField = addField(createPanel, gbc, "Fecha Alta (YYYY-MM-DD):", 1); // Campo para la fecha de alta
-        JTextField dniPresidenteField = addField(createPanel, gbc, "DNI Presidente:", 2); // Campo para el DNI del presidente
+        // Campos para datos del club
+        JTextField nombreField = addField(createPanel, gbc, "Nombre Club:", 0);
+        JTextField fechaFundacionField = addField(createPanel, gbc, "Fecha Fundacion (YYYY-MM-DD):", 1);
+        JTextField dniPresidenteField = addField(createPanel, gbc, "DNI Presidente:", 2);
 
-        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10)); // Panel para los botones
-        buttonPanel.setBackground(Color.WHITE); // Establece el color de fondo del panel de botones
+        // Panel para botones de acciones
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10));
+        buttonPanel.setBackground(Color.WHITE);
 
-        JButton crearButton = new JButton("Crear Club", loadIcon("/resources/iconos/cross.png")); // Boton para crear club
-        styleButton(crearButton, new Color(211, 47, 47), true); // Estiliza el boton
-        JButton actualizarButton = new JButton("Actualizar Club", loadIcon("/resources/iconos/edit.png")); // Boton para actualizar club
-        styleButton(actualizarButton, new Color(33, 37, 41), false); // Estiliza el boton
-        JButton eliminarButton = new JButton("Eliminar Club", loadIcon("/resources/iconos/delete.png")); // Boton para eliminar club
-        styleButton(eliminarButton, new Color(211, 47, 47), true); // Estiliza el boton
+        // Botones para crear, actualizar, eliminar y buscar clubes
+        JButton crearButton = new JButton("Crear Club", loadIcon("/resources/iconos/cross.png"));
+        styleButton(crearButton, new Color(211, 47, 47), true);
+        JButton actualizarButton = new JButton("Actualizar Club", loadIcon("/resources/iconos/edit.png"));
+        styleButton(actualizarButton, new Color(33, 37, 41), false);
+        JButton eliminarButton = new JButton("Eliminar Club", loadIcon("/resources/iconos/delete.png"));
+        styleButton(eliminarButton, new Color(211, 47, 47), true);
+        JButton buscarButton = new JButton("Buscar Club", loadIcon("/resources/iconos/magnifier.png"));
+        styleButton(buscarButton, new Color(33, 37, 41), false);
 
-        buttonPanel.add(crearButton); // Anade el boton de crear
-        buttonPanel.add(actualizarButton); // Anade el boton de actualizar
-        buttonPanel.add(eliminarButton); // Anade el boton de eliminar
+        buttonPanel.add(crearButton);
+        buttonPanel.add(actualizarButton);
+        buttonPanel.add(eliminarButton);
+        buttonPanel.add(buscarButton);
 
         gbc.gridx = 0;
-        gbc.gridy = 3; // Mueve los botones a la fila 3 para que no tapen los campos
+        gbc.gridy = 3;
         gbc.gridwidth = 2;
         gbc.fill = GridBagConstraints.NONE;
         gbc.anchor = GridBagConstraints.CENTER;
-        createPanel.add(buttonPanel, gbc); // Anade el panel de botones al panel de gestionar clubes
+        createPanel.add(buttonPanel, gbc);
 
-        // Anade el panel de errores al final del formulario
+        // Anadir panel de errores al formulario
         gbc.gridx = 0;
-        gbc.gridy = 4; // Ajusta la posicion del panel de errores
+        gbc.gridy = 4;
         gbc.gridwidth = 2;
         gbc.fill = GridBagConstraints.HORIZONTAL;
         gbc.anchor = GridBagConstraints.SOUTH;
@@ -919,12 +925,12 @@ public class MainApp2 {
 
         // Accion para crear un nuevo club
         crearButton.addActionListener(event -> {
-            if (!validateFields(nombreField, fechaAltaField, dniPresidenteField)) {
-                return; // Valida que los campos no esten vacios
+            if (!validateFields(nombreField, fechaFundacionField, dniPresidenteField)) {
+                return;
             }
             try {
                 String nombre = nombreField.getText().trim();
-                LocalDate fechaAlta = LocalDate.parse(fechaAltaField.getText().trim()); // Parsea la fecha de alta
+                LocalDate fechaFundacion = LocalDate.parse(fechaFundacionField.getText().trim());
                 String dniPresidente = dniPresidenteField.getText().trim();
                 Persona presidente = federacion.buscaPersona(dniPresidente);
                 if (presidente == null) {
@@ -936,10 +942,10 @@ public class MainApp2 {
                     showError("El club ya existe.");
                     return;
                 }
-                Club club = federacion.nuevoClub(nombre, fechaAlta, presidente); // Crea el club
-                club.guardar(); // Persiste el club en la base de datos
-                JOptionPane.showMessageDialog(frame, "Club creado con exito: " + club.getNombre(), "Exito", JOptionPane.INFORMATION_MESSAGE); // Muestra mensaje de exito
-                clearFields(nombreField, fechaAltaField, dniPresidenteField); // Limpia los campos
+                Club club = federacion.nuevoClub(nombre, fechaFundacion, presidente);
+                club.guardar();
+                JOptionPane.showMessageDialog(frame, "Club creado con exito: " + club.getNombre(), "Exito", JOptionPane.INFORMATION_MESSAGE);
+                clearFields(nombreField, fechaFundacionField, dniPresidenteField);
             } catch (DateTimeParseException ex) {
                 showError("Formato de fecha invalido. Use YYYY-MM-DD.");
             } catch (SQLException ex) {
@@ -951,12 +957,12 @@ public class MainApp2 {
 
         // Accion para actualizar un club existente
         actualizarButton.addActionListener(event -> {
-            if (!validateFields(nombreField, fechaAltaField, dniPresidenteField)) {
-                return; // Valida que los campos no esten vacios
+            if (!validateFields(nombreField, fechaFundacionField, dniPresidenteField)) {
+                return;
             }
             try {
                 String nombre = nombreField.getText().trim();
-                LocalDate fechaAlta = LocalDate.parse(fechaAltaField.getText().trim()); // Parsea la fecha de alta
+                LocalDate fechaFundacion = LocalDate.parse(fechaFundacionField.getText().trim());
                 String dniPresidente = dniPresidenteField.getText().trim();
                 Persona presidente = federacion.buscaPersona(dniPresidente);
                 if (presidente == null) {
@@ -968,11 +974,11 @@ public class MainApp2 {
                     showError("Club no encontrado.");
                     return;
                 }
-                club.setFechaAlta(fechaAlta); // Actualiza la fecha de alta
-                club.setPresidente(presidente); // Actualiza el presidente
-                club.actualizar(); // Guarda los cambios en la base de datos
-                JOptionPane.showMessageDialog(frame, "Club actualizado con exito: " + club.getNombre(), "Exito", JOptionPane.INFORMATION_MESSAGE); // Muestra mensaje de exito
-                clearFields(nombreField, fechaAltaField, dniPresidenteField); // Limpia los campos
+                club.setFechaFundacion(fechaFundacion);
+                club.setPresidente(presidente);
+                club.actualizar();
+                JOptionPane.showMessageDialog(frame, "Club actualizado con exito: " + club.getNombre(), "Exito", JOptionPane.INFORMATION_MESSAGE);
+                clearFields(nombreField, fechaFundacionField, dniPresidenteField);
             } catch (DateTimeParseException ex) {
                 showError("Formato de fecha invalido. Use YYYY-MM-DD.");
             } catch (SQLException ex) {
@@ -985,7 +991,7 @@ public class MainApp2 {
         // Accion para eliminar un club
         eliminarButton.addActionListener(event -> {
             if (!validateFields(nombreField)) {
-                return; // Valida que el campo no este vacio
+                return;
             }
             try {
                 String nombre = nombreField.getText().trim();
@@ -994,9 +1000,9 @@ public class MainApp2 {
                     showError("Club no encontrado.");
                     return;
                 }
-                club.eliminar(); // Elimina el club de la base de datos
-                JOptionPane.showMessageDialog(frame, "Club eliminado con exito: " + club.getNombre(), "Exito", JOptionPane.INFORMATION_MESSAGE); // Muestra mensaje de exito
-                clearFields(nombreField, fechaAltaField, dniPresidenteField); // Limpia los campos
+                club.eliminar();
+                JOptionPane.showMessageDialog(frame, "Club eliminado con exito: " + club.getNombre(), "Exito", JOptionPane.INFORMATION_MESSAGE);
+                clearFields(nombreField, fechaFundacionField, dniPresidenteField);
             } catch (SQLException ex) {
                 handleError(ex, "Error al eliminar club de la base de datos.");
             } catch (Exception ex) {
@@ -1004,8 +1010,25 @@ public class MainApp2 {
             }
         });
 
-        panel.add(createPanel, BorderLayout.NORTH); // Anade el panel de gestionar clubes al panel principal
-        return panel; // Devuelve el panel de clubes
+        // Accion para buscar clubes por nombre
+        buscarButton.addActionListener(event -> {
+            if (!validateFields(nombreField)) {
+                return;
+            }
+            try {
+                String nombre = nombreField.getText().trim();
+                List<Club> clubes = federacion.buscarClubes(nombre);
+                showListResult(clubes, "Clubes encontrados:");
+                clearFields(nombreField, fechaFundacionField, dniPresidenteField);
+            } catch (SQLException ex) {
+                handleError(ex, "Error al buscar clubes en la base de datos.");
+            } catch (Exception ex) {
+                handleError(ex, "Error al buscar clubes.");
+            }
+        });
+
+        panel.add(createPanel, BorderLayout.NORTH);
+        return panel;
     }
         
     // Metodo para crear el panel de grupos

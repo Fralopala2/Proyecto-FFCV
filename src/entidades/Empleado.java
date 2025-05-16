@@ -18,6 +18,7 @@ public class Empleado extends Persona {
         this.numEmpleado = numEmpleado;
         this.inicioContrato = inicioContrato;
         this.segSocial = segSocial;
+        this.puesto = puesto == null ? "" : puesto;
     }
 
     // Getters y Setters
