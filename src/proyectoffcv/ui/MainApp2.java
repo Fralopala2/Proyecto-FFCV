@@ -5,7 +5,6 @@ import java.sql.*;
 import proyectoffcv.logica.Federacion;
 import proyectoffcv.logica.IFederacion;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.format.DateTimeParseException;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -407,7 +406,7 @@ public class MainApp2 {
         JLabel usuarioError = new JLabel(""); // Etiqueta para errores en el campo usuario
         JTextField usuarioField = addField(createPanel, gbc, "Usuario:", 9, usuarioError); // Campo para el usuario
         JLabel passwordError = new JLabel(""); // Etiqueta para errores en el campo contrasena
-        JTextField passwordField = addField(createPanel, gbc, "Contrasena:", 10, passwordError); // Campo para la contrasena
+        JTextField passwordField = addField(createPanel, gbc, "Contraseña:", 10, passwordError); // Campo para la contrasena
         JLabel poblacionError = new JLabel(""); // Etiqueta para errores en el campo poblacion
         JTextField poblacionField = addField(createPanel, gbc, "Poblacion:", 11, poblacionError); // Campo para la poblacion
 
@@ -1467,16 +1466,20 @@ public class MainApp2 {
         JTextField clubField = addField(createPanel, gbc, "Nombre Club:", 2); // Campo para el nombre del club
         JTextField fechaInicioField = addField(createPanel, gbc, "Fecha Inicio (YYYY-MM-DD):", 3); // Campo para la fecha de inicio
         JTextField fechaFinField = addField(createPanel, gbc, "Fecha Fin (YYYY-MM-DD):", 4); // Campo para la fecha de fin
+        JTextField precioField = addField(createPanel, gbc, "Precio Estimado:", 5); // Campo para el precio estimado
+        precioField.setEditable(false); // Campo no editable
         JCheckBox abonadaCheckBox = new JCheckBox("Licencia Abonada"); // Checkbox para indicar si la licencia esta abonada
         abonadaCheckBox.setBackground(Color.WHITE);
         gbc.gridx = 0;
-        gbc.gridy = 5;
+        gbc.gridy = 6;
         gbc.gridwidth = 2;
         createPanel.add(abonadaCheckBox, gbc);
 
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10)); // Panel para los botones
         buttonPanel.setBackground(Color.WHITE); // Establece el color de fondo del panel de botones
 
+        JButton estimarButton = new JButton("Estimar Precio", loadIcon("/resources/iconos/calculator.png")); // Boton para estimar precio
+        styleButton(estimarButton, new Color(33, 37, 41), false); // Estiliza el boton
         JButton crearButton = new JButton("Crear Licencia", loadIcon("/resources/iconos/cross.png")); // Boton para crear licencia
         styleButton(crearButton, new Color(211, 47, 47), true); // Estiliza el boton
         JButton actualizarButton = new JButton("Actualizar Licencia", loadIcon("/resources/iconos/edit.png")); // Boton para actualizar licencia
@@ -1486,10 +1489,30 @@ public class MainApp2 {
         JButton listarButton = new JButton("Listar Licencias", loadIcon("/resources/iconos/magnifier.png")); // Boton para listar licencias
         styleButton(listarButton, new Color(33, 37, 41), false); // Estiliza el boton
 
+        buttonPanel.add(estimarButton); // Anade el boton de estimar
         buttonPanel.add(crearButton); // Anade el boton de crear
         buttonPanel.add(actualizarButton); // Anade el boton de actualizar
         buttonPanel.add(eliminarButton); // Anade el boton de eliminar
         buttonPanel.add(listarButton); // Anade el boton de listar
+
+        // Accion para estimar el precio de la licencia
+        estimarButton.addActionListener(event -> {
+            if (!validateFields(letraField, clubField)) {
+                showError("Letra y club son obligatorios.");
+                return;
+            }
+            try {
+                Equipo equipo = Equipo.buscarPorLetraYClub(letraField.getText().trim(), clubField.getText().trim());
+                if (equipo == null) {
+                    showError("Equipo no encontrado.");
+                    return;
+                }
+                double precio = federacion.calcularPrecioLicencia(equipo);
+                precioField.setText(String.format("%.2f", precio));
+            } catch (Exception ex) {
+                handleError(ex, "Error al estimar precio.");
+            }
+        });
 
         // Accion para crear una nueva licencia
         crearButton.addActionListener(event -> {
@@ -1517,7 +1540,7 @@ public class MainApp2 {
                 Licencia licencia = federacion.nuevaLicencia(jugador, equipo, fechaInicio, fechaFin, abonada); // Crea la licencia
                 licencia.guardar(); // Persiste la licencia en la base de datos
                 JOptionPane.showMessageDialog(frame, "Licencia creada con exito para: " + jugador.getNombre(), "Exito", JOptionPane.INFORMATION_MESSAGE); // Muestra mensaje de exito
-                clearFields(dniField, letraField, clubField, fechaInicioField, fechaFinField); // Limpia los campos
+                clearFields(dniField, letraField, clubField, fechaInicioField, fechaFinField, precioField); // Limpia los campos
                 abonadaCheckBox.setSelected(false); // Resetea el checkbox
             } catch (DateTimeParseException ex) {
                 showError("Formato de fecha invalido. Use YYYY-MM-DD.");
@@ -1562,7 +1585,7 @@ public class MainApp2 {
                 licencia.setAbonada(abonada); // Actualiza el estado de abono
                 licencia.actualizar(); // Guarda los cambios en la base de datos
                 JOptionPane.showMessageDialog(frame, "Licencia actualizada con exito para: " + jugador.getNombre(), "Exito", JOptionPane.INFORMATION_MESSAGE); // Muestra mensaje de exito
-                clearFields(dniField, letraField, clubField, fechaInicioField, fechaFinField); // Limpia los campos
+                clearFields(dniField, letraField, clubField, fechaInicioField, fechaFinField, precioField); // Limpia los campos
                 abonadaCheckBox.setSelected(false); // Resetea el checkbox
             } catch (DateTimeParseException ex) {
                 showError("Formato de fecha invalido. Use YYYY-MM-DD.");
@@ -1600,7 +1623,7 @@ public class MainApp2 {
                 }
                 licencia.eliminar(); // Elimina la licencia de la base de datos
                 JOptionPane.showMessageDialog(frame, "Licencia eliminada con exito para: " + jugador.getNombre(), "Exito", JOptionPane.INFORMATION_MESSAGE); // Muestra mensaje de exito
-                clearFields(dniField, letraField, clubField, fechaInicioField, fechaFinField); // Limpia los campos
+                clearFields(dniField, letraField, clubField, fechaInicioField, fechaFinField, precioField); // Limpia los campos
                 abonadaCheckBox.setSelected(false); // Resetea el checkbox
             } catch (SQLException ex) {
                 handleError(ex, "Error al eliminar licencia de la base de datos.");
@@ -1626,7 +1649,7 @@ public class MainApp2 {
                 }
                 List<Licencia> licencias = federacion.obtenerLicencias(jugador); // Obtiene las licencias del jugador
                 showListResult(licencias, "Licencias de " + jugador.getNombre() + ":"); // Muestra los resultados
-                clearFields(dniField, letraField, clubField, fechaInicioField, fechaFinField); // Limpia los campos
+                clearFields(dniField, letraField, clubField, fechaInicioField, fechaFinField, precioField); // Limpia los campos
                 abonadaCheckBox.setSelected(false); // Resetea el checkbox
             } catch (Exception ex) {
                 handleError(ex, "Error al listar licencias.");
@@ -1634,14 +1657,14 @@ public class MainApp2 {
         });
 
         gbc.gridx = 0;
-        gbc.gridy = 6;
+        gbc.gridy = 7;
         gbc.gridwidth = 2;
         gbc.fill = GridBagConstraints.NONE;
         gbc.anchor = GridBagConstraints.CENTER;
         createPanel.add(buttonPanel, gbc); // Anade el panel de botones al panel de gestionar licencias
 
         gbc.gridx = 0;
-        gbc.gridy = 7;
+        gbc.gridy = 8;
         gbc.gridwidth = 2;
         gbc.fill = GridBagConstraints.HORIZONTAL;
         gbc.anchor = GridBagConstraints.SOUTH;

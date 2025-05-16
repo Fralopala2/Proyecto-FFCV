@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: localhost
--- Tiempo de generación: 11-05-2025 a las 18:35:44
+-- Tiempo de generación: 16-05-2025 a las 15:16:48
 -- Versión del servidor: 10.4.32-MariaDB
 -- Versión de PHP: 8.2.12
 
@@ -34,13 +34,6 @@ CREATE TABLE `categoria` (
   `precioLicencia` double NOT NULL CHECK (`precioLicencia` >= 0)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
---
--- Volcado de datos para la tabla `categoria`
---
-
-INSERT INTO `categoria` (`id`, `nombre`, `orden`, `precioLicencia`) VALUES
-(1, 'Senior', 1, 100);
-
 -- --------------------------------------------------------
 
 --
@@ -54,13 +47,6 @@ CREATE TABLE `club` (
   `presidente_dni` varchar(20) NOT NULL,
   `secretario_dni` varchar(20) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Volcado de datos para la tabla `club`
---
-
-INSERT INTO `club` (`id`, `nombre`, `fechaFundacion`, `presidente_dni`, `secretario_dni`) VALUES
-(1, 'FC Valencia', '1920-01-01', '53095891T', NULL);
 
 -- --------------------------------------------------------
 
@@ -87,14 +73,6 @@ CREATE TABLE `empleado` (
   `segSocial` varchar(20) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
---
--- Volcado de datos para la tabla `empleado`
---
-
-INSERT INTO `empleado` (`dni`, `puesto`, `numeroEmpleado`, `inicioContrato`, `segSocial`) VALUES
-('53095891T', 'Presidente', 1001, '2025-05-10', '123456789012'),
-('53097594R', 'Jugador', 1002, '2025-05-10', '123456789011');
-
 -- --------------------------------------------------------
 
 --
@@ -108,13 +86,6 @@ CREATE TABLE `equipo` (
   `grupo_id` int(11) NOT NULL,
   `club_id` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Volcado de datos para la tabla `equipo`
---
-
-INSERT INTO `equipo` (`id`, `letra`, `instalacion_id`, `grupo_id`, `club_id`) VALUES
-(1, 'A', 1, 1, 1);
 
 -- --------------------------------------------------------
 
@@ -140,13 +111,6 @@ CREATE TABLE `grupo` (
   `categoria_id` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
---
--- Volcado de datos para la tabla `grupo`
---
-
-INSERT INTO `grupo` (`id`, `nombre`, `categoria_id`) VALUES
-(1, 'Grupo A', 1);
-
 -- --------------------------------------------------------
 
 --
@@ -159,13 +123,6 @@ CREATE TABLE `instalacion` (
   `direccion` varchar(200) NOT NULL,
   `superficie` enum('TIERRA','CESPED_NATURAL','CESPED_ARTIFICIAL') NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Volcado de datos para la tabla `instalacion`
---
-
-INSERT INTO `instalacion` (`id`, `nombre`, `direccion`, `superficie`) VALUES
-(1, 'Estadio Municipal', 'Calle Mayor', 'CESPED_ARTIFICIAL');
 
 -- --------------------------------------------------------
 
@@ -198,14 +155,6 @@ CREATE TABLE `persona` (
   `password` varchar(100) NOT NULL,
   `poblacion` varchar(100) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Volcado de datos para la tabla `persona`
---
-
-INSERT INTO `persona` (`dni`, `nombre`, `apellido1`, `apellido2`, `fechaNacimiento`, `usuario`, `password`, `poblacion`) VALUES
-('53095891T', 'Paco', 'Lopez', 'Alarte', '1979-03-01', 'plopez', 'pass123', 'Xirivella'),
-('53097594R', 'Sonia', 'Pucheta', 'Barranco', '1977-11-01', 'spu', 'pass123', 'Xirivella');
 
 --
 -- Índices para tablas volcadas
@@ -295,31 +244,31 @@ ALTER TABLE `persona`
 -- AUTO_INCREMENT de la tabla `categoria`
 --
 ALTER TABLE `categoria`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT de la tabla `club`
 --
 ALTER TABLE `club`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT de la tabla `equipo`
 --
 ALTER TABLE `equipo`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT de la tabla `grupo`
 --
 ALTER TABLE `grupo`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT de la tabla `instalacion`
 --
 ALTER TABLE `instalacion`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- Restricciones para tablas volcadas
