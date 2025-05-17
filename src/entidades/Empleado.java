@@ -66,13 +66,16 @@ public class Empleado extends Persona {
     // Metodo para eliminar de la base de datos
     @Override
     public void eliminar() throws SQLException {
-        String sql = "DELETE FROM Empleado WHERE dni = ?";
+        String sqlEmpleado = "DELETE FROM empleado WHERE dni = ?";
+        String sqlPersona = "DELETE FROM persona WHERE dni = ?";
         try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setString(1, dni);
-            stmt.executeUpdate();
+             PreparedStatement stmtEmpleado = conn.prepareStatement(sqlEmpleado);
+             PreparedStatement stmtPersona = conn.prepareStatement(sqlPersona)) {
+            stmtEmpleado.setString(1, getDni());
+            stmtEmpleado.executeUpdate();
+            stmtPersona.setString(1, getDni());
+            stmtPersona.executeUpdate();
         }
-        super.eliminar(); // Elimina los datos de Persona
     }
 
     @Override

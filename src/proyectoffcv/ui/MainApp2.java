@@ -495,12 +495,12 @@ public class MainApp2 {
                     showError("Numero de empleado debe ser mayor a 0.");
                     return;
                 }
-                Persona persona = federacion.buscaPersona(dniField.getText()); // Busca la persona por DNI
-                if (persona == null || !(persona instanceof Empleado)) {
+                // Busca el empleado por DNI usando el metodo especifico
+                Empleado empleado = federacion.buscaEmpleadoPorDni(dniField.getText());
+                if (empleado == null) {
                     showError("Empleado no encontrado.");
                     return;
                 }
-                Empleado empleado = (Empleado) persona; // Convierte a empleado
                 // Actualiza los datos del empleado
                 empleado.setNombre(nombreField.getText());
                 empleado.setApellido1(apellido1Field.getText());
@@ -509,13 +509,13 @@ public class MainApp2 {
                 empleado.setPoblacion(poblacionField.getText());
                 empleado.setUsuario(usuarioField.getText());
                 empleado.setPassword(passwordField.getText());
-                empleado.setNumEmpleado(numEmp); // Actualiza el numero de empleado
-                empleado.setInicioContrato(LocalDate.parse(inicioContratoField.getText())); // Actualiza la fecha de contrato
-                empleado.setSegSocial(segSocialField.getText()); // Actualiza la seguridad social
-                empleado.setPuesto(puestoField.getText()); // Actualiza el puesto
+                empleado.setNumEmpleado(numEmp);
+                empleado.setInicioContrato(LocalDate.parse(inicioContratoField.getText()));
+                empleado.setSegSocial(segSocialField.getText());
+                empleado.setPuesto(puestoField.getText());
                 empleado.actualizar(); // Guarda los cambios en la base de datos
-                JOptionPane.showMessageDialog(frame, "Empleado actualizado con exito: " + empleado, "Exito", JOptionPane.INFORMATION_MESSAGE); // Muestra mensaje de exito
-                clearFields(dniField, nombreField, apellido1Field, apellido2Field, fechaField, numEmpField, inicioContratoField, segSocialField, puestoField, usuarioField, passwordField, poblacionField); // Limpia los campos
+                JOptionPane.showMessageDialog(frame, "Empleado actualizado con exito: " + empleado, "Exito", JOptionPane.INFORMATION_MESSAGE);
+                clearFields(dniField, nombreField, apellido1Field, apellido2Field, fechaField, numEmpField, inicioContratoField, segSocialField, puestoField, usuarioField, passwordField, poblacionField);
                 dniError.setText(""); nombreError.setText(""); apellido1Error.setText(""); apellido2Error.setText("");
                 fechaError.setText(""); numEmpError.setText(""); inicioContratoError.setText(""); segSocialError.setText("");
                 puestoError.setText(""); usuarioError.setText(""); passwordError.setText(""); poblacionError.setText("");
@@ -536,12 +536,11 @@ public class MainApp2 {
                     showError("DNI invalido.");
                     return;
                 }
-                Persona persona = federacion.buscaPersona(dniField.getText()); // Busca la persona por DNI
-                if (persona == null || !(persona instanceof Empleado)) {
+                Empleado empleado = federacion.buscaEmpleadoPorDni(dniField.getText()); // Busca el empleado por DNI
+                if (empleado == null) {
                     showError("Empleado no encontrado.");
                     return;
                 }
-                Empleado empleado = (Empleado) persona; // Convierte a empleado
                 empleado.eliminar(); // Elimina el empleado de la base de datos
                 JOptionPane.showMessageDialog(frame, "Empleado eliminado con exito: " + empleado, "Exito", JOptionPane.INFORMATION_MESSAGE); // Muestra mensaje de exito
                 clearFields(dniField, nombreField, apellido1Field, apellido2Field, fechaField, numEmpField, inicioContratoField, segSocialField, puestoField, usuarioField, passwordField, poblacionField); // Limpia los campos
@@ -642,7 +641,6 @@ public class MainApp2 {
 
         // Accion para actualizar una categoria existente
         actualizarButton.addActionListener(event -> {
-            clearFields(nombreField, ordenField, precioField); // Limpia campos y errores
             if (!validateFields(nombreField, ordenField, precioField)) {
                 return; // Valida que los campos no esten vacios
             }
@@ -678,7 +676,6 @@ public class MainApp2 {
 
         // Accion para eliminar una categoria
         eliminarButton.addActionListener(event -> {
-            clearFields(nombreField, ordenField, precioField); // Limpia campos y errores
             if (!validateFields(nombreField)) {
                 return; // Valida que el campo no este vacio
             }

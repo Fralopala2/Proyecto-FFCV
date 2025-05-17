@@ -52,25 +52,24 @@ public class Instalacion {
         }
     }
 
-    // Metodo para actualizar en la base de datos
+    // Metodo para actualizar de la base de datos
     public void actualizar() throws SQLException {
-        String sql = "UPDATE Instalacion SET nombre = ?, direccion = ?, superficie = ? WHERE id = ?";
+        String sql = "UPDATE instalacion SET direccion = ?, superficie = ? WHERE nombre = ?";
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setString(1, nombre);
-            stmt.setString(2, direccion);
-            stmt.setString(3, superficie.toString());
-            stmt.setInt(4, id);
+            stmt.setString(1, direccion);
+            stmt.setString(2, superficie.toString());
+            stmt.setString(3, nombre);
             stmt.executeUpdate();
         }
     }
 
     // Metodo para eliminar de la base de datos
     public void eliminar() throws SQLException {
-        String sql = "DELETE FROM Instalacion WHERE id = ?";
+        String sql = "DELETE FROM instalacion WHERE nombre = ?";
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setInt(1, id);
+            stmt.setString(1, nombre);
             stmt.executeUpdate();
         }
     }

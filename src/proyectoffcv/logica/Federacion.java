@@ -70,15 +70,13 @@ public class Federacion implements IFederacion {
         }
         return clubes;
     }
-
-    // Crear un nuevo club
+    
     @Override
     public Club nuevoClub(String nombre, LocalDate fechaFundacion, Persona presidente) {
         Club club = new Club(nombre, fechaFundacion, presidente);
         return club;
     }
-
-    // Resto de los metodos (sin cambios)
+    
     @Override
     public Categoria nuevaCategoria(String nombre, int orden, double precioLicencia) {
         Categoria categoria = new Categoria(nombre, orden, precioLicencia);
@@ -303,6 +301,34 @@ public class Federacion implements IFederacion {
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setInt(1, numeroEmpleado);
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                return new Empleado(
+                    rs.getString("dni"),
+                    rs.getString("nombre"),
+                    rs.getString("apellido1"),
+                    rs.getString("apellido2"),
+                    rs.getDate("fechaNacimiento").toLocalDate(),
+                    rs.getString("usuario"),
+                    rs.getString("password"),
+                    rs.getString("poblacion"),
+                    rs.getInt("numeroEmpleado"),
+                    rs.getDate("inicioContrato").toLocalDate(),
+                    rs.getString("segSocial")
+                );
+            }
+        }
+        return null;
+    }
+    
+    // Metodo para buscar Empleado por DNI
+    @Override
+    public Empleado buscaEmpleadoPorDni(String dni) throws SQLException {
+        String sql = "SELECT p.*, e.numeroEmpleado, e.inicioContrato, e.segSocial, e.puesto FROM persona p " +
+                    "JOIN empleado e ON p.dni = e.dni WHERE e.dni = ?";
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, dni);
             ResultSet rs = stmt.executeQuery();
             if (rs.next()) {
                 return new Empleado(

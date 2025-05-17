@@ -59,4 +59,7 @@ public interface IFederacion {
     
     // Anadir un jugador a un equipo
     void anadirJugadorAEquipo(Persona jugador, Equipo equipo) throws SQLException;
+    
+    // Busca empleado por DNI
+    Empleado buscaEmpleadoPorDni(String dni) throws SQLException;
 }

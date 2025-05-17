@@ -23,7 +23,7 @@ public class Categoria {
     public double getPrecioLicencia() { return precioLicencia; }
     public void setPrecioLicencia(double precioLicencia) { this.precioLicencia = precioLicencia; }
 
-    // Metodo para obtener el ID (suponiendo que la tabla Categoria tiene una columna id)
+    // Metodo para obtener el ID
     public int getId() throws SQLException {
         String sql = "SELECT id FROM Categoria WHERE nombre = ?";
         try (Connection conn = DatabaseConnection.getConnection();
