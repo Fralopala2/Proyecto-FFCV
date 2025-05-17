@@ -1324,20 +1324,26 @@ public class MainApp2 {
             }
         });
 
-        // Accion para actualizar un equipo existente
+        // Acción para actualizar un equipo existente
         actualizarButton.addActionListener(event -> {
             if (!validateFields(letraField, instalacionField, grupoField, clubField)) {
-                return; // Valida que los campos no esten vacios
+                return;
             }
             try {
-                Equipo equipo = Equipo.buscarPorLetraYClub(letraField.getText().trim(), clubField.getText().trim());
+                String letra = letraField.getText().trim();
+                Club club = federacion.buscarClub(clubField.getText().trim());
+                if (club == null) {
+                    showError("Club no encontrado.");
+                    return;
+                }
+                Equipo equipo = Equipo.buscarPorLetraYClub(letra, club.getNombre());
                 if (equipo == null) {
                     showError("Equipo no encontrado.");
                     return;
                 }
                 Instalacion instalacion = Instalacion.buscarPorNombre(instalacionField.getText().trim());
                 if (instalacion == null) {
-                    showError("Instalacion no encontrada.");
+                    showError("Instalación no encontrada.");
                     return;
                 }
                 Grupo grupo = Grupo.buscarPorNombre(grupoField.getText().trim());
@@ -1345,23 +1351,12 @@ public class MainApp2 {
                     showError("Grupo no encontrado.");
                     return;
                 }
-                Club club = federacion.buscarClub(clubField.getText().trim());
-                if (club == null) {
-                    showError("Club no encontrado.");
-                    return;
-                }
-                equipo.setInstalacion(instalacion); // Actualiza instalacion
-                equipo.setGrupo(grupo); // Actualiza grupo
-                equipo.setClub(club); // Actualiza club
-                equipo.actualizar(); // Guarda los cambios en la base de datos
-                JOptionPane.showMessageDialog(frame, "Equipo actualizado con exito: " + equipo.getLetra(), "Exito", JOptionPane.INFORMATION_MESSAGE); // Muestra mensaje de exito
-                clearFields(letraField, instalacionField, grupoField, clubField); // Limpia los campos
-                // Actualizar el JComboBox despues de actualizar un equipo
-                equiposComboBox.removeAllItems();
-                List<Equipo> equipos = Equipo.obtenerTodos();
-                for (Equipo e : equipos) {
-                    equiposComboBox.addItem(e);
-                }
+                equipo.setInstalacion(instalacion);
+                equipo.setGrupo(grupo);
+                equipo.setClub(club);
+                equipo.actualizar();
+                JOptionPane.showMessageDialog(frame, "Equipo actualizado con éxito: " + equipo, "Éxito", JOptionPane.INFORMATION_MESSAGE);
+                clearFields(letraField, instalacionField, grupoField, clubField);
             } catch (SQLException ex) {
                 handleError(ex, "Error al actualizar equipo en la base de datos.");
             } catch (Exception ex) {
@@ -1369,26 +1364,26 @@ public class MainApp2 {
             }
         });
 
-        // Accion para eliminar un equipo
+        // Acción para eliminar un equipo
         eliminarButton.addActionListener(event -> {
             if (!validateFields(letraField, clubField)) {
-                return; // Valida que los campos no esten vacios
+                return;
             }
             try {
-                Equipo equipo = Equipo.buscarPorLetraYClub(letraField.getText().trim(), clubField.getText().trim());
+                String letra = letraField.getText().trim();
+                Club club = federacion.buscarClub(clubField.getText().trim());
+                if (club == null) {
+                    showError("Club no encontrado.");
+                    return;
+                }
+                Equipo equipo = Equipo.buscarPorLetraYClub(letra, club.getNombre());
                 if (equipo == null) {
                     showError("Equipo no encontrado.");
                     return;
                 }
-                equipo.eliminar(); // Elimina el equipo de la base de datos
-                JOptionPane.showMessageDialog(frame, "Equipo eliminado con exito: " + equipo.getLetra(), "Exito", JOptionPane.INFORMATION_MESSAGE); // Muestra mensaje de exito
-                clearFields(letraField, instalacionField, grupoField, clubField); // Limpia los campos
-                // Actualizar el JComboBox despues de eliminar un equipo
-                equiposComboBox.removeAllItems();
-                List<Equipo> equipos = Equipo.obtenerTodos();
-                for (Equipo e : equipos) {
-                    equiposComboBox.addItem(e);
-                }
+                equipo.eliminar();
+                JOptionPane.showMessageDialog(frame, "Equipo eliminado con éxito: " + equipo, "Éxito", JOptionPane.INFORMATION_MESSAGE);
+                clearFields(letraField, instalacionField, grupoField, clubField);
             } catch (SQLException ex) {
                 handleError(ex, "Error al eliminar equipo de la base de datos.");
             } catch (Exception ex) {
@@ -1399,7 +1394,7 @@ public class MainApp2 {
         // Accion para buscar un jugador
         buscarJugadorButton.addActionListener(event -> {
             if (!validateFields(buscarLetraField, dniField)) {
-                return; // Valida que los campos no esten vacios
+                return;
             }
             try {
                 Persona persona = federacion.buscaPersona(dniField.getText().trim());
@@ -1412,20 +1407,19 @@ public class MainApp2 {
                     showError("Equipo no encontrado.");
                     return;
                 }
-                // Verificar si el jugador esta en el equipo
-                String sql = "SELECT * FROM Equipo_Jugador WHERE letra_equipo = ? AND dni_jugador = ?";
+                String sql = "SELECT * FROM Equipo_Jugador ej JOIN Equipo e ON ej.equipo_id = e.id WHERE e.letra = ? AND ej.dni_jugador = ?";
                 try (Connection conn = DatabaseConnection.getConnection();
                      PreparedStatement stmt = conn.prepareStatement(sql)) {
                     stmt.setString(1, equipo.getLetra());
                     stmt.setString(2, persona.getDni());
                     ResultSet rs = stmt.executeQuery();
                     if (rs.next()) {
-                        JOptionPane.showMessageDialog(frame, "Jugador encontrado: " + persona.getNombre() + " en equipo: " + equipo.getLetra(), "Resultado", JOptionPane.INFORMATION_MESSAGE); // Muestra mensaje de exito
+                        JOptionPane.showMessageDialog(frame, "Jugador encontrado: " + persona.getNombre() + " en equipo: " + equipo.getLetra(), "Resultado", JOptionPane.INFORMATION_MESSAGE);
                     } else {
-                        showError("El jugador no esta en este equipo.");
+                        showError("El jugador no está en este equipo.");
                     }
                 }
-                clearFields(buscarLetraField, dniField); // Limpia los campos
+                clearFields(buscarLetraField, dniField);
             } catch (SQLException ex) {
                 handleError(ex, "Error al buscar jugador en la base de datos.");
             } catch (Exception ex) {
@@ -1470,63 +1464,73 @@ public class MainApp2 {
 
     // Metodo para crear el panel de licencias
     private JPanel createLicenciaPanel() {
-        JPanel panel = new JPanel(new BorderLayout(10, 10)); // Crea el panel de licencias
-        panel.setBackground(Color.WHITE); // Establece el color de fondo del panel
-        panel.setBorder(new EmptyBorder(15, 15, 15, 15)); // Establece un borde vacio alrededor del panel
+        // Crear panel principal con layout BorderLayout y configuracion basica
+        JPanel panel = new JPanel(new BorderLayout(10, 10));
+        panel.setBackground(Color.WHITE);
+        panel.setBorder(new EmptyBorder(15, 15, 15, 15));
 
-        JPanel createPanel = createTitledPanel("Gestionar Licencias"); // Crea el panel para gestionar licencias
-        GridBagConstraints gbc = new GridBagConstraints(); // Configuracion de la cuadricula
-        gbc.insets = new Insets(8, 10, 8, 10); // Espaciado entre componentes
-        gbc.fill = GridBagConstraints.HORIZONTAL; // Rellena el espacio horizontalmente
+        // Crear panel de formulario con titulo
+        JPanel createPanel = createTitledPanel("Gestionar Licencias");
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(8, 10, 8, 10);
+        gbc.fill = GridBagConstraints.HORIZONTAL;
         gbc.weightx = 1.0;
 
-        // Campos para ingresar datos de la licencia
-        JTextField dniField = addField(createPanel, gbc, "DNI Jugador:", 0); // Campo para el DNI del jugador
-        JTextField letraField = addField(createPanel, gbc, "Letra Equipo:", 1); // Campo para la letra del equipo
-        JTextField clubField = addField(createPanel, gbc, "Nombre Club:", 2); // Campo para el nombre del club
-        JTextField fechaInicioField = addField(createPanel, gbc, "Fecha Inicio (YYYY-MM-DD):", 3); // Campo para la fecha de inicio
-        JTextField fechaFinField = addField(createPanel, gbc, "Fecha Fin (YYYY-MM-DD):", 4); // Campo para la fecha de fin
-        JTextField precioField = addField(createPanel, gbc, "Precio Estimado:", 5); // Campo para el precio estimado
-        precioField.setEditable(false); // Campo no editable
-        JCheckBox abonadaCheckBox = new JCheckBox("Licencia Abonada"); // Checkbox para indicar si la licencia esta abonada
+        // Agregar campos de texto para entrada de datos
+        JTextField dniField = addField(createPanel, gbc, "DNI Jugador:", 0);
+        JTextField letraField = addField(createPanel, gbc, "Letra Equipo:", 1);
+        JTextField clubField = addField(createPanel, gbc, "Nombre Club:", 2);
+        JTextField fechaInicioField = addField(createPanel, gbc, "Fecha Inicio (YYYY-MM-DD):", 3);
+        JTextField fechaFinField = addField(createPanel, gbc, "Fecha Fin (YYYY-MM-DD):", 4);
+        JTextField precioField = addField(createPanel, gbc, "Precio Estimado:", 5);
+        precioField.setEditable(false);
+
+        // Agregar checkbox para estado de licencia abonada
+        JCheckBox abonadaCheckBox = new JCheckBox("Licencia Abonada");
         abonadaCheckBox.setBackground(Color.WHITE);
         gbc.gridx = 0;
         gbc.gridy = 6;
         gbc.gridwidth = 2;
         createPanel.add(abonadaCheckBox, gbc);
 
-        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10)); // Panel para los botones
-        buttonPanel.setBackground(Color.WHITE); // Establece el color de fondo del panel de botones
+        // Crear panel para botones
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10));
+        buttonPanel.setBackground(Color.WHITE);
 
-        JButton estimarButton = new JButton("Estimar Precio", loadIcon("/resources/iconos/calculator.png")); // Boton para estimar precio
-        styleButton(estimarButton, new Color(33, 37, 41), false); // Estiliza el boton
-        JButton crearButton = new JButton("Crear Licencia", loadIcon("/resources/iconos/cross.png")); // Boton para crear licencia
-        styleButton(crearButton, new Color(211, 47, 47), true); // Estiliza el boton
-        JButton actualizarButton = new JButton("Actualizar Licencia", loadIcon("/resources/iconos/edit.png")); // Boton para actualizar licencia
-        styleButton(actualizarButton, new Color(33, 37, 41), false); // Estiliza el boton
-        JButton eliminarButton = new JButton("Eliminar Licencia", loadIcon("/resources/iconos/delete.png")); // Boton para eliminar licencia
-        styleButton(eliminarButton, new Color(211, 47, 47), true); // Estiliza el boton
-        JButton listarButton = new JButton("Listar Licencias", loadIcon("/resources/iconos/magnifier.png")); // Boton para listar licencias
-        styleButton(listarButton, new Color(33, 37, 41), false); // Estiliza el boton
+        // Crear y estilizar botones
+        JButton estimarButton = new JButton("Estimar Precio", loadIcon("/resources/iconos/calculator.png"));
+        styleButton(estimarButton, new Color(33, 37, 41), false);
+        JButton crearButton = new JButton("Crear Licencia", loadIcon("/resources/iconos/cross.png"));
+        styleButton(crearButton, new Color(211, 47, 47), true);
+        JButton actualizarButton = new JButton("Actualizar Licencia", loadIcon("/resources/iconos/edit.png"));
+        styleButton(actualizarButton, new Color(33, 37, 41), false);
+        JButton eliminarButton = new JButton("Eliminar Licencia", loadIcon("/resources/iconos/delete.png"));
+        styleButton(eliminarButton, new Color(211, 47, 47), true);
+        JButton listarButton = new JButton("Listar Licencias", loadIcon("/resources/iconos/magnifier.png"));
+        styleButton(listarButton, new Color(33, 37, 41), false);
 
-        buttonPanel.add(estimarButton); // Anade el boton de estimar
-        buttonPanel.add(crearButton); // Anade el boton de crear
-        buttonPanel.add(actualizarButton); // Anade el boton de actualizar
-        buttonPanel.add(eliminarButton); // Anade el boton de eliminar
-        buttonPanel.add(listarButton); // Anade el boton de listar
+        // Agregar botones al panel
+        buttonPanel.add(estimarButton);
+        buttonPanel.add(crearButton);
+        buttonPanel.add(actualizarButton);
+        buttonPanel.add(eliminarButton);
+        buttonPanel.add(listarButton);
 
-        // Accion para estimar el precio de la licencia
+        // ActionListener para estimar precio
         estimarButton.addActionListener(event -> {
+            // Validar campos de letra y club
             if (!validateFields(letraField, clubField)) {
                 showError("Letra y club son obligatorios.");
                 return;
             }
             try {
+                // Buscar equipo por letra y club
                 Equipo equipo = Equipo.buscarPorLetraYClub(letraField.getText().trim(), clubField.getText().trim());
                 if (equipo == null) {
                     showError("Equipo no encontrado.");
                     return;
                 }
+                // Calcular y mostrar precio
                 double precio = federacion.calcularPrecioLicencia(equipo);
                 precioField.setText(String.format("%.2f", precio));
             } catch (Exception ex) {
@@ -1534,34 +1538,52 @@ public class MainApp2 {
             }
         });
 
-        // Accion para crear una nueva licencia
+        // ActionListener para crear licencia
         crearButton.addActionListener(event -> {
+            // Validar todos los campos obligatorios
             if (!validateFields(dniField, letraField, clubField, fechaInicioField, fechaFinField)) {
-                return; // Valida que los campos no esten vacios
+                showError("Todos los campos obligatorios deben estar completos.");
+                return;
             }
             try {
+                // Validar formato de DNI
                 if (!validateDni(dniField.getText())) {
                     showError("DNI invalido.");
                     return;
                 }
+                // Buscar jugador por DNI
                 Persona jugador = federacion.buscaPersona(dniField.getText().trim());
                 if (jugador == null) {
                     showError("Jugador no encontrado.");
                     return;
                 }
+                // Buscar equipo por letra y club
                 Equipo equipo = Equipo.buscarPorLetraYClub(letraField.getText().trim(), clubField.getText().trim());
                 if (equipo == null) {
                     showError("Equipo no encontrado.");
                     return;
                 }
-                LocalDate fechaInicio = LocalDate.parse(fechaInicioField.getText().trim()); // Parsea la fecha de inicio
-                LocalDate fechaFin = LocalDate.parse(fechaFinField.getText().trim()); // Parsea la fecha de fin
-                boolean abonada = abonadaCheckBox.isSelected(); // Obtiene el estado del checkbox
-                Licencia licencia = federacion.nuevaLicencia(jugador, equipo, fechaInicio, fechaFin, abonada); // Crea la licencia
-                licencia.guardar(); // Persiste la licencia en la base de datos
-                JOptionPane.showMessageDialog(frame, "Licencia creada con exito para: " + jugador.getNombre(), "Exito", JOptionPane.INFORMATION_MESSAGE); // Muestra mensaje de exito
-                clearFields(dniField, letraField, clubField, fechaInicioField, fechaFinField, precioField); // Limpia los campos
-                abonadaCheckBox.setSelected(false); // Resetea el checkbox
+                // Verificar si ya existe licencia para jugador y equipo
+                if (Licencia.buscarPorJugadorYEquipo(jugador.getDni(), equipo.getId()) != null) {
+                    showError("Ya existe una licencia para este jugador y equipo.");
+                    return;
+                }
+                // Parsear fechas
+                LocalDate fechaInicio = LocalDate.parse(fechaInicioField.getText().trim());
+                LocalDate fechaFin = LocalDate.parse(fechaFinField.getText().trim());
+                boolean abonada = abonadaCheckBox.isSelected();
+                // Registrar accion en consola
+                System.out.println("Creando licencia: dni=" + dniField.getText() + ", idEquipo=" + equipo.getId() + 
+                                   ", fechaInicio=" + fechaInicio + ", fechaFin=" + fechaFin + ", abonada=" + abonada);
+                // Crear y guardar licencia
+                Licencia licencia = federacion.nuevaLicencia(jugador, equipo, fechaInicio, fechaFin, abonada);
+                licencia.guardar();
+                // Mostrar mensaje de exito
+                JOptionPane.showMessageDialog(frame, "Licencia creada con exito para: " + jugador.getNombre() + 
+                                              " (Nº: " + licencia.getNumeroLicencia() + ")", "Exito", JOptionPane.INFORMATION_MESSAGE);
+                // Limpiar campos
+                clearFields(dniField, letraField, clubField, fechaInicioField, fechaFinField, precioField);
+                abonadaCheckBox.setSelected(false);
             } catch (DateTimeParseException ex) {
                 showError("Formato de fecha invalido. Use YYYY-MM-DD.");
             } catch (SQLException ex) {
@@ -1571,130 +1593,166 @@ public class MainApp2 {
             }
         });
 
-        // Accion para actualizar una licencia existente
+        // ActionListener para actualizar licencia
         actualizarButton.addActionListener(event -> {
+            // Validar todos los campos obligatorios
             if (!validateFields(dniField, letraField, clubField, fechaInicioField, fechaFinField)) {
-                return; // Valida que los campos no esten vacios
+                showError("Todos los campos obligatorios deben estar completos.");
+                return;
             }
             try {
+                // Validar formato de DNI
                 if (!validateDni(dniField.getText())) {
                     showError("DNI invalido.");
                     return;
                 }
+                // Buscar jugador por DNI
                 Persona jugador = federacion.buscaPersona(dniField.getText().trim());
                 if (jugador == null) {
                     showError("Jugador no encontrado.");
                     return;
                 }
+                // Buscar equipo por letra y club
                 Equipo equipo = Equipo.buscarPorLetraYClub(letraField.getText().trim(), clubField.getText().trim());
                 if (equipo == null) {
                     showError("Equipo no encontrado.");
                     return;
                 }
+                // Buscar licencia por jugador y equipo
                 Licencia licencia = Licencia.buscarPorJugadorYEquipo(jugador.getDni(), equipo.getId());
                 if (licencia == null) {
-                    showError("Licencia no encontrada.");
+                    showError("Licencia no encontrada para el jugador y equipo especificados.");
                     return;
                 }
-                LocalDate fechaInicio = LocalDate.parse(fechaInicioField.getText().trim()); // Parsea la fecha de inicio
-                LocalDate fechaFin = LocalDate.parse(fechaFinField.getText().trim()); // Parsea la fecha de fin
-                boolean abonada = abonadaCheckBox.isSelected(); // Obtiene el estado del checkbox
-                licencia.setEquipo(equipo); // Actualiza el equipo
-                licencia.setFechaInicio(fechaInicio); // Actualiza la fecha de inicio
-                licencia.setFechaFin(fechaFin); // Actualiza la fecha de fin
-                licencia.setAbonada(abonada); // Actualiza el estado de abono
-                licencia.actualizar(); // Guarda los cambios en la base de datos
-                JOptionPane.showMessageDialog(frame, "Licencia actualizada con exito para: " + jugador.getNombre(), "Exito", JOptionPane.INFORMATION_MESSAGE); // Muestra mensaje de exito
-                clearFields(dniField, letraField, clubField, fechaInicioField, fechaFinField, precioField); // Limpia los campos
-                abonadaCheckBox.setSelected(false); // Resetea el checkbox
-            } catch (DateTimeParseException ex) {
-                showError("Formato de fecha invalido. Use YYYY-MM-DD.");
-            } catch (SQLException ex) {
-                handleError(ex, "Error al actualizar licencia en la base de datos.");
-            } catch (Exception ex) {
-                handleError(ex, "Error al actualizar licencia.");
-            }
-        });
+                // Parsear fechas
+                LocalDate fechaInicio = LocalDate.parse(fechaInicioField.getText().trim());
+                LocalDate fechaFin = LocalDate.parse(fechaFinField.getText().trim());
+                boolean abonada = abonadaCheckBox.isSelected();
+                // Registrar accion en consola
+                System.out.println("Actualizando licencia: numeroLicencia=" + licencia.getNumeroLicencia() + ", dni=" + jugador.getDni() + 
+                                   ", idEquipo=" + equipo.getId() + ", fechaInicio=" + fechaInicio + ", fechaFin=" + fechaFin + ", abonada=" + abonada);
+                // Actualizar datos de licencia
+                licencia.setJugador(jugador);
+                licencia.setEquipo(equipo);
+                licencia.setFechaInicio(fechaInicio);
+                licencia.setFechaFin(fechaFin);
+                licencia.setAbonada(abonada);
+                licencia.actualizar();
+            // Mostrar mensaje de exito
+            JOptionPane.showMessageDialog(frame, "Licencia actualizada con exito para: " + jugador.getNombre() + 
+                                          " (Nº: " + licencia.getNumeroLicencia() + ")", "Exito", JOptionPane.INFORMATION_MESSAGE);
+            // Limpiar campos
+            clearFields(dniField, letraField, clubField, fechaInicioField, fechaFinField, precioField);
+            abonadaCheckBox.setSelected(false);
+        } catch (DateTimeParseException ex) {
+            showError("Formato de fecha invalido. Use YYYY-MM-DD.");
+        } catch (SQLException ex) {
+            handleError(ex, "Error al actualizar licencia en la base de datos.");
+        } catch (Exception ex) {
+            handleError(ex, "Error al actualizar licencia.");
+        }
+    });
 
-        // Accion para eliminar una licencia
-        eliminarButton.addActionListener(event -> {
-            if (!validateFields(dniField, letraField, clubField)) {
-                return; // Valida que los campos no esten vacios
+    // ActionListener para eliminar licencia
+    eliminarButton.addActionListener(event -> {
+        // Validar campos necesarios
+        if (!validateFields(dniField, letraField, clubField)) {
+            showError("DNI, letra y club son obligatorios.");
+            return;
+        }
+        try {
+            // Validar formato de DNI
+            if (!validateDni(dniField.getText())) {
+                showError("DNI invalido.");
+                return;
             }
-            try {
-                if (!validateDni(dniField.getText())) {
-                    showError("DNI invalido.");
-                    return;
-                }
-                Persona jugador = federacion.buscaPersona(dniField.getText().trim());
-                if (jugador == null) {
-                    showError("Jugador no encontrado.");
-                    return;
-                }
-                Equipo equipo = Equipo.buscarPorLetraYClub(letraField.getText().trim(), clubField.getText().trim());
-                if (equipo == null) {
-                    showError("Equipo no encontrado.");
-                    return;
-                }
-                Licencia licencia = Licencia.buscarPorJugadorYEquipo(jugador.getDni(), equipo.getId());
-                if (licencia == null) {
-                    showError("Licencia no encontrada.");
-                    return;
-                }
-                licencia.eliminar(); // Elimina la licencia de la base de datos
-                JOptionPane.showMessageDialog(frame, "Licencia eliminada con exito para: " + jugador.getNombre(), "Exito", JOptionPane.INFORMATION_MESSAGE); // Muestra mensaje de exito
-                clearFields(dniField, letraField, clubField, fechaInicioField, fechaFinField, precioField); // Limpia los campos
-                abonadaCheckBox.setSelected(false); // Resetea el checkbox
-            } catch (SQLException ex) {
-                handleError(ex, "Error al eliminar licencia de la base de datos.");
-            } catch (Exception ex) {
-                handleError(ex, "Error al eliminar licencia.");
+            // Buscar jugador por DNI
+            Persona jugador = federacion.buscaPersona(dniField.getText().trim());
+            if (jugador == null) {
+                showError("Jugador no encontrado.");
+                return;
             }
-        });
-
-        // Accion para listar licencias de un jugador
-        listarButton.addActionListener(event -> {
-            if (!validateFields(dniField)) {
-                return; // Valida que el campo no este vacio
+            // Buscar equipo por letra y club
+            Equipo equipo = Equipo.buscarPorLetraYClub(letraField.getText().trim(), clubField.getText().trim());
+            if (equipo == null) {
+                showError("Equipo no encontrado.");
+                return;
             }
-            try {
-                if (!validateDni(dniField.getText())) {
-                    showError("DNI invalido.");
-                    return;
-                }
-                Persona jugador = federacion.buscaPersona(dniField.getText().trim());
-                if (jugador == null) {
-                    showError("Jugador no encontrado.");
-                    return;
-                }
-                List<Licencia> licencias = federacion.obtenerLicencias(jugador); // Obtiene las licencias del jugador
-                showListResult(licencias, "Licencias de " + jugador.getNombre() + ":"); // Muestra los resultados
-                clearFields(dniField, letraField, clubField, fechaInicioField, fechaFinField, precioField); // Limpia los campos
-                abonadaCheckBox.setSelected(false); // Resetea el checkbox
-            } catch (Exception ex) {
-                handleError(ex, "Error al listar licencias.");
+            // Buscar licencia por jugador y equipo
+            Licencia licencia = Licencia.buscarPorJugadorYEquipo(jugador.getDni(), equipo.getId());
+            if (licencia == null) {
+                showError("Licencia no encontrada para el jugador y equipo especificados.");
+                return;
             }
-        });
+            // Registrar accion en consola
+            System.out.println("Eliminando licencia: numeroLicencia=" + licencia.getNumeroLicencia());
+            // Eliminar licencia
+            licencia.eliminar();
+            // Mostrar mensaje de exito
+            JOptionPane.showMessageDialog(frame, "Licencia eliminada con exito para: " + jugador.getNombre() + 
+                                          " (Nº: " + licencia.getNumeroLicencia() + ")", "Exito", JOptionPane.INFORMATION_MESSAGE);
+            // Limpiar campos
+            clearFields(dniField, letraField, clubField, fechaInicioField, fechaFinField, precioField);
+            abonadaCheckBox.setSelected(false);
+        } catch (SQLException ex) {
+            handleError(ex, "Error al eliminar licencia de la base de datos.");
+        } catch (Exception ex) {
+            handleError(ex, "Error al eliminar licencia.");
+        }
+    });
 
-        gbc.gridx = 0;
-        gbc.gridy = 7;
-        gbc.gridwidth = 2;
-        gbc.fill = GridBagConstraints.NONE;
-        gbc.anchor = GridBagConstraints.CENTER;
-        createPanel.add(buttonPanel, gbc); // Anade el panel de botones al panel de gestionar licencias
+    // ActionListener para listar licencias
+    listarButton.addActionListener(event -> {
+        // Validar campo DNI
+        if (!validateFields(dniField)) {
+            showError("DNI es obligatorio.");
+            return;
+        }
+        try {
+            // Validar formato de DNI
+            if (!validateDni(dniField.getText())) {
+                showError("DNI invalido.");
+                return;
+            }
+            // Buscar jugador por DNI
+            Persona jugador = federacion.buscaPersona(dniField.getText().trim());
+            if (jugador == null) {
+                showError("Jugador no encontrado.");
+                return;
+            }
+            // Obtener y mostrar licencias
+            List<Licencia> licencias = federacion.obtenerLicencias(jugador);
+            showListResult(licencias, "Licencias de " + jugador.getNombre() + ":");
+            // Limpiar campos
+            clearFields(dniField, letraField, clubField, fechaInicioField, fechaFinField, precioField);
+            abonadaCheckBox.setSelected(false);
+        } catch (Exception ex) {
+            handleError(ex, "Error al listar licencias.");
+        }
+    });
 
-        gbc.gridx = 0;
-        gbc.gridy = 8;
-        gbc.gridwidth = 2;
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        gbc.anchor = GridBagConstraints.SOUTH;
-        gbc.weighty = 0;
-        gbc.insets = new Insets(10, 10, 8, 10);
-        createPanel.add(errorScrollPane, gbc); // Anade el panel de errores al final del formulario
+    // Agregar panel de botones
+    gbc.gridx = 0;
+    gbc.gridy = 7;
+    gbc.gridwidth = 2;
+    gbc.fill = GridBagConstraints.NONE;
+    gbc.anchor = GridBagConstraints.CENTER;
+    createPanel.add(buttonPanel, gbc);
 
-        panel.add(createPanel, BorderLayout.NORTH); // Anade el panel de gestionar licencias al panel principal
-        return panel; // Devuelve el panel de licencias
-    }
+    // Agregar panel de errores
+    gbc.gridx = 0;
+    gbc.gridy = 8;
+    gbc.gridwidth = 2;
+    gbc.fill = GridBagConstraints.HORIZONTAL;
+    gbc.anchor = GridBagConstraints.SOUTH;
+    gbc.weighty = 0;
+    gbc.insets = new Insets(10, 10, 8, 10);
+    createPanel.add(errorScrollPane, gbc);
+
+    // Agregar panel de formulario al panel principal
+    panel.add(createPanel, BorderLayout.NORTH);
+    return panel;
+}
 
     // Metodo para estilizar un menu
     private void styleMenu(JMenu menu, Font font, Color foreground, Color hover) {

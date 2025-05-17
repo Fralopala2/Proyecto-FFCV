@@ -32,7 +32,6 @@ public class Federacion implements IFederacion {
         return instance;
     }
 
-    // Busca clubes por nombre con coincidencias parciales
     @Override
     public List<Club> buscarClubes(String nombre) throws SQLException {
         List<Club> clubes = new ArrayList<>();
@@ -44,18 +43,13 @@ public class Federacion implements IFederacion {
             stmt.setString(1, "%" + nombre + "%");
             ResultSet rs = stmt.executeQuery();
             while (rs.next()) {
-                // Crear objeto Persona para el presidente
                 Persona presidente = new Persona(
                     rs.getString("presidente_dni"),
                     rs.getString("presidente_nombre"),
                     rs.getString("apellido1"),
                     rs.getString("apellido2"),
-                    null, // fechaNacimiento no necesaria
-                    null, // usuario no necesario
-                    null, // password no necesario
-                    null  // poblacion no necesaria
+                    null, null, null, null
                 );
-                // Crear objeto Club con datos obtenidos
                 Club club = new Club(
                     rs.getInt("id"),
                     rs.getString("nombre"),
@@ -153,7 +147,6 @@ public class Federacion implements IFederacion {
             stmt.setString(1, "%" + nombre + "%");
             stmt.setString(2, "%" + apellido1 + "%");
             stmt.setString(3, "%" + (apellido2 != null ? apellido2 : "") + "%");
-            System.out.println("Ejecutando busqueda: nombre=" + nombre + ", apellido1=" + apellido1 + ", apellido2=" + apellido2);
             ResultSet rs = stmt.executeQuery();
             while (rs.next()) {
                 personas.add(new Persona(
@@ -167,7 +160,6 @@ public class Federacion implements IFederacion {
                     rs.getString("poblacion")
                 ));
             }
-            System.out.println("Resultados obtenidos: " + personas.size());
         } catch (SQLException e) {
             System.err.println("Error en buscaPersonas: " + e.getMessage());
             e.printStackTrace();
@@ -244,12 +236,15 @@ public class Federacion implements IFederacion {
             ResultSet rs = stmt.executeQuery();
             while (rs.next()) {
                 Equipo equipo = rs.getInt("equipo_id") != 0 ? Equipo.buscarPorId(rs.getInt("equipo_id")) : null;
-                licencias.add(new Licencia(
+                Licencia licencia = new Licencia(
                     rs.getString("numeroLicencia"),
                     jugador,
                     equipo,
                     rs.getBoolean("abonada")
-                ));
+                );
+                licencia.setFechaInicio(rs.getDate("fecha_inicio") != null ? rs.getDate("fecha_inicio").toLocalDate() : null);
+                licencia.setFechaFin(rs.getDate("fecha_fin") != null ? rs.getDate("fecha_fin").toLocalDate() : null);
+                licencias.add(licencia);
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -270,7 +265,6 @@ public class Federacion implements IFederacion {
         return categoria.getPrecioLicencia();
     }
 
-    // Metodo para buscar Jugadores en Equipo
     public List<Persona> buscarJugadoresEnEquipo(Equipo equipo) throws SQLException {
         List<Persona> jugadores = new ArrayList<>();
         String sql = "SELECT p.* FROM persona p JOIN equipo_jugador ej ON p.dni = ej.dni_jugador WHERE ej.equipo_id = ?";
@@ -294,7 +288,6 @@ public class Federacion implements IFederacion {
         return jugadores;
     }
 
-    // Metodo para buscar Empleado por Numero
     public Empleado buscaEmpleadoPorNumero(int numeroEmpleado) throws SQLException {
         String sql = "SELECT p.*, e.numeroEmpleado, e.inicioContrato, e.segSocial FROM persona p " +
                     "JOIN empleado e ON p.dni = e.dni WHERE e.numeroEmpleado = ?";
@@ -321,7 +314,6 @@ public class Federacion implements IFederacion {
         return null;
     }
     
-    // Metodo para buscar Empleado por DNI
     @Override
     public Empleado buscaEmpleadoPorDni(String dni) throws SQLException {
         String sql = "SELECT p.*, e.numeroEmpleado, e.inicioContrato, e.segSocial, e.puesto FROM persona p " +
@@ -349,11 +341,9 @@ public class Federacion implements IFederacion {
         return null;
     }
 
-    // Metodo para limpiar las tablas en las pruebas
     public void limpiarTablas() throws SQLException {
         try (Connection conn = DatabaseConnection.getConnection()) {
             conn.setAutoCommit(false);
-            // Disable foreign key checks
             try (PreparedStatement stmt = conn.prepareStatement("SET FOREIGN_KEY_CHECKS = 0")) {
                 stmt.executeUpdate();
             }
@@ -374,7 +364,6 @@ public class Federacion implements IFederacion {
                     stmt.executeUpdate();
                 }
             }
-            // Re-enable foreign key checks
             try (PreparedStatement stmt = conn.prepareStatement("SET FOREIGN_KEY_CHECKS = 1")) {
                 stmt.executeUpdate();
             }
@@ -385,7 +374,6 @@ public class Federacion implements IFederacion {
         }
     }
 
-    // Metodo para limpiar listas
     public void limpiarListas() {
         categorias.clear();
         empleados.clear();
