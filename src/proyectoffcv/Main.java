@@ -4,16 +4,18 @@ import proyectoffcv.logica.Federacion;
 import proyectoffcv.util.DatabaseConnection;
 import entidades.*;
 import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 public class Main {
     public static void main(String[] args) {
         Federacion federacion = Federacion.getInstance();
         
-        // Se declaran al principio para las pruebas
+        // Declarar objetos para pruebas
         Persona persona1 = null;
         Persona persona2 = null;
         Empleado empleado = null;
@@ -33,13 +35,13 @@ public class Main {
         System.out.println("=== INICIO DE PRUEBAS ===");
         
         try {
-            // 0. Verificar conexion a la base de datos solo una vez
+            // 0. Verificar conexion a la base de datos
             System.out.println("Verificando conexion a la base de datos...");
             if (!checkDatabaseConnection()) {
                 throw new RuntimeException("No se pudo conectar a la base de datos.");
             }
 
-            // 1. Limpiar toda la base de datos antes de empezar
+            // 1. Limpiar base de datos
             System.out.println("Limpiando base de datos antes de las pruebas...");
             federacion.limpiarTablas();
 
@@ -73,11 +75,11 @@ public class Main {
             // 3. Prueba de Empleados
             System.out.println("\n--- Prueba de Empleados ---");
             int numeroEmpleado = 1001;
-            if (federacion.buscaEmpleadoPorNumero(numeroEmpleado) == null) {
+            Persona existingEmpleado = federacion.buscaPersona("11223344H");
+            if (existingEmpleado == null || !(existingEmpleado instanceof Empleado)) {
                 empleado = federacion.nuevoEmpleado("11223344H", "Carlos", "Martinez", "Sanchez",
                         LocalDate.of(1980, 3, 20), "carlosm", "pass789", "Castellon", 
                         numeroEmpleado, LocalDate.now(), "123456789012");
-                empleado.setPuesto("Entrenador");
                 empleado.guardar();
                 System.out.println("Empleado creado: " + empleado);
                 
@@ -85,7 +87,7 @@ public class Main {
                 empleado.actualizar();
                 System.out.println("Empleado actualizado: " + federacion.buscaPersona("11223344H"));
             } else {
-                System.out.println("Empleado con numero " + numeroEmpleado + " ya existe, omitiendo creacion.");
+                System.out.println("Empleado con DNI 11223344H ya existe, omitiendo creacion.");
             }
             
             try {
@@ -208,92 +210,45 @@ public class Main {
 
             // 8. Prueba de Equipos
             System.out.println("\n--- Prueba de Equipos ---");
-            if (mestalla != null && grupoA != null && club1 != null) {
-                equipo1 = federacion.nuevoEquipo("A", mestalla, grupoA, club1);
+            if (mestalla != null && grupoA != null) {
+                equipo1 = federacion.nuevoEquipo("A", mestalla, grupoA);
                 equipo1.guardar();
                 System.out.println("Equipo creado: " + equipo1);
             }
             
-            if (ciutat != null && grupoB != null && club2 != null) {
-                equipo2 = federacion.nuevoEquipo("B", ciutat, grupoB, club2); // Corregido a grupoB
+            if (ciutat != null && grupoB != null) {
+                equipo2 = federacion.nuevoEquipo("B", ciutat, grupoB);
                 equipo2.guardar();
                 System.out.println("Equipo creado: " + equipo2);
             }
 
-            // 9. Prueba de Anadir Jugador
-            System.out.println("\n--- Prueba de Anadir Jugador ---");
-            if (equipo1 != null && persona1 != null) {
-                EquipoJugador equipoJugador1 = new EquipoJugador(equipo1, persona1, LocalDateTime.now());
-                equipoJugador1.guardar();
-                System.out.println("Jugador anadido al equipo A: " + persona1);
-                
-                List<Persona> jugadores = federacion.buscarJugadoresEnEquipo(equipo1);
-                Persona jugadorEncontrado = jugadores.stream()
-                        .filter(p -> p.getDni().equals("12345678A"))
-                        .findFirst()
-                        .orElse(null);
-                System.out.println("Jugador encontrado en equipo A: " + jugadorEncontrado);
-            }
-            
-            try {
-                Equipo equipoInvalido = Equipo.buscarPorLetra("Z");
-                if (equipoInvalido == null) {
-                    throw new IllegalArgumentException("Equipo inexistente");
-                }
-                if (persona1 != null) {
-                    new EquipoJugador(equipoInvalido, persona1, LocalDateTime.now()).guardar();
-                }
-                System.out.println("Error: Deberia haber fallado (equipo inexistente)");
-            } catch (SQLException | IllegalArgumentException e) {
-                System.out.println("Prueba de equipo inexistente correcta: " + e.getMessage());
-            }
-            
-            try {
-                if (equipo1 != null && persona1 != null) {
-                    EquipoJugador equipoJugadorDuplicado = new EquipoJugador(equipo1, persona1, LocalDateTime.now());
-                    equipoJugadorDuplicado.guardar();
-                }
-                System.out.println("Error: Deberia haber fallado (jugador duplicado)");
-            } catch (SQLException e) {
-                System.out.println("Prueba de jugador duplicado correcta: " + e.getMessage());
-            }
-
-            // 10. Prueba de Licencias
+            // 9. Prueba de Licencias
             System.out.println("\n--- Prueba de Licencias ---");
             if (persona1 != null && equipo1 != null) {
-                licencia1 = federacion.nuevaLicencia(persona1, equipo1, LocalDate.now(), LocalDate.now().plusYears(1), false);
-                licencia1.guardar();
+                licencia1 = federacion.nuevaLicencia(persona1, equipo1);
+                federacion.addLicencia(licencia1, equipo1);
                 System.out.println("Licencia con equipo creada: " + licencia1);
             }
             
             if (persona2 != null && equipo2 != null) {
-                licencia2 = federacion.nuevaLicencia(persona2, equipo2, LocalDate.now(), LocalDate.now().plusYears(1), false);
-                licencia2.guardar();
+                licencia2 = federacion.nuevaLicencia(persona2, equipo2);
+                federacion.addLicencia(licencia2, equipo2);
                 System.out.println("Licencia con equipo creada: " + licencia2);
             }
             
-            if (licencia1 != null) {
-                licencia1.setAbonada(true);
-                licencia1.actualizar();
-                System.out.println("Licencia actualizada: " + licencia1);
-            }
-            
             if (persona1 != null) {
-                List<Licencia> licencias = federacion.obtenerLicencias(persona1);
+                List<Licencia> licencias = buscarLicenciasPorPersona(persona1.getDni());
                 System.out.println("Licencias de " + persona1.getNombre() + ":");
                 licencias.forEach(System.out::println);
             }
             
-            try {
-                if (persona1 != null && equipo1 != null) {
-                    federacion.nuevaLicencia(persona1, equipo1, LocalDate.now(), LocalDate.now().plusYears(1), false).guardar();
-                }
+            if (persona1 != null && equipo1 != null) {
+                Licencia licenciaDuplicada = federacion.nuevaLicencia(persona1, equipo1);
+                federacion.addLicencia(licenciaDuplicada, equipo1);
                 System.out.println("Error: Deberia haber fallado (licencia duplicada)");
-            } catch (SQLException e) {
-                System.out.println("Prueba de licencia duplicada correcta: " + e.getMessage());
             }
 
-            // 11. Prueba de Busquedas
+            // 10. Prueba de Busquedas
             System.out.println("\n--- Prueba de Busquedas ---");
             List<Persona> personas = federacion.buscaPersonas("Juan", "Perez", "Gomez");
             System.out.println("Personas encontradas (Juan Perez Gomez):");
@@ -302,21 +257,15 @@ public class Main {
             System.out.println("\nInstalaciones encontradas (Mestalla):");
             instalaciones.forEach(System.out::println);
 
-            // 12. Pruebas de Eliminacion
+            // 11. Pruebas de Eliminacion
             System.out.println("\n--- Pruebas de Eliminacion ---");
-            if (persona1 != null) {
-                List<Licencia> licenciasPersona1 = federacion.obtenerLicencias(persona1);
-                for (Licencia licencia : licenciasPersona1) {
-                    licencia.eliminar();
-                    System.out.println("Licencia eliminada para persona1: " + licencia);
-                }
+            if (licencia1 != null) {
+                licencia1.eliminar();
+                System.out.println("Licencia eliminada para persona1: " + licencia1);
             }
-            if (persona2 != null) {
-                List<Licencia> licenciasPersona2 = federacion.obtenerLicencias(persona2);
-                for (Licencia licencia : licenciasPersona2) {
-                    licencia.eliminar();
-                    System.out.println("Licencia eliminada para persona2: " + licencia);
-                }
+            if (licencia2 != null) {
+                licencia2.eliminar();
+                System.out.println("Licencia eliminada para persona2: " + licencia2);
             }
             
             if (equipo1 != null) equipo1.eliminar();
@@ -371,5 +320,27 @@ public class Main {
             e.printStackTrace();
             return false;
         }
+    }
+    
+    private static List<Licencia> buscarLicenciasPorPersona(String dni) throws SQLException {
+        List<Licencia> licencias = new ArrayList<>();
+        String sql = "SELECT * FROM licencia WHERE dni = ?";
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, dni);
+            ResultSet rs = stmt.executeQuery();
+            while (rs.next()) {
+                Persona persona = Persona.buscarPorDni(dni);
+                Equipo equipo = rs.getInt("equipo_id") > 0 ? Equipo.buscarPorId(rs.getInt("equipo_id")) : null;
+                Licencia licencia = new Licencia(
+                    rs.getString("numero"),
+                    persona,
+                    equipo,
+                    rs.getBoolean("abonada")
+                );
+                licencias.add(licencia);
+            }
+        }
+        return licencias;
     }
 }

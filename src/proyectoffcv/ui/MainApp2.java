@@ -14,6 +14,7 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.net.URL;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
 import proyectoffcv.util.DatabaseConnection;
 
@@ -374,194 +375,205 @@ public class MainApp2 {
 
     // Metodo para crear el panel de empleados
     private JPanel createEmpleadoPanel() {
-        JPanel panel = new JPanel(new BorderLayout(10, 10)); // Crea el panel de empleados
-        panel.setBackground(Color.WHITE); // Establece el color de fondo del panel
-        panel.setBorder(new EmptyBorder(15, 15, 15, 15)); // Establece un borde vacio alrededor del panel
+        // Crear panel principal con borde y fondo blanco
+        JPanel panel = new JPanel(new BorderLayout(10, 10));
+        panel.setBackground(Color.WHITE);
+        panel.setBorder(new EmptyBorder(15, 15, 15, 15));
 
-        JPanel createPanel = createTitledPanel("Crear/Actualizar Empleado"); // Crea el panel para crear/actualizar empleados
-        GridBagConstraints gbc = new GridBagConstraints(); // Configuracion de la cuadricula
-        gbc.insets = new Insets(8, 10, 8, 10); // Espaciado entre componentes
-        gbc.fill = GridBagConstraints.HORIZONTAL; // Rellena el espacio horizontalmente
+        // Crear subpanel con titulo
+        JPanel createPanel = createTitledPanel("Gestionar Empleados");
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(8, 10, 8, 10);
+        gbc.fill = GridBagConstraints.HORIZONTAL;
         gbc.weightx = 1.0;
 
-        // Campos para ingresar datos del empleado
-        JLabel dniError = new JLabel(""); // Etiqueta para errores en el campo DNI
-        JTextField dniField = addField(createPanel, gbc, "DNI:", 0, dniError); // Campo para el DNI
-        JLabel nombreError = new JLabel(""); // Etiqueta para errores en el campo nombre
-        JTextField nombreField = addField(createPanel, gbc, "Nombre:", 1, nombreError); // Campo para el nombre
-        JLabel apellido1Error = new JLabel(""); // Etiqueta para errores en el campo apellido1
-        JTextField apellido1Field = addField(createPanel, gbc, "Apellido 1:", 2, apellido1Error); // Campo para el primer apellido
-        JLabel apellido2Error = new JLabel(""); // Etiqueta para errores en el campo apellido2
-        JTextField apellido2Field = addField(createPanel, gbc, "Apellido 2:", 3, apellido2Error); // Campo para el segundo apellido
-        JLabel fechaError = new JLabel(""); // Etiqueta para errores en el campo fecha
-        JTextField fechaField = addField(createPanel, gbc, "Fecha Nacimiento (YYYY-MM-DD):", 4, fechaError); // Campo para la fecha
-        JLabel numEmpError = new JLabel(""); // Etiqueta para errores en el campo numero de empleado
-        JTextField numEmpField = addField(createPanel, gbc, "Numero Empleado:", 5, numEmpError); // Campo para el numero de empleado
-        JLabel inicioContratoError = new JLabel(""); // Etiqueta para errores en el campo inicio de contrato
-        JTextField inicioContratoField = addField(createPanel, gbc, "Inicio Contrato (YYYY-MM-DD):", 6, inicioContratoError); // Campo para la fecha de contrato
-        JLabel segSocialError = new JLabel(""); // Etiqueta para errores en el campo seguridad social
-        JTextField segSocialField = addField(createPanel, gbc, "Seguridad Social:", 7, segSocialError); // Campo para la seguridad social
-        JLabel puestoError = new JLabel(""); // Etiqueta para errores en el campo puesto
-        JTextField puestoField = addField(createPanel, gbc, "Puesto:", 8, puestoError); // Campo para el puesto
-        JLabel usuarioError = new JLabel(""); // Etiqueta para errores en el campo usuario
-        JTextField usuarioField = addField(createPanel, gbc, "Usuario:", 9, usuarioError); // Campo para el usuario
-        JLabel passwordError = new JLabel(""); // Etiqueta para errores en el campo contrasena
-        JTextField passwordField = addField(createPanel, gbc, "Contraseña:", 10, passwordError); // Campo para la contrasena
-        JLabel poblacionError = new JLabel(""); // Etiqueta para errores en el campo poblacion
-        JTextField poblacionField = addField(createPanel, gbc, "Poblacion:", 11, poblacionError); // Campo para la poblacion
+        // Agregar campos de texto
+        JTextField dniField = addField(createPanel, gbc, "DNI:", 0);
+        JTextField nombreField = addField(createPanel, gbc, "Nombre:", 1);
+        JTextField apellido1Field = addField(createPanel, gbc, "Apellido 1:", 2);
+        JTextField apellido2Field = addField(createPanel, gbc, "Apellido 2:", 3);
+        JTextField fechaNacimientoField = addField(createPanel, gbc, "Fecha Nacimiento (YYYY-MM-DD):", 4);
+        JTextField usuarioField = addField(createPanel, gbc, "Usuario:", 5);
+        JTextField passwordField = addField(createPanel, gbc, "Password:", 6);
+        JTextField poblacionField = addField(createPanel, gbc, "Poblacion:", 7);
+        JTextField numEmpleadoField = addField(createPanel, gbc, "Numero Empleado:", 8);
+        JTextField inicioContratoField = addField(createPanel, gbc, "Inicio Contrato (YYYY-MM-DD):", 9);
+        JTextField segSocialField = addField(createPanel, gbc, "Seguridad Social:", 10);
 
-        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10)); // Panel para los botones
-        buttonPanel.setBackground(Color.WHITE); // Establece el color de fondo del panel de botones
+        // Crear panel para botones
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10));
+        buttonPanel.setBackground(Color.WHITE);
 
-        // Botones para crear, actualizar y eliminar empleados
-        JButton crearButton = new JButton("Crear Empleado", loadIcon("/resources/iconos/cross.png")); // Boton para crear empleado
-        styleButton(crearButton, new Color(211, 47, 47), true); // Estiliza el boton
-        JButton actualizarButton = new JButton("Actualizar Empleado", loadIcon("/resources/iconos/edit.png")); // Boton para actualizar empleado
-        styleButton(actualizarButton, new Color(33, 37, 41), false); // Estiliza el boton
-        JButton eliminarButton = new JButton("Eliminar Empleado", loadIcon("/resources/iconos/delete.png")); // Boton para eliminar empleado
-        styleButton(eliminarButton, new Color(211, 47, 47), true); // Estiliza el boton
+        // Crear botones
+        JButton crearButton = new JButton("Crear Empleado", loadIcon("/resources/iconos/cross.png"));
+        styleButton(crearButton, new Color(211, 47, 47), true);
+        JButton actualizarButton = new JButton("Actualizar Empleado", loadIcon("/resources/iconos/edit.png"));
+        styleButton(actualizarButton, new Color(33, 37, 41), false);
+        JButton eliminarButton = new JButton("Eliminar Empleado", loadIcon("/resources/iconos/delete.png"));
+        styleButton(eliminarButton, new Color(211, 47, 47), true);
+        JButton buscarButton = new JButton("Buscar Empleado", loadIcon("/resources/iconos/magnifier.png"));
+        styleButton(buscarButton, new Color(33, 37, 41), false);
 
-        // Anade los botones al panel de botones
+        // Agregar botones al panel
         buttonPanel.add(crearButton);
         buttonPanel.add(actualizarButton);
         buttonPanel.add(eliminarButton);
+        buttonPanel.add(buscarButton);
 
-        // Accion para crear un nuevo empleado
+        // Boton crear empleado
         crearButton.addActionListener(event -> {
-            if (!validateFields(dniField, nombreField, apellido1Field, fechaField, numEmpField, inicioContratoField, segSocialField, usuarioField, passwordField)) {
-                return; // Valida que los campos no esten vacios
+            // Validar campos
+            if (!validateFields(dniField, nombreField, apellido1Field, fechaNacimientoField, usuarioField, passwordField, poblacionField, numEmpleadoField, inicioContratoField, segSocialField)) {
+                return;
             }
             try {
-                if (federacion.buscaPersona(dniField.getText()) != null) {
-                    dniError.setText("DNI ya registrado.");
-                    dniError.setForeground(Color.RED);
-                    return;
-                }
+                // Validar DNI
                 if (!validateDni(dniField.getText())) {
                     showError("DNI invalido.");
                     return;
                 }
-                if (!validateDateFormat(fechaField.getText()) || !validateDateFormat(inicioContratoField.getText())) {
-                    showError("Formato de fecha invalido (YYYY-MM-DD).");
+                // Verificar si empleado existe
+                Persona persona = federacion.buscaPersona(dniField.getText().trim());
+                if (persona instanceof Empleado) {
+                    showError("Empleado ya existe.");
                     return;
                 }
-                if (!segSocialField.getText().matches("\\d{2}\\d{8}\\d{2}")) {
-                    showError("Seguridad Social: 2 digitos (provincia), 8 digitos (numero), 2 digitos (control).");
-                    return;
-                }
-                int numEmp = Integer.parseInt(numEmpField.getText()); // Convierte el texto a entero
-                if (numEmp <= 0) {
-                    showError("Numero de empleado debe ser mayor a 0.");
-                    return;
-                }
-                Empleado empleado = federacion.nuevoEmpleado(dniField.getText(), nombreField.getText(), apellido1Field.getText(),
-                        apellido2Field.getText(), LocalDate.parse(fechaField.getText()), usuarioField.getText(),
-                        passwordField.getText(), poblacionField.getText(), numEmp, LocalDate.parse(inicioContratoField.getText()),
-                        segSocialField.getText()); // Crea un nuevo empleado
-                if (empleado != null) {
-                    empleado.setPuesto(puestoField.getText()); // Establece el puesto
-                    empleado.guardar(); // Persiste el empleado en la base de datos
-                    JOptionPane.showMessageDialog(frame, "Empleado creado con exito: " + empleado, "Exito", JOptionPane.INFORMATION_MESSAGE); // Muestra mensaje de exito
-                    clearFields(dniField, nombreField, apellido1Field, apellido2Field, fechaField, numEmpField, inicioContratoField, segSocialField, puestoField, usuarioField, passwordField, poblacionField); // Limpia los campos
-                    dniError.setText(""); nombreError.setText(""); apellido1Error.setText(""); apellido2Error.setText("");
-                    fechaError.setText(""); numEmpError.setText(""); inicioContratoError.setText(""); segSocialError.setText("");
-                    puestoError.setText(""); usuarioError.setText(""); passwordError.setText(""); poblacionError.setText("");
-                } else {
-                    showError("No se pudo crear el empleado.");
-                }
+                // Obtener datos
+                String dni = dniField.getText().trim();
+                String nombre = nombreField.getText().trim();
+                String apellido1 = apellido1Field.getText().trim();
+                String apellido2 = apellido2Field.getText().trim();
+                LocalDate fechaNacimiento = LocalDate.parse(fechaNacimientoField.getText().trim());
+                String usuario = usuarioField.getText().trim();
+                String password = passwordField.getText().trim();
+                String poblacion = poblacionField.getText().trim();
+                int numEmpleado = Integer.parseInt(numEmpleadoField.getText().trim());
+                LocalDate inicioContrato = LocalDate.parse(inicioContratoField.getText().trim());
+                String segSocial = segSocialField.getText().trim();
+                // Crear empleado
+                Empleado empleado = federacion.nuevoEmpleado(dni, nombre, apellido1, apellido2, fechaNacimiento, usuario, password, poblacion, numEmpleado, inicioContrato, segSocial);
+                empleado.guardar();
+                JOptionPane.showMessageDialog(frame, "Empleado creado: " + empleado.getNombre(), "Exito", JOptionPane.INFORMATION_MESSAGE);
+                // Limpiar campos
+                clearFields(dniField, nombreField, apellido1Field, apellido2Field, fechaNacimientoField, usuarioField, passwordField, poblacionField, numEmpleadoField, inicioContratoField, segSocialField);
+            } catch (DateTimeParseException ex) {
+                showError("Formato de fecha invalido. Use YYYY-MM-DD.");
             } catch (NumberFormatException ex) {
-                handleError(ex, "Numero de empleado debe ser numerico.");
+                showError("Numero de empleado invalido.");
             } catch (SQLException ex) {
-                handleError(ex, "Error al guardar empleado en la base de datos.");
+                handleError(ex, "Error al guardar empleado.");
             }
         });
 
-        // Accion para actualizar un empleado existente
+        // Boton actualizar empleado
         actualizarButton.addActionListener(event -> {
-            if (!validateFields(dniField, nombreField, apellido1Field, fechaField, numEmpField, inicioContratoField, segSocialField, usuarioField, passwordField)) {
-                return; // Valida que los campos no esten vacios
+            // Validar campos
+            if (!validateFields(dniField, nombreField, apellido1Field, fechaNacimientoField, usuarioField, passwordField, poblacionField, numEmpleadoField, inicioContratoField, segSocialField)) {
+                return;
             }
             try {
+                // Validar DNI
                 if (!validateDni(dniField.getText())) {
                     showError("DNI invalido.");
                     return;
                 }
-                if (!validateDateFormat(fechaField.getText()) || !validateDateFormat(inicioContratoField.getText())) {
-                    showError("Formato de fecha invalido (YYYY-MM-DD).");
-                    return;
-                }
-                int numEmp = Integer.parseInt(numEmpField.getText()); // Convierte el texto a entero
-                if (numEmp <= 0) {
-                    showError("Numero de empleado debe ser mayor a 0.");
-                    return;
-                }
-                // Busca el empleado por DNI usando el metodo especifico
-                Empleado empleado = federacion.buscaEmpleadoPorDni(dniField.getText());
-                if (empleado == null) {
+                // Buscar empleado
+                Persona persona = federacion.buscaPersona(dniField.getText().trim());
+                if (!(persona instanceof Empleado)) {
                     showError("Empleado no encontrado.");
                     return;
                 }
-                // Actualiza los datos del empleado
-                empleado.setNombre(nombreField.getText());
-                empleado.setApellido1(apellido1Field.getText());
-                empleado.setApellido2(apellido2Field.getText());
-                empleado.setFechaNacimiento(LocalDate.parse(fechaField.getText()));
-                empleado.setPoblacion(poblacionField.getText());
-                empleado.setUsuario(usuarioField.getText());
-                empleado.setPassword(passwordField.getText());
-                empleado.setNumEmpleado(numEmp);
-                empleado.setInicioContrato(LocalDate.parse(inicioContratoField.getText()));
-                empleado.setSegSocial(segSocialField.getText());
-                empleado.setPuesto(puestoField.getText());
-                empleado.actualizar(); // Guarda los cambios en la base de datos
-                JOptionPane.showMessageDialog(frame, "Empleado actualizado con exito: " + empleado, "Exito", JOptionPane.INFORMATION_MESSAGE);
-                clearFields(dniField, nombreField, apellido1Field, apellido2Field, fechaField, numEmpField, inicioContratoField, segSocialField, puestoField, usuarioField, passwordField, poblacionField);
-                dniError.setText(""); nombreError.setText(""); apellido1Error.setText(""); apellido2Error.setText("");
-                fechaError.setText(""); numEmpError.setText(""); inicioContratoError.setText(""); segSocialError.setText("");
-                puestoError.setText(""); usuarioError.setText(""); passwordError.setText(""); poblacionError.setText("");
+                Empleado empleado = (Empleado) persona;
+                // Actualizar datos
+                empleado.setNombre(nombreField.getText().trim());
+                empleado.setApellido1(apellido1Field.getText().trim());
+                empleado.setApellido2(apellido2Field.getText().trim());
+                empleado.setFechaNacimiento(LocalDate.parse(fechaNacimientoField.getText().trim()));
+                empleado.setUsuario(usuarioField.getText().trim());
+                empleado.setPassword(passwordField.getText().trim());
+                empleado.setPoblacion(poblacionField.getText().trim());
+                empleado.setNumEmpleado(Integer.parseInt(numEmpleadoField.getText().trim()));
+                empleado.setInicioContrato(LocalDate.parse(inicioContratoField.getText().trim()));
+                empleado.setSegSocial(segSocialField.getText().trim());
+                empleado.actualizar();
+                JOptionPane.showMessageDialog(frame, "Empleado actualizado: " + empleado.getNombre(), "Exito", JOptionPane.INFORMATION_MESSAGE);
+                // Limpiar campos
+                clearFields(dniField, nombreField, apellido1Field, apellido2Field, fechaNacimientoField, usuarioField, passwordField, poblacionField, numEmpleadoField, inicioContratoField, segSocialField);
+            } catch (DateTimeParseException ex) {
+                showError("Formato de fecha invalido. Use YYYY-MM-DD.");
             } catch (NumberFormatException ex) {
-                handleError(ex, "Numero de empleado debe ser numerico.");
+                showError("Numero de empleado invalido.");
             } catch (SQLException ex) {
-                handleError(ex, "Error al actualizar empleado en la base de datos.");
+                handleError(ex, "Error al actualizar empleado.");
             }
         });
 
-        // Accion para eliminar un empleado
+        // Boton eliminar empleado
         eliminarButton.addActionListener(event -> {
+            // Validar campo DNI
             if (!validateFields(dniField)) {
-                return; // Valida que el campo no este vacio
+                return;
             }
             try {
+                // Validar DNI
                 if (!validateDni(dniField.getText())) {
                     showError("DNI invalido.");
                     return;
                 }
-                Empleado empleado = federacion.buscaEmpleadoPorDni(dniField.getText()); // Busca el empleado por DNI
-                if (empleado == null) {
+                // Buscar empleado
+                Persona persona = federacion.buscaPersona(dniField.getText().trim());
+                if (!(persona instanceof Empleado)) {
                     showError("Empleado no encontrado.");
                     return;
                 }
-                empleado.eliminar(); // Elimina el empleado de la base de datos
-                JOptionPane.showMessageDialog(frame, "Empleado eliminado con exito: " + empleado, "Exito", JOptionPane.INFORMATION_MESSAGE); // Muestra mensaje de exito
-                clearFields(dniField, nombreField, apellido1Field, apellido2Field, fechaField, numEmpField, inicioContratoField, segSocialField, puestoField, usuarioField, passwordField, poblacionField); // Limpia los campos
-                dniError.setText(""); nombreError.setText(""); apellido1Error.setText(""); apellido2Error.setText("");
-                fechaError.setText(""); numEmpError.setText(""); inicioContratoError.setText(""); segSocialError.setText("");
-                puestoError.setText(""); usuarioError.setText(""); passwordError.setText(""); poblacionError.setText("");
+                Empleado empleado = (Empleado) persona;
+                // Eliminar empleado
+                empleado.eliminar();
+                JOptionPane.showMessageDialog(frame, "Empleado eliminado: " + empleado.getNombre(), "Exito", JOptionPane.INFORMATION_MESSAGE);
+                // Limpiar campos
+                clearFields(dniField, nombreField, apellido1Field, apellido2Field, fechaNacimientoField, usuarioField, passwordField, poblacionField, numEmpleadoField, inicioContratoField, segSocialField);
             } catch (SQLException ex) {
-                handleError(ex, "Error al eliminar empleado de la base de datos.");
+                handleError(ex, "Error al eliminar empleado.");
             }
         });
 
+        // Boton buscar empleado
+        buscarButton.addActionListener(event -> {
+            // Validar campo DNI
+            if (!validateFields(dniField)) {
+                return;
+            }
+            // Validar DNI
+            if (!validateDni(dniField.getText())) {
+                showError("DNI invalido.");
+                return;
+            }
+            // Buscar empleado
+            Persona persona = federacion.buscaPersona(dniField.getText().trim());
+            if (!(persona instanceof Empleado)) {
+                showError("Empleado no encontrado.");
+                return;
+            }
+            Empleado empleado = (Empleado) persona;
+            // Mostrar resultado
+            List<Empleado> empleados = new ArrayList<>();
+            empleados.add(empleado);
+            showListResult(empleados, "Empleado encontrado:");
+            // Limpiar campos
+            clearFields(dniField, nombreField, apellido1Field, apellido2Field, fechaNacimientoField, usuarioField, passwordField, poblacionField, numEmpleadoField, inicioContratoField, segSocialField);
+        });
+
+        // Configurar posicion de panel de botones
         gbc.gridx = 0;
-        gbc.gridy = 12;
-        gbc.gridwidth = 2; // Configura la posicion del panel de botones
+        gbc.gridy = 11;
+        gbc.gridwidth = 2;
         gbc.fill = GridBagConstraints.NONE;
         gbc.anchor = GridBagConstraints.CENTER;
-        createPanel.add(buttonPanel, gbc); // Anade el panel de botones al panel de crear/actualizar empleado
+        createPanel.add(buttonPanel, gbc);
 
-        // Anade el panel de errores al final del formulario
+        // Configurar posicion de panel de errores
         gbc.gridx = 0;
-        gbc.gridy = 13; // Siguiente fila
+        gbc.gridy = 12;
         gbc.gridwidth = 2;
         gbc.fill = GridBagConstraints.HORIZONTAL;
         gbc.anchor = GridBagConstraints.SOUTH;
@@ -569,8 +581,9 @@ public class MainApp2 {
         gbc.insets = new Insets(10, 10, 8, 10);
         createPanel.add(errorScrollPane, gbc);
 
-        panel.add(createPanel, BorderLayout.NORTH); // Anade el panel de crear/actualizar empleado al panel principal
-        return panel; // Devuelve el panel de empleados
+        // Agregar subpanel al panel principal
+        panel.add(createPanel, BorderLayout.NORTH);
+        return panel;
     }
 
     // Metodo para crear el panel de categorias
@@ -868,27 +881,28 @@ public class MainApp2 {
 
     // Metodo para crear el panel de clubes
     private JPanel createClubPanel() {
+        // Crear panel principal con borde y fondo blanco
         JPanel panel = new JPanel(new BorderLayout(10, 10));
         panel.setBackground(Color.WHITE);
         panel.setBorder(new EmptyBorder(15, 15, 15, 15));
 
-        // Crear panel titulado para el formulario
+        // Crear subpanel con titulo
         JPanel createPanel = createTitledPanel("Gestionar Clubes");
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.insets = new Insets(8, 10, 8, 10);
         gbc.fill = GridBagConstraints.HORIZONTAL;
         gbc.weightx = 1.0;
 
-        // Campos para datos del club
+        // Agregar campos de texto
         JTextField nombreField = addField(createPanel, gbc, "Nombre Club:", 0);
         JTextField fechaFundacionField = addField(createPanel, gbc, "Fecha Fundacion (YYYY-MM-DD):", 1);
         JTextField dniPresidenteField = addField(createPanel, gbc, "DNI Presidente:", 2);
 
-        // Panel para botones de acciones
+        // Crear panel para botones
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10));
         buttonPanel.setBackground(Color.WHITE);
 
-        // Botones para crear, actualizar, eliminar y buscar clubes
+        // Crear botones
         JButton crearButton = new JButton("Crear Club", loadIcon("/resources/iconos/cross.png"));
         styleButton(crearButton, new Color(211, 47, 47), true);
         JButton actualizarButton = new JButton("Actualizar Club", loadIcon("/resources/iconos/edit.png"));
@@ -898,11 +912,133 @@ public class MainApp2 {
         JButton buscarButton = new JButton("Buscar Club", loadIcon("/resources/iconos/magnifier.png"));
         styleButton(buscarButton, new Color(33, 37, 41), false);
 
+        // Agregar botones al panel
         buttonPanel.add(crearButton);
         buttonPanel.add(actualizarButton);
         buttonPanel.add(eliminarButton);
         buttonPanel.add(buscarButton);
 
+        // Boton crear club
+        crearButton.addActionListener(event -> {
+            // Validar campos
+            if (!validateFields(nombreField, fechaFundacionField, dniPresidenteField)) {
+                return;
+            }
+            try {
+                // Obtener datos de campos
+                String nombre = nombreField.getText().trim();
+                LocalDate fechaFundacion = LocalDate.parse(fechaFundacionField.getText().trim());
+                String dniPresidente = dniPresidenteField.getText().trim();
+                // Buscar presidente
+                Persona presidente = federacion.buscaPersona(dniPresidente);
+                if (presidente == null) {
+                    showError("Presidente no encontrado.");
+                    return;
+                }
+                // Verificar si club existe
+                Club existingClub = federacion.buscarClub(nombre);
+                if (existingClub != null) {
+                    showError("El club ya existe.");
+                    return;
+                }
+                // Crear y guardar club
+                Club club = federacion.nuevoClub(nombre, fechaFundacion, presidente);
+                club.guardar();
+                JOptionPane.showMessageDialog(frame, "Club creado: " + club.getNombre(), "Exito", JOptionPane.INFORMATION_MESSAGE);
+                // Limpiar campos
+                clearFields(nombreField, fechaFundacionField, dniPresidenteField);
+            } catch (DateTimeParseException ex) {
+                showError("Formato de fecha invalido. Use YYYY-MM-DD.");
+            } catch (SQLException ex) {
+                handleError(ex, "Error al guardar club.");
+            }
+        });
+
+        // Boton actualizar club
+        actualizarButton.addActionListener(event -> {
+            // Validar campos
+            if (!validateFields(nombreField, fechaFundacionField, dniPresidenteField)) {
+                return;
+            }
+            try {
+                // Obtener datos de campos
+                String nombre = nombreField.getText().trim();
+                LocalDate fechaFundacion = LocalDate.parse(fechaFundacionField.getText().trim());
+                String dniPresidente = dniPresidenteField.getText().trim();
+                // Buscar presidente
+                Persona presidente = federacion.buscaPersona(dniPresidente);
+                if (presidente == null) {
+                    showError("Presidente no encontrado.");
+                    return;
+                }
+                // Buscar club
+                Club club = federacion.buscarClub(nombre);
+                if (club == null) {
+                    showError("Club no encontrado.");
+                    return;
+                }
+                // Actualizar datos
+                club.setFechaFundacion(fechaFundacion);
+                club.setPresidente(presidente);
+                club.actualizar();
+                JOptionPane.showMessageDialog(frame, "Club actualizado: " + club.getNombre(), "Exito", JOptionPane.INFORMATION_MESSAGE);
+                // Limpiar campos
+                clearFields(nombreField, fechaFundacionField, dniPresidenteField);
+            } catch (DateTimeParseException ex) {
+                showError("Formato de fecha invalido. Use YYYY-MM-DD.");
+            } catch (SQLException ex) {
+                handleError(ex, "Error al actualizar club.");
+            }
+        });
+
+        // Boton eliminar club
+        eliminarButton.addActionListener(event -> {
+            // Validar campo nombre
+            if (!validateFields(nombreField)) {
+                return;
+            }
+            try {
+                // Obtener nombre
+                String nombre = nombreField.getText().trim();
+                // Buscar club
+                Club club = federacion.buscarClub(nombre);
+                if (club == null) {
+                    showError("Club no encontrado.");
+                    return;
+                }
+                // Eliminar club
+                club.eliminar();
+                JOptionPane.showMessageDialog(frame, "Club eliminado: " + club.getNombre(), "Exito", JOptionPane.INFORMATION_MESSAGE);
+                // Limpiar campos
+                clearFields(nombreField, fechaFundacionField, dniPresidenteField);
+            } catch (SQLException ex) {
+                handleError(ex, "Error al eliminar club.");
+            }
+        });
+
+        // Boton buscar club
+        buscarButton.addActionListener(event -> {
+            // Validar campo nombre
+            if (!validateFields(nombreField)) {
+                return;
+            }
+            // Obtener nombre
+            String nombre = nombreField.getText().trim();
+            // Buscar club
+            Club club = federacion.buscarClub(nombre);
+            if (club == null) {
+                showError("Club no encontrado.");
+                return;
+            }
+            // Mostrar resultado
+            List<Club> clubes = new ArrayList<>();
+            clubes.add(club);
+            showListResult(clubes, "Club encontrado:");
+            // Limpiar campos
+            clearFields(nombreField, fechaFundacionField, dniPresidenteField);
+        });
+
+        // Configurar posicion de panel de botones
         gbc.gridx = 0;
         gbc.gridy = 3;
         gbc.gridwidth = 2;
@@ -910,7 +1046,7 @@ public class MainApp2 {
         gbc.anchor = GridBagConstraints.CENTER;
         createPanel.add(buttonPanel, gbc);
 
-        // Anadir panel de errores al formulario
+        // Configurar posicion de panel de errores
         gbc.gridx = 0;
         gbc.gridy = 4;
         gbc.gridwidth = 2;
@@ -920,110 +1056,7 @@ public class MainApp2 {
         gbc.insets = new Insets(10, 10, 8, 10);
         createPanel.add(errorScrollPane, gbc);
 
-        // Accion para crear un nuevo club
-        crearButton.addActionListener(event -> {
-            if (!validateFields(nombreField, fechaFundacionField, dniPresidenteField)) {
-                return;
-            }
-            try {
-                String nombre = nombreField.getText().trim();
-                LocalDate fechaFundacion = LocalDate.parse(fechaFundacionField.getText().trim());
-                String dniPresidente = dniPresidenteField.getText().trim();
-                Persona presidente = federacion.buscaPersona(dniPresidente);
-                if (presidente == null) {
-                    showError("Presidente no encontrado.");
-                    return;
-                }
-                Club existingClub = federacion.buscarClub(nombre);
-                if (existingClub != null) {
-                    showError("El club ya existe.");
-                    return;
-                }
-                Club club = federacion.nuevoClub(nombre, fechaFundacion, presidente);
-                club.guardar();
-                JOptionPane.showMessageDialog(frame, "Club creado con exito: " + club.getNombre(), "Exito", JOptionPane.INFORMATION_MESSAGE);
-                clearFields(nombreField, fechaFundacionField, dniPresidenteField);
-            } catch (DateTimeParseException ex) {
-                showError("Formato de fecha invalido. Use YYYY-MM-DD.");
-            } catch (SQLException ex) {
-                handleError(ex, "Error al guardar club en la base de datos.");
-            } catch (Exception ex) {
-                handleError(ex, "Error al crear club.");
-            }
-        });
-
-        // Accion para actualizar un club existente
-        actualizarButton.addActionListener(event -> {
-            if (!validateFields(nombreField, fechaFundacionField, dniPresidenteField)) {
-                return;
-            }
-            try {
-                String nombre = nombreField.getText().trim();
-                LocalDate fechaFundacion = LocalDate.parse(fechaFundacionField.getText().trim());
-                String dniPresidente = dniPresidenteField.getText().trim();
-                Persona presidente = federacion.buscaPersona(dniPresidente);
-                if (presidente == null) {
-                    showError("Presidente no encontrado.");
-                    return;
-                }
-                Club club = federacion.buscarClub(nombre);
-                if (club == null) {
-                    showError("Club no encontrado.");
-                    return;
-                }
-                club.setFechaFundacion(fechaFundacion);
-                club.setPresidente(presidente);
-                club.actualizar();
-                JOptionPane.showMessageDialog(frame, "Club actualizado con exito: " + club.getNombre(), "Exito", JOptionPane.INFORMATION_MESSAGE);
-                clearFields(nombreField, fechaFundacionField, dniPresidenteField);
-            } catch (DateTimeParseException ex) {
-                showError("Formato de fecha invalido. Use YYYY-MM-DD.");
-            } catch (SQLException ex) {
-                handleError(ex, "Error al actualizar club en la base de datos.");
-            } catch (Exception ex) {
-                handleError(ex, "Error al actualizar club.");
-            }
-        });
-
-        // Accion para eliminar un club
-        eliminarButton.addActionListener(event -> {
-            if (!validateFields(nombreField)) {
-                return;
-            }
-            try {
-                String nombre = nombreField.getText().trim();
-                Club club = federacion.buscarClub(nombre);
-                if (club == null) {
-                    showError("Club no encontrado.");
-                    return;
-                }
-                club.eliminar();
-                JOptionPane.showMessageDialog(frame, "Club eliminado con exito: " + club.getNombre(), "Exito", JOptionPane.INFORMATION_MESSAGE);
-                clearFields(nombreField, fechaFundacionField, dniPresidenteField);
-            } catch (SQLException ex) {
-                handleError(ex, "Error al eliminar club de la base de datos.");
-            } catch (Exception ex) {
-                handleError(ex, "Error al eliminar club.");
-            }
-        });
-
-        // Accion para buscar clubes por nombre
-        buscarButton.addActionListener(event -> {
-            if (!validateFields(nombreField)) {
-                return;
-            }
-            try {
-                String nombre = nombreField.getText().trim();
-                List<Club> clubes = federacion.buscarClubes(nombre);
-                showListResult(clubes, "Clubes encontrados:");
-                clearFields(nombreField, fechaFundacionField, dniPresidenteField);
-            } catch (SQLException ex) {
-                handleError(ex, "Error al buscar clubes en la base de datos.");
-            } catch (Exception ex) {
-                handleError(ex, "Error al buscar clubes.");
-            }
-        });
-
+        // Agregar subpanel al panel principal
         panel.add(createPanel, BorderLayout.NORTH);
         return panel;
     }
@@ -1177,280 +1210,234 @@ public class MainApp2 {
 
     // Metodo para crear el panel de equipos
     private JPanel createEquipoPanel() {
-        JPanel panel = new JPanel(new BorderLayout(10, 10)); // Crea el panel de equipos
-        panel.setBackground(Color.WHITE); // Establece el color de fondo del panel
-        panel.setBorder(new EmptyBorder(15, 15, 15, 15)); // Establece un borde vacio alrededor del panel
+        // Crear panel principal con borde y fondo blanco
+        JPanel panel = new JPanel(new BorderLayout(10, 10));
+        panel.setBackground(Color.WHITE);
+        panel.setBorder(new EmptyBorder(15, 15, 15, 15));
 
-        JPanel createPanel = createTitledPanel("Crear/Actualizar Equipo y Buscar Jugador"); // Crea el panel para crear/actualizar/buscar equipos
-        GridBagConstraints gbc = new GridBagConstraints(); // Configuracion de la cuadricula
-        gbc.insets = new Insets(8, 10, 8, 10); // Espaciado entre componentes
-        gbc.fill = GridBagConstraints.HORIZONTAL; // Rellena el espacio horizontalmente
+        // Crear subpanel con titulo
+        JPanel createPanel = createTitledPanel("Gestionar Equipos");
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(8, 10, 8, 10);
+        gbc.fill = GridBagConstraints.HORIZONTAL;
         gbc.weightx = 1.0;
 
-        // Campos para ingresar datos del equipo
-        JTextField letraField = addField(createPanel, gbc, "Letra:", 0); // Campo para la letra
-        JTextField instalacionField = addField(createPanel, gbc, "Nombre Instalacion:", 1); // Campo para la instalacion
-        JTextField grupoField = addField(createPanel, gbc, "Nombre Grupo:", 2); // Campo para el grupo
-        JTextField clubField = addField(createPanel, gbc, "Nombre Club:", 3); // Campo para el club
+        // Agregar campos de texto
+        JTextField letraField = addField(createPanel, gbc, "Letra Equipo:", 0);
+        JTextField instalacionField = addField(createPanel, gbc, "Instalacion:", 1);
+        JTextField grupoField = addField(createPanel, gbc, "Grupo:", 2);
+        JTextField clubField = addField(createPanel, gbc, "Club:", 3);
+        JTextField buscarLetraField = addField(createPanel, gbc, "Buscar Letra Equipo:", 4);
+        JTextField dniField = addField(createPanel, gbc, "DNI Entrenador:", 5);
+        JTextField dniJugadorField = addField(createPanel, gbc, "DNI Jugador:", 6);
 
-        JPanel buttonPanel1 = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10)); // Panel para los botones de crear/actualizar/eliminar
-        buttonPanel1.setBackground(Color.WHITE); // Establece el color de fondo del panel de botones
-
-        JButton crearButton = new JButton("Crear Equipo", loadIcon("/resources/iconos/cross.png")); // Boton para crear equipo
-        styleButton(crearButton, new Color(211, 47, 47), true); // Estiliza el boton
-        JButton actualizarButton = new JButton("Actualizar Equipo", loadIcon("/resources/iconos/edit.png")); // Boton para actualizar equipo
-        styleButton(actualizarButton, new Color(33, 37, 41), false); // Estiliza el boton
-        JButton eliminarButton = new JButton("Eliminar Equipo", loadIcon("/resources/iconos/delete.png")); // Boton para eliminar equipo
-        styleButton(eliminarButton, new Color(211, 47, 47), true); // Estiliza el boton
-
-        buttonPanel1.add(crearButton); // Anade el boton de crear
-        buttonPanel1.add(actualizarButton); // Anade el boton de actualizar
-        buttonPanel1.add(eliminarButton); // Anade el boton de eliminar
-
-        gbc.gridx = 0;
-        gbc.gridy = 4;
-        gbc.gridwidth = 2; // Configura la posicion del panel de botones
-        gbc.fill = GridBagConstraints.NONE;
-        gbc.anchor = GridBagConstraints.CENTER;
-        createPanel.add(buttonPanel1, gbc); // Anade el panel de botones al panel de crear/actualizar
-
-        // Campos para busqueda de jugador
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        gbc.anchor = GridBagConstraints.WEST;
-
-        JTextField buscarLetraField = addField(createPanel, gbc, "Letra Eq. Busqueda:", 5); // Campo para la letra
-        JTextField dniField = addField(createPanel, gbc, "DNI Jugador:", 6); // Campo para el DNI
-
-        JPanel buttonPanel2 = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10)); // Panel para el boton de buscar
-        buttonPanel2.setBackground(Color.WHITE); // Establece el color de fondo del panel de botones
-
-        JButton buscarJugadorButton = new JButton("Buscar Jugador", loadIcon("/resources/iconos/magnifier.png")); // Boton para buscar jugador
-        styleButton(buscarJugadorButton, new Color(33, 37, 41), false); // Estiliza el boton
-
-        buttonPanel2.add(buscarJugadorButton); // Anade el boton de buscar
-
-        gbc.gridx = 0;
-        gbc.gridy = 7;
-        gbc.gridwidth = 2; // Configura la posicion del panel de botones
-        gbc.fill = GridBagConstraints.NONE;
-        gbc.anchor = GridBagConstraints.CENTER;
-        createPanel.add(buttonPanel2, gbc); // Anade el panel de botones al panel de crear/actualizar
-
-        // Campos para anadir un jugador a un equipo
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        gbc.anchor = GridBagConstraints.WEST;
-
-        // Anadir JComboBox para equipos
-        JLabel equipoLabel = new JLabel("Seleccionar Equipo:"); // Etiqueta para el combo box de equipos
-        equipoLabel.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-        equipoLabel.setForeground(new Color(33, 37, 41));
-        gbc.gridx = 0;
-        gbc.gridy = 8;
-        gbc.gridwidth = 1;
-        gbc.weightx = 0;
-        createPanel.add(equipoLabel, gbc);
-
-        JComboBox<Equipo> equiposComboBox = new JComboBox<>(); // Combo box para seleccionar equipos
-        equiposComboBox.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-        gbc.gridx = 1;
-        gbc.weightx = 1.0;
-        createPanel.add(equiposComboBox, gbc);
-        // Poblar el combo box con equipos
+        // Crear combo box para equipos
+        JComboBox<Equipo> equiposComboBox = new JComboBox<>();
         try {
-            List<Equipo> equipos = Equipo.obtenerTodos(); // Debes implementar este metodo en Equipo.java
+            List<Equipo> equipos = Equipo.obtenerTodos();
             for (Equipo e : equipos) {
                 equiposComboBox.addItem(e);
             }
         } catch (SQLException ex) {
             handleError(ex, "Error al cargar equipos.");
         }
-
-        JTextField dniJugadorField = addField(createPanel, gbc, "Añadir jugador (DNI):", 9); // Campo para el DNI
-
-        JPanel buttonPanel3 = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10)); // Panel para el boton de anadir
-        buttonPanel3.setBackground(Color.WHITE); // Establece el color de fondo del panel de botones
-
-        JButton anadirJugadorButton = new JButton("Añadir Jugador", loadIcon("/resources/iconos/cross.png")); // Boton para anadir jugador
-        styleButton(anadirJugadorButton, new Color(211, 47, 47), true); // Estiliza el boton
-
-        buttonPanel3.add(anadirJugadorButton); // Anade el boton de anadir
-
         gbc.gridx = 0;
-        gbc.gridy = 10;
-        gbc.gridwidth = 2; // Configura la posicion del panel de botones
-        gbc.fill = GridBagConstraints.NONE;
-        gbc.anchor = GridBagConstraints.CENTER;
-        createPanel.add(buttonPanel3, gbc); // Anade el panel de botones al panel de crear/actualizar
+        gbc.gridy = 7;
+        gbc.gridwidth = 2;
+        createPanel.add(equiposComboBox, gbc);
 
-        // Accion para crear un nuevo equipo
+        // Crear panel para botones
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10));
+        buttonPanel.setBackground(Color.WHITE);
+
+        // Crear botones
+        JButton crearButton = new JButton("Crear Equipo", loadIcon("/resources/iconos/cross.png"));
+        styleButton(crearButton, new Color(211, 47, 47), true);
+        JButton actualizarButton = new JButton("Actualizar Equipo", loadIcon("/resources/iconos/edit.png"));
+        styleButton(actualizarButton, new Color(33, 37, 41), false);
+        JButton eliminarButton = new JButton("Eliminar Equipo", loadIcon("/resources/iconos/delete.png"));
+        styleButton(eliminarButton, new Color(211, 47, 47), true);
+        JButton buscarButton = new JButton("Buscar Equipo", loadIcon("/resources/iconos/magnifier.png"));
+        styleButton(buscarButton, new Color(33, 37, 41), false);
+
+        // Agregar botones al panel
+        buttonPanel.add(crearButton);
+        buttonPanel.add(actualizarButton);
+        buttonPanel.add(eliminarButton);
+        buttonPanel.add(buscarButton);
+
+        // Boton crear equipo
         crearButton.addActionListener(event -> {
+            // Validar campos
             if (!validateFields(letraField, instalacionField, grupoField, clubField)) {
-                return; // Valida que los campos no esten vacios
+                showError("Letra, instalacion, grupo y club son obligatorios.");
+                return;
             }
             try {
+                // Validar formato letra
                 if (!letraField.getText().trim().matches("[A-Za-z]")) {
                     showError("Letra debe ser un caracter alfabetico.");
                     return;
                 }
+                // Buscar instalacion
                 Instalacion instalacion = Instalacion.buscarPorNombre(instalacionField.getText().trim());
                 if (instalacion == null) {
                     showError("Instalacion no encontrada.");
                     return;
                 }
+                // Buscar grupo
                 Grupo grupo = Grupo.buscarPorNombre(grupoField.getText().trim());
                 if (grupo == null) {
                     showError("Grupo no encontrado.");
                     return;
                 }
+                // Buscar club
                 Club club = federacion.buscarClub(clubField.getText().trim());
                 if (club == null) {
                     showError("Club no encontrado.");
                     return;
                 }
-                Equipo equipo = federacion.nuevoEquipo(letraField.getText().trim(), instalacion, grupo, club); // Crea el equipo
-                equipo.guardar(); // Persiste el equipo en la base de datos
-                JOptionPane.showMessageDialog(frame, "Equipo creado con exito: " + equipo.getLetra(), "Exito", JOptionPane.INFORMATION_MESSAGE); // Muestra mensaje de exito
-                clearFields(letraField, instalacionField, grupoField, clubField, buscarLetraField, dniField, dniJugadorField); // Limpia campos y errores
-                // Actualizar el JComboBox despues de crear un equipo
+                // Crear equipo
+                Equipo equipo = federacion.nuevoEquipo(letraField.getText().trim(), instalacion, grupo);
+                // Asignar club manualmente
+                equipo.setClub(club);
+                equipo.guardar();
+                JOptionPane.showMessageDialog(frame, "Equipo creado: " + equipo.getLetra(), "Exito", JOptionPane.INFORMATION_MESSAGE);
+                // Limpiar campos
+                clearFields(letraField, instalacionField, grupoField, clubField, buscarLetraField, dniField, dniJugadorField);
+                // Actualizar combo box
                 equiposComboBox.removeAllItems();
                 List<Equipo> equipos = Equipo.obtenerTodos();
                 for (Equipo e : equipos) {
                     equiposComboBox.addItem(e);
                 }
             } catch (SQLException ex) {
-                handleError(ex, "Error al guardar equipo en la base de datos.");
-            } catch (Exception ex) {
-                handleError(ex, "Error al crear equipo.");
+                handleError(ex, "Error al guardar equipo.");
             }
         });
 
-        // Acción para actualizar un equipo existente
+        // Boton actualizar equipo
         actualizarButton.addActionListener(event -> {
+            // Validar campos
             if (!validateFields(letraField, instalacionField, grupoField, clubField)) {
+                showError("Letra, instalacion, grupo y club son obligatorios.");
                 return;
             }
             try {
-                String letra = letraField.getText().trim();
-                Club club = federacion.buscarClub(clubField.getText().trim());
-                if (club == null) {
-                    showError("Club no encontrado.");
+                // Validar formato letra
+                if (!letraField.getText().trim().matches("[A-Za-z]")) {
+                    showError("Letra debe ser un caracter alfabetico.");
                     return;
                 }
-                Equipo equipo = Equipo.buscarPorLetraYClub(letra, club.getNombre());
-                if (equipo == null) {
-                    showError("Equipo no encontrado.");
-                    return;
-                }
+                // Buscar instalacion
                 Instalacion instalacion = Instalacion.buscarPorNombre(instalacionField.getText().trim());
                 if (instalacion == null) {
-                    showError("Instalación no encontrada.");
+                    showError("Instalacion no encontrada.");
                     return;
                 }
+                // Buscar grupo
                 Grupo grupo = Grupo.buscarPorNombre(grupoField.getText().trim());
                 if (grupo == null) {
                     showError("Grupo no encontrado.");
                     return;
                 }
-                equipo.setInstalacion(instalacion);
-                equipo.setGrupo(grupo);
-                equipo.setClub(club);
-                equipo.actualizar();
-                JOptionPane.showMessageDialog(frame, "Equipo actualizado con éxito: " + equipo, "Éxito", JOptionPane.INFORMATION_MESSAGE);
-                clearFields(letraField, instalacionField, grupoField, clubField);
-            } catch (SQLException ex) {
-                handleError(ex, "Error al actualizar equipo en la base de datos.");
-            } catch (Exception ex) {
-                handleError(ex, "Error al actualizar equipo.");
-            }
-        });
-
-        // Acción para eliminar un equipo
-        eliminarButton.addActionListener(event -> {
-            if (!validateFields(letraField, clubField)) {
-                return;
-            }
-            try {
-                String letra = letraField.getText().trim();
+                // Buscar club
                 Club club = federacion.buscarClub(clubField.getText().trim());
                 if (club == null) {
                     showError("Club no encontrado.");
                     return;
                 }
-                Equipo equipo = Equipo.buscarPorLetraYClub(letra, club.getNombre());
+                // Buscar equipo
+                Equipo equipo = Equipo.buscarPorLetraYClub(letraField.getText().trim(), clubField.getText().trim());
                 if (equipo == null) {
                     showError("Equipo no encontrado.");
                     return;
                 }
-                equipo.eliminar();
-                JOptionPane.showMessageDialog(frame, "Equipo eliminado con éxito: " + equipo, "Éxito", JOptionPane.INFORMATION_MESSAGE);
-                clearFields(letraField, instalacionField, grupoField, clubField);
+                // Actualizar datos
+                equipo.setInstalacion(instalacion);
+                equipo.setGrupo(grupo);
+                equipo.setClub(club);
+                equipo.actualizar();
+                JOptionPane.showMessageDialog(frame, "Equipo actualizado: " + equipo.getLetra(), "Exito", JOptionPane.INFORMATION_MESSAGE);
+                // Limpiar campos
+                clearFields(letraField, instalacionField, grupoField, clubField, buscarLetraField, dniField, dniJugadorField);
+                // Actualizar combo box
+                equiposComboBox.removeAllItems();
+                List<Equipo> equipos = Equipo.obtenerTodos();
+                for (Equipo e : equipos) {
+                    equiposComboBox.addItem(e);
+                }
             } catch (SQLException ex) {
-                handleError(ex, "Error al eliminar equipo de la base de datos.");
-            } catch (Exception ex) {
+                handleError(ex, "Error al actualizar equipo.");
+            }
+        });
+
+        // Boton eliminar equipo
+        eliminarButton.addActionListener(event -> {
+            // Validar campo letra
+            if (!validateFields(letraField, clubField)) {
+                showError("Letra y club son obligatorios.");
+                return;
+            }
+            try {
+                // Buscar equipo
+                Equipo equipo = Equipo.buscarPorLetraYClub(letraField.getText().trim(), clubField.getText().trim());
+                if (equipo == null) {
+                    showError("Equipo no encontrado.");
+                    return;
+                }
+                // Eliminar equipo
+                equipo.eliminar();
+                JOptionPane.showMessageDialog(frame, "Equipo eliminado: " + equipo.getLetra(), "Exito", JOptionPane.INFORMATION_MESSAGE);
+                // Limpiar campos
+                clearFields(letraField, instalacionField, grupoField, clubField, buscarLetraField, dniField, dniJugadorField);
+                // Actualizar combo box
+                equiposComboBox.removeAllItems();
+                List<Equipo> equipos = Equipo.obtenerTodos();
+                for (Equipo e : equipos) {
+                    equiposComboBox.addItem(e);
+                }
+            } catch (SQLException ex) {
                 handleError(ex, "Error al eliminar equipo.");
             }
         });
 
-        // Accion para buscar un jugador
-        buscarJugadorButton.addActionListener(event -> {
-            if (!validateFields(buscarLetraField, dniField)) {
+        // Boton buscar equipo
+        buscarButton.addActionListener(event -> {
+            // Validar campo buscar letra
+            if (!validateFields(buscarLetraField, clubField)) {
+                showError("Letra y club son obligatorios.");
                 return;
             }
             try {
-                Persona persona = federacion.buscaPersona(dniField.getText().trim());
-                if (persona == null) {
-                    showError("Jugador no encontrado.");
-                    return;
-                }
-                Equipo equipo = Equipo.buscarPorLetra(buscarLetraField.getText().trim());
+                // Buscar equipo
+                Equipo equipo = Equipo.buscarPorLetraYClub(buscarLetraField.getText().trim(), clubField.getText().trim());
                 if (equipo == null) {
                     showError("Equipo no encontrado.");
                     return;
                 }
-                String sql = "SELECT * FROM Equipo_Jugador ej JOIN Equipo e ON ej.equipo_id = e.id WHERE e.letra = ? AND ej.dni_jugador = ?";
-                try (Connection conn = DatabaseConnection.getConnection();
-                     PreparedStatement stmt = conn.prepareStatement(sql)) {
-                    stmt.setString(1, equipo.getLetra());
-                    stmt.setString(2, persona.getDni());
-                    ResultSet rs = stmt.executeQuery();
-                    if (rs.next()) {
-                        JOptionPane.showMessageDialog(frame, "Jugador encontrado: " + persona.getNombre() + " en equipo: " + equipo.getLetra(), "Resultado", JOptionPane.INFORMATION_MESSAGE);
-                    } else {
-                        showError("El jugador no está en este equipo.");
-                    }
-                }
-                clearFields(buscarLetraField, dniField);
+                // Mostrar resultado
+                List<Equipo> equipos = new ArrayList<>();
+                equipos.add(equipo);
+                showListResult(equipos, "Equipo encontrado:");
+                // Limpiar campos
+                clearFields(letraField, instalacionField, grupoField, clubField, buscarLetraField, dniField, dniJugadorField);
             } catch (SQLException ex) {
-                handleError(ex, "Error al buscar jugador en la base de datos.");
-            } catch (Exception ex) {
-                handleError(ex, "Error al buscar jugador.");
+                handleError(ex, "Error al buscar equipo.");
             }
         });
 
-        // Accion para anadir un jugador a un equipo
-        anadirJugadorButton.addActionListener(e -> {
-            try {
-                String dni = dniJugadorField.getText().trim();
-                Persona jugador = federacion.buscaPersona(dni);
-                if (jugador == null) {
-                    showError("Jugador no encontrado.");
-                    return;
-                }
-                Equipo equipo = (Equipo) equiposComboBox.getSelectedItem();
-                if (equipo == null) {
-                    showError("Seleccione un equipo.");
-                    return;
-                }
-                federacion.anadirJugadorAEquipo(jugador, equipo);
-                JOptionPane.showMessageDialog(frame, "Jugador añadido al equipo.");
-            } catch (SQLException ex) {
-                showError("Error al añadir jugador: " + ex.getMessage());
-            }
-        });
-
-        // Anade el panel de errores al final del formulario
+        // Configurar posicion de panel de botones
         gbc.gridx = 0;
-        gbc.gridy = 11;
+        gbc.gridy = 8;
+        gbc.gridwidth = 2;
+        gbc.fill = GridBagConstraints.NONE;
+        gbc.anchor = GridBagConstraints.CENTER;
+        createPanel.add(buttonPanel, gbc);
+
+        // Configurar posicion de panel de errores
+        gbc.gridx = 0;
+        gbc.gridy = 9;
         gbc.gridwidth = 2;
         gbc.fill = GridBagConstraints.HORIZONTAL;
         gbc.anchor = GridBagConstraints.SOUTH;
@@ -1458,46 +1445,37 @@ public class MainApp2 {
         gbc.insets = new Insets(10, 10, 8, 10);
         createPanel.add(errorScrollPane, gbc);
 
-        panel.add(createPanel, BorderLayout.NORTH); // Anade el panel de crear/actualizar equipo al panel principal
-        return panel; // Devuelve el panel de equipos
+        // Agregar subpanel al panel principal
+        panel.add(createPanel, BorderLayout.NORTH);
+        return panel;
     }
 
     // Metodo para crear el panel de licencias
     private JPanel createLicenciaPanel() {
-        // Crear panel principal con layout BorderLayout y configuracion basica
+        // Crear panel principal con borde y fondo blanco
         JPanel panel = new JPanel(new BorderLayout(10, 10));
         panel.setBackground(Color.WHITE);
         panel.setBorder(new EmptyBorder(15, 15, 15, 15));
 
-        // Crear panel de formulario con titulo
+        // Crear subpanel con titulo
         JPanel createPanel = createTitledPanel("Gestionar Licencias");
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.insets = new Insets(8, 10, 8, 10);
         gbc.fill = GridBagConstraints.HORIZONTAL;
         gbc.weightx = 1.0;
 
-        // Agregar campos de texto para entrada de datos
+        // Agregar campos de texto
         JTextField dniField = addField(createPanel, gbc, "DNI Jugador:", 0);
         JTextField letraField = addField(createPanel, gbc, "Letra Equipo:", 1);
         JTextField clubField = addField(createPanel, gbc, "Nombre Club:", 2);
-        JTextField fechaInicioField = addField(createPanel, gbc, "Fecha Inicio (YYYY-MM-DD):", 3);
-        JTextField fechaFinField = addField(createPanel, gbc, "Fecha Fin (YYYY-MM-DD):", 4);
-        JTextField precioField = addField(createPanel, gbc, "Precio Estimado:", 5);
-        precioField.setEditable(false);
-
-        // Agregar checkbox para estado de licencia abonada
-        JCheckBox abonadaCheckBox = new JCheckBox("Licencia Abonada");
-        abonadaCheckBox.setBackground(Color.WHITE);
-        gbc.gridx = 0;
-        gbc.gridy = 6;
-        gbc.gridwidth = 2;
-        createPanel.add(abonadaCheckBox, gbc);
+        JTextField precioField = addField(createPanel, gbc, "Precio Estimado:", 3);
+        precioField.setEditable(false); // Campo no editable
 
         // Crear panel para botones
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10));
         buttonPanel.setBackground(Color.WHITE);
 
-        // Crear y estilizar botones
+        // Crear botones
         JButton estimarButton = new JButton("Estimar Precio", loadIcon("/resources/iconos/calculator.png"));
         styleButton(estimarButton, new Color(33, 37, 41), false);
         JButton crearButton = new JButton("Crear Licencia", loadIcon("/resources/iconos/cross.png"));
@@ -1506,19 +1484,16 @@ public class MainApp2 {
         styleButton(actualizarButton, new Color(33, 37, 41), false);
         JButton eliminarButton = new JButton("Eliminar Licencia", loadIcon("/resources/iconos/delete.png"));
         styleButton(eliminarButton, new Color(211, 47, 47), true);
-        JButton listarButton = new JButton("Listar Licencias", loadIcon("/resources/iconos/magnifier.png"));
-        styleButton(listarButton, new Color(33, 37, 41), false);
 
         // Agregar botones al panel
         buttonPanel.add(estimarButton);
         buttonPanel.add(crearButton);
         buttonPanel.add(actualizarButton);
         buttonPanel.add(eliminarButton);
-        buttonPanel.add(listarButton);
 
-        // ActionListener para estimar precio
+        // Boton estimar precio
         estimarButton.addActionListener(event -> {
-            // Validar campos de letra y club
+            // Validar campos
             if (!validateFields(letraField, clubField)) {
                 showError("Letra y club son obligatorios.");
                 return;
@@ -1530,7 +1505,7 @@ public class MainApp2 {
                     showError("Equipo no encontrado.");
                     return;
                 }
-                // Calcular y mostrar precio
+                // Calcular precio y mostrar
                 double precio = federacion.calcularPrecioLicencia(equipo);
                 precioField.setText(String.format("%.2f", precio));
             } catch (Exception ex) {
@@ -1538,20 +1513,19 @@ public class MainApp2 {
             }
         });
 
-        // ActionListener para crear licencia
+        // Boton crear licencia
         crearButton.addActionListener(event -> {
-            // Validar todos los campos obligatorios
-            if (!validateFields(dniField, letraField, clubField, fechaInicioField, fechaFinField)) {
-                showError("Todos los campos obligatorios deben estar completos.");
+            // Validar campos
+            if (!validateFields(dniField, letraField, clubField)) {
                 return;
             }
             try {
-                // Validar formato de DNI
+                // Validar formato DNI
                 if (!validateDni(dniField.getText())) {
                     showError("DNI invalido.");
                     return;
                 }
-                // Buscar jugador por DNI
+                // Buscar persona por DNI
                 Persona jugador = federacion.buscaPersona(dniField.getText().trim());
                 if (jugador == null) {
                     showError("Jugador no encontrado.");
@@ -1563,50 +1537,30 @@ public class MainApp2 {
                     showError("Equipo no encontrado.");
                     return;
                 }
-                // Verificar si ya existe licencia para jugador y equipo
-                if (Licencia.buscarPorJugadorYEquipo(jugador.getDni(), equipo.getId()) != null) {
-                    showError("Ya existe una licencia para este jugador y equipo.");
-                    return;
-                }
-                // Parsear fechas
-                LocalDate fechaInicio = LocalDate.parse(fechaInicioField.getText().trim());
-                LocalDate fechaFin = LocalDate.parse(fechaFinField.getText().trim());
-                boolean abonada = abonadaCheckBox.isSelected();
-                // Registrar accion en consola
-                System.out.println("Creando licencia: dni=" + dniField.getText() + ", idEquipo=" + equipo.getId() + 
-                                   ", fechaInicio=" + fechaInicio + ", fechaFin=" + fechaFin + ", abonada=" + abonada);
-                // Crear y guardar licencia
-                Licencia licencia = federacion.nuevaLicencia(jugador, equipo, fechaInicio, fechaFin, abonada);
-                licencia.guardar();
-                // Mostrar mensaje de exito
-                JOptionPane.showMessageDialog(frame, "Licencia creada con exito para: " + jugador.getNombre() + 
-                                              " (Nº: " + licencia.getNumeroLicencia() + ")", "Exito", JOptionPane.INFORMATION_MESSAGE);
+                // Crear y asociar licencia
+                Licencia licencia = federacion.nuevaLicencia(jugador, equipo);
+                federacion.addLicencia(licencia, equipo);
+                JOptionPane.showMessageDialog(frame, "Licencia creada para: " + jugador.getNombre(), "Exito", JOptionPane.INFORMATION_MESSAGE);
                 // Limpiar campos
-                clearFields(dniField, letraField, clubField, fechaInicioField, fechaFinField, precioField);
-                abonadaCheckBox.setSelected(false);
-            } catch (DateTimeParseException ex) {
-                showError("Formato de fecha invalido. Use YYYY-MM-DD.");
+                clearFields(dniField, letraField, clubField, precioField);
             } catch (SQLException ex) {
-                handleError(ex, "Error al guardar licencia en la base de datos.");
-            } catch (Exception ex) {
-                handleError(ex, "Error al crear licencia.");
+                handleError(ex, "Error al guardar licencia.");
             }
         });
 
-        // ActionListener para actualizar licencia
+        // Boton actualizar licencia
         actualizarButton.addActionListener(event -> {
-            // Validar todos los campos obligatorios
-            if (!validateFields(dniField, letraField, clubField, fechaInicioField, fechaFinField)) {
-                showError("Todos los campos obligatorios deben estar completos.");
+            // Validar campos
+            if (!validateFields(dniField, letraField, clubField)) {
                 return;
             }
             try {
-                // Validar formato de DNI
+                // Validar formato DNI
                 if (!validateDni(dniField.getText())) {
                     showError("DNI invalido.");
                     return;
                 }
-                // Buscar jugador por DNI
+                // Buscar persona por DNI
                 Persona jugador = federacion.buscaPersona(dniField.getText().trim());
                 if (jugador == null) {
                     showError("Jugador no encontrado.");
@@ -1618,141 +1572,85 @@ public class MainApp2 {
                     showError("Equipo no encontrado.");
                     return;
                 }
-                // Buscar licencia por jugador y equipo
+                // Buscar licencia existente
                 Licencia licencia = Licencia.buscarPorJugadorYEquipo(jugador.getDni(), equipo.getId());
                 if (licencia == null) {
-                    showError("Licencia no encontrada para el jugador y equipo especificados.");
+                    showError("Licencia no encontrada.");
                     return;
                 }
-                // Parsear fechas
-                LocalDate fechaInicio = LocalDate.parse(fechaInicioField.getText().trim());
-                LocalDate fechaFin = LocalDate.parse(fechaFinField.getText().trim());
-                boolean abonada = abonadaCheckBox.isSelected();
-                // Registrar accion en consola
-                System.out.println("Actualizando licencia: numeroLicencia=" + licencia.getNumeroLicencia() + ", dni=" + jugador.getDni() + 
-                                   ", idEquipo=" + equipo.getId() + ", fechaInicio=" + fechaInicio + ", fechaFin=" + fechaFin + ", abonada=" + abonada);
-                // Actualizar datos de licencia
-                licencia.setJugador(jugador);
+                // Actualizar licencia
                 licencia.setEquipo(equipo);
-                licencia.setFechaInicio(fechaInicio);
-                licencia.setFechaFin(fechaFin);
-                licencia.setAbonada(abonada);
                 licencia.actualizar();
-            // Mostrar mensaje de exito
-            JOptionPane.showMessageDialog(frame, "Licencia actualizada con exito para: " + jugador.getNombre() + 
-                                          " (Nº: " + licencia.getNumeroLicencia() + ")", "Exito", JOptionPane.INFORMATION_MESSAGE);
-            // Limpiar campos
-            clearFields(dniField, letraField, clubField, fechaInicioField, fechaFinField, precioField);
-            abonadaCheckBox.setSelected(false);
-        } catch (DateTimeParseException ex) {
-            showError("Formato de fecha invalido. Use YYYY-MM-DD.");
-        } catch (SQLException ex) {
-            handleError(ex, "Error al actualizar licencia en la base de datos.");
-        } catch (Exception ex) {
-            handleError(ex, "Error al actualizar licencia.");
-        }
-    });
+                JOptionPane.showMessageDialog(frame, "Licencia actualizada para: " + jugador.getNombre(), "Exito", JOptionPane.INFORMATION_MESSAGE);
+                // Limpiar campos
+                clearFields(dniField, letraField, clubField, precioField);
+            } catch (SQLException ex) {
+                handleError(ex, "Error al actualizar licencia.");
+            }
+        });
 
-    // ActionListener para eliminar licencia
-    eliminarButton.addActionListener(event -> {
-        // Validar campos necesarios
-        if (!validateFields(dniField, letraField, clubField)) {
-            showError("DNI, letra y club son obligatorios.");
-            return;
-        }
-        try {
-            // Validar formato de DNI
-            if (!validateDni(dniField.getText())) {
-                showError("DNI invalido.");
+        // Boton eliminar licencia
+        eliminarButton.addActionListener(event -> {
+            // Validar campos
+            if (!validateFields(dniField, letraField, clubField)) {
                 return;
             }
-            // Buscar jugador por DNI
-            Persona jugador = federacion.buscaPersona(dniField.getText().trim());
-            if (jugador == null) {
-                showError("Jugador no encontrado.");
-                return;
+            try {
+                // Validar formato DNI
+                if (!validateDni(dniField.getText())) {
+                    showError("DNI invalido.");
+                    return;
+                }
+                // Buscar persona por DNI
+                Persona jugador = federacion.buscaPersona(dniField.getText().trim());
+                if (jugador == null) {
+                    showError("Jugador no encontrado.");
+                    return;
+                }
+                // Buscar equipo por letra y club
+                Equipo equipo = Equipo.buscarPorLetraYClub(letraField.getText().trim(), clubField.getText().trim());
+                if (equipo == null) {
+                    showError("Equipo no encontrado.");
+                    return;
+                }
+                // Buscar licencia existente
+                Licencia licencia = Licencia.buscarPorJugadorYEquipo(jugador.getDni(), equipo.getId());
+                if (licencia == null) {
+                    showError("Licencia no encontrada.");
+                    return;
+                }
+                // Eliminar licencia
+                licencia.eliminar();
+                JOptionPane.showMessageDialog(frame, "Licencia eliminada para: " + jugador.getNombre(), "Exito", JOptionPane.INFORMATION_MESSAGE);
+                // Limpiar campos
+                clearFields(dniField, letraField, clubField, precioField);
+            } catch (SQLException ex) {
+                handleError(ex, "Error al eliminar licencia.");
             }
-            // Buscar equipo por letra y club
-            Equipo equipo = Equipo.buscarPorLetraYClub(letraField.getText().trim(), clubField.getText().trim());
-            if (equipo == null) {
-                showError("Equipo no encontrado.");
-                return;
-            }
-            // Buscar licencia por jugador y equipo
-            Licencia licencia = Licencia.buscarPorJugadorYEquipo(jugador.getDni(), equipo.getId());
-            if (licencia == null) {
-                showError("Licencia no encontrada para el jugador y equipo especificados.");
-                return;
-            }
-            // Registrar accion en consola
-            System.out.println("Eliminando licencia: numeroLicencia=" + licencia.getNumeroLicencia());
-            // Eliminar licencia
-            licencia.eliminar();
-            // Mostrar mensaje de exito
-            JOptionPane.showMessageDialog(frame, "Licencia eliminada con exito para: " + jugador.getNombre() + 
-                                          " (Nº: " + licencia.getNumeroLicencia() + ")", "Exito", JOptionPane.INFORMATION_MESSAGE);
-            // Limpiar campos
-            clearFields(dniField, letraField, clubField, fechaInicioField, fechaFinField, precioField);
-            abonadaCheckBox.setSelected(false);
-        } catch (SQLException ex) {
-            handleError(ex, "Error al eliminar licencia de la base de datos.");
-        } catch (Exception ex) {
-            handleError(ex, "Error al eliminar licencia.");
-        }
-    });
+        });
 
-    // ActionListener para listar licencias
-    listarButton.addActionListener(event -> {
-        // Validar campo DNI
-        if (!validateFields(dniField)) {
-            showError("DNI es obligatorio.");
-            return;
-        }
-        try {
-            // Validar formato de DNI
-            if (!validateDni(dniField.getText())) {
-                showError("DNI invalido.");
-                return;
-            }
-            // Buscar jugador por DNI
-            Persona jugador = federacion.buscaPersona(dniField.getText().trim());
-            if (jugador == null) {
-                showError("Jugador no encontrado.");
-                return;
-            }
-            // Obtener y mostrar licencias
-            List<Licencia> licencias = federacion.obtenerLicencias(jugador);
-            showListResult(licencias, "Licencias de " + jugador.getNombre() + ":");
-            // Limpiar campos
-            clearFields(dniField, letraField, clubField, fechaInicioField, fechaFinField, precioField);
-            abonadaCheckBox.setSelected(false);
-        } catch (Exception ex) {
-            handleError(ex, "Error al listar licencias.");
-        }
-    });
+        // Configurar posicion de panel de botones
+        gbc.gridx = 0;
+        gbc.gridy = 4;
+        gbc.gridwidth = 2;
+        gbc.fill = GridBagConstraints.NONE;
+        gbc.anchor = GridBagConstraints.CENTER;
+        createPanel.add(buttonPanel, gbc);
 
-    // Agregar panel de botones
-    gbc.gridx = 0;
-    gbc.gridy = 7;
-    gbc.gridwidth = 2;
-    gbc.fill = GridBagConstraints.NONE;
-    gbc.anchor = GridBagConstraints.CENTER;
-    createPanel.add(buttonPanel, gbc);
+        // Configurar posicion de panel de errores
+        gbc.gridx = 0;
+        gbc.gridy = 5;
+        gbc.gridwidth = 2;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.anchor = GridBagConstraints.SOUTH;
+        gbc.weighty = 0;
+        gbc.insets = new Insets(10, 10, 8, 10);
+        createPanel.add(errorScrollPane, gbc);
 
-    // Agregar panel de errores
-    gbc.gridx = 0;
-    gbc.gridy = 8;
-    gbc.gridwidth = 2;
-    gbc.fill = GridBagConstraints.HORIZONTAL;
-    gbc.anchor = GridBagConstraints.SOUTH;
-    gbc.weighty = 0;
-    gbc.insets = new Insets(10, 10, 8, 10);
-    createPanel.add(errorScrollPane, gbc);
-
-    // Agregar panel de formulario al panel principal
-    panel.add(createPanel, BorderLayout.NORTH);
-    return panel;
-}
+        // Agregar subpanel al panel principal
+        panel.add(createPanel, BorderLayout.NORTH);
+        return panel;
+    }
 
     // Metodo para estilizar un menu
     private void styleMenu(JMenu menu, Font font, Color foreground, Color hover) {

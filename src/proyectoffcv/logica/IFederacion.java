@@ -3,63 +3,36 @@ package proyectoffcv.logica;
 import entidades.*;
 import java.time.LocalDate;
 import java.util.List;
-import java.sql.*;
 
+/**
+ *
+ * @author jmontanerm
+ */
 public interface IFederacion {
-    // Buscar una persona por DNI
-    Persona buscaPersona(String dni);
+    /* CLUBES */
+    public Club buscarClub(String nombre);
+    public Equipo nuevoEquipo(String letra, Instalacion instalacion, Grupo grupo);
+    public Club nuevoClub(String nombre, LocalDate fechaFundacion, Persona presidente);
     
-    // Buscar personas por nombre y apellidos
-    List<Persona> buscaPersonas(String nombre, String apellido1, String apellido2);
+    /* CATEGORÍAS */
+    public Categoria nuevaCategoria(String nombre, int orden, double precioLicencia);
+    public List<Categoria> obtenerCategorias();
+    public List<Grupo> obtenerGrupos(Categoria c);
+    public Grupo nuevoGrupo(Categoria c, String nombre);
     
-    // Buscar un club por nombre
-    Club buscarClub(String nombre);
+    /* PERSONAS */
+    public Persona nuevaPersona(String dni, String nombre, String apellido1, String apellido2, LocalDate fechaNacimiento, String usuario, String password, String poblacion);
+    public Empleado nuevoEmpleado(String dni, String nombre, String apellido1, String apellido2, LocalDate fechaNacimiento, String usuario, String password, String poblacion, int numEmpleado, LocalDate inicioContrato, String segSocial);
+    public Persona buscaPersona(String dni);
+    public List<Persona> buscaPersonas(String nombre, String apellido1, String apellido2);
     
-    // Buscar clubes por nombre con coincidencias parciales
-    List<Club> buscarClubes(String nombre) throws SQLException;
+    /* LICENCIAS */
+    public Licencia nuevaLicencia(Persona p);
+    public Licencia nuevaLicencia(Persona p, Equipo e);
+    public void addLicencia(Licencia l, Equipo e);
+    public double calcularPrecioLicencia(Equipo e);
     
-    // Crear un nuevo equipo
-    Equipo nuevoEquipo(String letra, Instalacion instalacion, Grupo grupo, Club club);
-    
-    // Crear una nueva categoria
-    Categoria nuevaCategoria(String nombre, int orden, double precio);
-    
-    // Crear un nuevo grupo
-    Grupo nuevoGrupo(Categoria categoria, String nombre);
-    
-    // Crear una nueva persona
-    Persona nuevaPersona(String dni, String nombre, String apellido1, String apellido2, LocalDate fechaNacimiento, String usuario, String password, String poblacion);
-    
-    // Crear un nuevo empleado
-    Empleado nuevoEmpleado(String dni, String nombre, String apellido1, String apellido2, LocalDate fechaNacimiento, String usuario, String password, String poblacion, int numEmpleado, LocalDate inicioContrato, String segSocial);
-    
-    // Crear una nueva instalacion
-    Instalacion nuevaInstalacion(String nombre, String direccion, String superficie);
-    
-    // Buscar instalaciones por nombre
-    List<Instalacion> buscarInstalaciones(String nombre);
-    
-    // Crear un nuevo club
-    Club nuevoClub(String nombre, LocalDate fechaFundacion, Persona presidente);
-    
-    // Obtener todas las categorias
-    List<Categoria> obtenerCategorias();
-    
-    // Obtener grupos de una categoria
-    List<Grupo> obtenerGrupos(Categoria categoria);
-    
-    // Crear una nueva licencia
-    Licencia nuevaLicencia(Persona jugador, Equipo equipo, LocalDate fechaInicio, LocalDate fechaFin, boolean abonada);
-    
-    // Obtener licencias de un jugador
-    List<Licencia> obtenerLicencias(Persona jugador);
-    
-    // Calcular precio de una licencia
-    double calcularPrecioLicencia(Equipo equipo);
-    
-    // Anadir un jugador a un equipo
-    void anadirJugadorAEquipo(Persona jugador, Equipo equipo) throws SQLException;
-    
-    // Busca empleado por DNI
-    Empleado buscaEmpleadoPorDni(String dni) throws SQLException;
+    /* INSTALACIÓN */
+    public Instalacion nuevaInstalacion(String nombre, String direccion, String superficie);
+    public List<Instalacion> buscarInstalaciones(String nombre);    
 }
