@@ -81,6 +81,12 @@ public class Persona {
 
     // Metodo para eliminar de la base de datos
     public void eliminar() throws SQLException {
+        String sqlLicencia = "DELETE FROM Licencia WHERE persona_dni = ?";
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement stmtLicencia = conn.prepareStatement(sqlLicencia)) {
+            stmtLicencia.setString(1, dni);
+            stmtLicencia.executeUpdate();
+        }
         String sql = "DELETE FROM Persona WHERE dni = ?";
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {

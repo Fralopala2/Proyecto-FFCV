@@ -210,14 +210,16 @@ public class Main {
 
             // 8. Prueba de Equipos
             System.out.println("\n--- Prueba de Equipos ---");
-            if (mestalla != null && grupoA != null) {
+           if (mestalla != null && grupoA != null && club1 != null) {
                 equipo1 = federacion.nuevoEquipo("A", mestalla, grupoA);
+                equipo1.setClub(club1); // Asigna club1
                 equipo1.guardar();
                 System.out.println("Equipo creado: " + equipo1);
             }
             
-            if (ciutat != null && grupoB != null) {
+           if (ciutat != null && grupoB != null && club2 != null) {
                 equipo2 = federacion.nuevoEquipo("B", ciutat, grupoB);
+                equipo2.setClub(club2); // Asigna club2
                 equipo2.guardar();
                 System.out.println("Equipo creado: " + equipo2);
             }
@@ -324,7 +326,7 @@ public class Main {
     
     private static List<Licencia> buscarLicenciasPorPersona(String dni) throws SQLException {
         List<Licencia> licencias = new ArrayList<>();
-        String sql = "SELECT * FROM licencia WHERE dni = ?";
+        String sql = "SELECT * FROM licencia WHERE persona_dni = ?";
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setString(1, dni);
@@ -333,7 +335,7 @@ public class Main {
                 Persona persona = Persona.buscarPorDni(dni);
                 Equipo equipo = rs.getInt("equipo_id") > 0 ? Equipo.buscarPorId(rs.getInt("equipo_id")) : null;
                 Licencia licencia = new Licencia(
-                    rs.getString("numero"),
+                    rs.getString("numeroLicencia"),
                     persona,
                     equipo,
                     rs.getBoolean("abonada")
