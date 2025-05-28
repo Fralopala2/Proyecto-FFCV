@@ -1,7 +1,8 @@
 package entidades;
 
 import java.sql.*;
-import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 import proyectoffcv.util.DatabaseConnection;
 
 public class Licencia {
@@ -9,8 +10,8 @@ public class Licencia {
     private Persona jugador;
     private Equipo equipo;
     private boolean abonada;
-    private LocalDate fechaInicio;
-    private LocalDate fechaFin;
+    private java.time.LocalDate fechaInicio;
+    private java.time.LocalDate fechaFin;
 
     public Licencia(String numeroLicencia, Persona jugador, Equipo equipo, boolean abonada) {
         this.numeroLicencia = numeroLicencia;
@@ -19,59 +20,59 @@ public class Licencia {
         this.abonada = abonada;
     }
 
-    // Getters y Setters
+    // Getters
     public String getNumeroLicencia() { return numeroLicencia; }
     public Persona getJugador() { return jugador; }
-    public void setJugador(Persona jugador) { this.jugador = jugador; }
     public Equipo getEquipo() { return equipo; }
-    public void setEquipo(Equipo equipo) { this.equipo = equipo; }
-    public boolean isAbonada() { return abonada; }
-    public void setAbonada(boolean abonada) { this.abonada = abonada; }
-    public LocalDate getFechaInicio() { return fechaInicio; }
-    public LocalDate getFechaFin() { return fechaFin; }
-    public void setFechaInicio(LocalDate fechaInicio) { this.fechaInicio = fechaInicio; }
-    public void setFechaFin(LocalDate fechaFin) { this.fechaFin = fechaFin; }
 
-    // Metodo para guardar en la base de datos
-    public void guardar() throws SQLException {
-        String sql = "INSERT INTO Licencia (numeroLicencia, persona_dni, equipo_id, fecha_inicio, fecha_fin, abonada) VALUES (?, ?, ?, ?, ?, ?)";
+    // Setters
+    public void setEquipo(Equipo equipo) { this.equipo = equipo; }
+
+    // Métodos públicos que llaman a los privados
+    public void guardarPublic() throws SQLException {
+        guardarPrivado();
+    }
+
+    public void actualizarPublic() throws SQLException {
+        actualizarPrivado();
+    }
+
+    public void eliminarPublic() throws SQLException {
+        eliminarPrivado();
+    }
+
+    // Método para guardar en la base de datos (Privado)
+    private void guardarPrivado() throws SQLException {
+        String sql = "INSERT INTO Licencia (numeroLicencia, persona_dni, equipo_id, abonada, fecha_inicio, fecha_fin) VALUES (?, ?, ?, ?, ?, ?)";
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setString(1, numeroLicencia);
             stmt.setString(2, jugador.getDni());
-            if (equipo != null) {
-                stmt.setInt(3, equipo.getId());
-            } else {
-                stmt.setNull(3, java.sql.Types.INTEGER);
-            }
-            stmt.setDate(4, fechaInicio != null ? Date.valueOf(fechaInicio) : null);
-            stmt.setDate(5, fechaFin != null ? Date.valueOf(fechaFin) : null);
-            stmt.setBoolean(6, abonada);
+            stmt.setInt(3, equipo.getId());
+            stmt.setBoolean(4, abonada);
+            stmt.setDate(5, fechaInicio != null ? java.sql.Date.valueOf(fechaInicio) : null);
+            stmt.setDate(6, fechaFin != null ? java.sql.Date.valueOf(fechaFin) : null);
             stmt.executeUpdate();
         }
     }
 
-    // Metodo para actualizar en la base de datos
-    public void actualizar() throws SQLException {
-        String sql = "UPDATE Licencia SET persona_dni = ?, equipo_id = ?, fecha_inicio = ?, fecha_fin = ?, abonada = ? WHERE numeroLicencia = ?";
+    // Método para actualizar en la base de datos (Privado)
+    private void actualizarPrivado() throws SQLException {
+        String sql = "UPDATE Licencia SET persona_dni = ?, equipo_id = ?, abonada = ?, fecha_inicio = ?, fecha_fin = ? WHERE numeroLicencia = ?";
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setString(1, jugador.getDni());
-            if (equipo != null) {
-                stmt.setInt(2, equipo.getId());
-            } else {
-                stmt.setNull(2, java.sql.Types.INTEGER);
-            }
-            stmt.setDate(3, fechaInicio != null ? Date.valueOf(fechaInicio) : null);
-            stmt.setDate(4, fechaFin != null ? Date.valueOf(fechaFin) : null);
-            stmt.setBoolean(5, abonada);
+            stmt.setInt(2, equipo.getId());
+            stmt.setBoolean(3, abonada);
+            stmt.setDate(4, fechaInicio != null ? java.sql.Date.valueOf(fechaInicio) : null);
+            stmt.setDate(5, fechaFin != null ? java.sql.Date.valueOf(fechaFin) : null);
             stmt.setString(6, numeroLicencia);
             stmt.executeUpdate();
         }
     }
 
-    // Metodo para eliminar de la base de datos
-    public void eliminar() throws SQLException {
+    // Método para eliminar de la base de datos (Privado)
+    private void eliminarPrivado() throws SQLException {
         String sql = "DELETE FROM Licencia WHERE numeroLicencia = ?";
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -80,50 +81,47 @@ public class Licencia {
         }
     }
 
-    // Metodo para buscar por numeroLicencia
-    public static Licencia buscarPorNumeroLicencia(String numeroLicencia) throws SQLException {
-        String sql = "SELECT * FROM Licencia WHERE numeroLicencia = ?";
+    // Método para obtener todas las licencias
+    public static List<Licencia> obtenerTodas() throws SQLException {
+        List<Licencia> licencias = new ArrayList<>();
+        String sql = "SELECT * FROM Licencia";
         try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setString(1, numeroLicencia);
-            ResultSet rs = stmt.executeQuery();
-            if (rs.next()) {
+             PreparedStatement stmt = conn.prepareStatement(sql);
+             ResultSet rs = stmt.executeQuery()) {
+            while (rs.next()) {
                 Persona jugador = Persona.buscarPorDni(rs.getString("persona_dni"));
-                Equipo equipo = rs.getInt("equipo_id") != 0 ? Equipo.buscarPorId(rs.getInt("equipo_id")) : null;
+                Equipo equipo = null;
+                if (rs.getObject("equipo_id") != null) {
+                    equipo = Equipo.buscarPorId(rs.getInt("equipo_id"));
+                }
+
                 Licencia licencia = new Licencia(
                     rs.getString("numeroLicencia"),
                     jugador,
                     equipo,
                     rs.getBoolean("abonada")
                 );
-                licencia.setFechaInicio(rs.getDate("fecha_inicio") != null ? rs.getDate("fecha_inicio").toLocalDate() : null);
-                licencia.setFechaFin(rs.getDate("fecha_fin") != null ? rs.getDate("fecha_fin").toLocalDate() : null);
-                return licencia;
+                licencias.add(licencia);
             }
         }
-        return null;
+        return licencias;
     }
 
-    // Metodo para buscar por jugador y equipo
-    public static Licencia buscarPorJugadorYEquipo(String dniJugador, int equipoId) throws SQLException {
-        String sql = "SELECT * FROM Licencia WHERE persona_dni = ? AND equipo_id = ?";
+    // Método para buscar licencias por jugador
+    public static Licencia buscarPorJugador(Persona jugador) throws SQLException {
+        String sql = "SELECT * FROM Licencia WHERE persona_dni = ?";
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setString(1, dniJugador);
-            stmt.setInt(2, equipoId);
+            stmt.setString(1, jugador.getDni());
             ResultSet rs = stmt.executeQuery();
             if (rs.next()) {
-                Persona jugador = Persona.buscarPorDni(rs.getString("persona_dni"));
                 Equipo equipo = Equipo.buscarPorId(rs.getInt("equipo_id"));
-                Licencia licencia = new Licencia(
+                return new Licencia(
                     rs.getString("numeroLicencia"),
                     jugador,
                     equipo,
                     rs.getBoolean("abonada")
                 );
-                licencia.setFechaInicio(rs.getDate("fecha_inicio") != null ? rs.getDate("fecha_inicio").toLocalDate() : null);
-                licencia.setFechaFin(rs.getDate("fecha_fin") != null ? rs.getDate("fecha_fin").toLocalDate() : null);
-                return licencia;
             }
         }
         return null;
@@ -131,8 +129,7 @@ public class Licencia {
 
     @Override
     public String toString() {
-        return "Licencia{numeroLicencia='" + numeroLicencia + "', jugador=" + jugador.getNombre() + 
-               ", equipo=" + (equipo != null ? equipo.getLetra() : "null") + 
-               ", fechaInicio=" + fechaInicio + ", fechaFin=" + fechaFin + ", abonada=" + abonada + "}";
+        return "Licencia{numeroLicencia='" + numeroLicencia + "', jugador=" + jugador.getNombre() +
+               ", equipo=" + (equipo != null ? equipo.getLetra() : "null") + "}";
     }
 }

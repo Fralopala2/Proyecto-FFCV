@@ -1,8 +1,10 @@
 package entidades;
 
 import java.sql.*;
-import proyectoffcv.util.DatabaseConnection;
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
+import proyectoffcv.util.DatabaseConnection;
 
 public class Persona {
     protected String dni;
@@ -36,17 +38,21 @@ public class Persona {
     public String getPassword() { return password; }
     public String getPoblacion() { return poblacion; }
 
-    // Setters
-    public void setNombre(String nombre) { this.nombre = nombre; }
-    public void setApellido1(String apellido1) { this.apellido1 = apellido1; }
-    public void setApellido2(String apellido2) { this.apellido2 = apellido2; }
-    public void setFechaNacimiento(LocalDate fechaNacimiento) { this.fechaNacimiento = fechaNacimiento; }
-    public void setUsuario(String usuario) { this.usuario = usuario; }
-    public void setPassword(String password) { this.password = password; }
-    public void setPoblacion(String poblacion) { this.poblacion = poblacion; }
+    // Métodos públicos que llaman a los privados
+    public void guardarPublic() throws SQLException {
+        guardarPrivado();
+    }
 
-    // Metodo para guardar en la base de datos
-    public void guardar() throws SQLException {
+    public void actualizarPublic() throws SQLException {
+        actualizarPrivado();
+    }
+
+    public void eliminarPublic() throws SQLException {
+        eliminarPrivado();
+    }
+
+    // Método para guardar en la base de datos (Privado)
+    private void guardarPrivado() throws SQLException {
         String sql = "INSERT INTO Persona (dni, nombre, apellido1, apellido2, fechaNacimiento, usuario, password, poblacion) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -62,8 +68,8 @@ public class Persona {
         }
     }
 
-    // Metodo para actualizar en la base de datos
-    public void actualizar() throws SQLException {
+    // Método para actualizar en la base de datos (Privado)
+    private void actualizarPrivado() throws SQLException {
         String sql = "UPDATE Persona SET nombre = ?, apellido1 = ?, apellido2 = ?, fechaNacimiento = ?, usuario = ?, password = ?, poblacion = ? WHERE dni = ?";
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -79,8 +85,8 @@ public class Persona {
         }
     }
 
-    // Metodo para eliminar de la base de datos
-    public void eliminar() throws SQLException {
+    // Método para eliminar de la base de datos (Privado)
+    private void eliminarPrivado() throws SQLException {
         String sqlLicencia = "DELETE FROM Licencia WHERE persona_dni = ?";
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement stmtLicencia = conn.prepareStatement(sqlLicencia)) {
@@ -95,7 +101,71 @@ public class Persona {
         }
     }
 
-    // Metodo para buscar por DNI
+    // Método para buscar personas por criterios de nombre y apellidos
+    public static List<Persona> buscarPorCriterios(String nombre, String apellido1, String apellido2) throws SQLException {
+        List<Persona> personas = new ArrayList<>();
+        StringBuilder sqlBuilder = new StringBuilder("SELECT * FROM Persona WHERE 1=1");
+        List<String> params = new ArrayList<>();
+
+        if (nombre != null && !nombre.isEmpty()) {
+            sqlBuilder.append(" AND nombre LIKE ?");
+            params.add("%" + nombre + "%");
+        }
+        if (apellido1 != null && !apellido1.isEmpty()) {
+            sqlBuilder.append(" AND apellido1 LIKE ?");
+            params.add("%" + apellido1 + "%");
+        }
+        if (apellido2 != null && !apellido2.isEmpty()) {
+            sqlBuilder.append(" AND apellido2 LIKE ?");
+            params.add("%" + apellido2 + "%");
+        }
+
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sqlBuilder.toString())) {
+            for (int i = 0; i < params.size(); i++) {
+                stmt.setString(i + 1, params.get(i));
+            }
+            ResultSet rs = stmt.executeQuery();
+            while (rs.next()) {
+                personas.add(new Persona(
+                    rs.getString("dni"),
+                    rs.getString("nombre"),
+                    rs.getString("apellido1"),
+                    rs.getString("apellido2"),
+                    rs.getDate("fechaNacimiento").toLocalDate(),
+                    rs.getString("usuario"),
+                    rs.getString("password"),
+                    rs.getString("poblacion")
+                ));
+            }
+        }
+        return personas;
+    }
+
+    // Método para cargar todas las personas desde la base de datos
+    public static List<Persona> obtenerTodas() throws SQLException {
+        List<Persona> personas = new ArrayList<>();
+        String sql = "SELECT dni, nombre, apellido1, apellido2, fechaNacimiento, usuario, password, poblacion FROM Persona";
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql);
+             ResultSet rs = stmt.executeQuery()) {
+            while (rs.next()) {
+                personas.add(new Persona(
+                    rs.getString("dni"),
+                    rs.getString("nombre"),
+                    rs.getString("apellido1"),
+                    rs.getString("apellido2"),
+                    rs.getDate("fechaNacimiento").toLocalDate(),
+                    rs.getString("usuario"),
+                    rs.getString("password"),
+                    rs.getString("poblacion")
+                ));
+            }
+        }
+        return personas;
+    }
+
+    // Método para buscar por DNI
     public static Persona buscarPorDni(String dni) throws SQLException {
         String sql = "SELECT * FROM Persona WHERE dni = ?";
         try (Connection conn = DatabaseConnection.getConnection();
@@ -120,6 +190,6 @@ public class Persona {
 
     @Override
     public String toString() {
-        return nombre + " " + apellido1 + " " + (apellido2 != null ? apellido2 : "") + " (DNI: " + dni + ")";
+        return "Persona{dni='" + dni + "', nombre='" + nombre + "', apellido1='" + apellido1 + "', apellido2='" + apellido2 + "'}";
     }
 }

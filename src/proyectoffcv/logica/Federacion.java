@@ -1,244 +1,340 @@
 package proyectoffcv.logica;
 
 import entidades.*;
+import entidades.Instalacion.TipoSuperficie;
 import proyectoffcv.util.DatabaseConnection;
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
-import java.util.UUID;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.swing.JOptionPane;
 
-public class Federacion implements IFederacion {
-    private static Federacion instance;
+public final class Federacion implements IFederacion {
+    private static Federacion instancia;
+    private static int contadorLicencias = 1;
     private List<Categoria> categorias;
     private List<Empleado> empleados;
     private List<Persona> afiliados;
     private List<Club> clubes;
     private List<Instalacion> instalaciones;
+    private List<Licencia> licencias;
+    private List<Equipo> equipos;
 
     private Federacion() {
-        categorias = new ArrayList<>();
-        empleados = new ArrayList<>();
-        afiliados = new ArrayList<>();
-        clubes = new ArrayList<>();
-        instalaciones = new ArrayList<>();
+        this.categorias = new ArrayList<>();
+        this.empleados = new ArrayList<>();
+        this.afiliados = new ArrayList<>();
+        this.clubes = new ArrayList<>();
+        this.instalaciones = new ArrayList<>();
+        this.licencias = new ArrayList<>();
+        this.equipos = new ArrayList<>();
+    
+        // Cargar los datos desde la base de datos
+        try {
+            this.afiliados = Persona.obtenerTodas();
+            this.empleados = Empleado.obtenerTodos();
+            this.instalaciones = Instalacion.obtenerTodas();
+            this.categorias = Categoria.cargarCategoriasDesdeBD();
+            this.clubes = Club.cargarClubsDesdeBD();
+            this.equipos = Equipo.obtenerTodos();
+            this.licencias = Licencia.obtenerTodas();
+
+        } catch (SQLException e) {
+            System.err.println("Error al cargar datos desde la base de datos: " + e.getMessage());
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(null, "Error al cargar datos iniciales de la base de datos.", "Error de Carga", JOptionPane.ERROR_MESSAGE);
+        }
     }
 
     public static Federacion getInstance() {
-        if (instance == null) {
-            instance = new Federacion();
+        if (instancia == null) {
+            instancia = new Federacion();
         }
-        return instance;
+        return instancia;
     }
 
-    // CLUBES
     @Override
     public Club buscarClub(String nombre) {
+        if (nombre == null || nombre.isBlank()) {
+            throw new IllegalArgumentException("El nombre del club no puede estar vacio.");
+        }
+        for (Club club : clubes) {
+            if (club.getNombre().equalsIgnoreCase(nombre)) {
+                return club;
+            }
+        }
+        throw new RuntimeException("Error no se encontro ningun club con el nombre: " + nombre);
+    }
+
+    @Override
+    public Equipo nuevoEquipo(String letra, Instalacion instalacion, Grupo grupo, Club club) throws IllegalArgumentException, RuntimeException {
         try {
-            return Club.buscarPorNombre(nombre);
+            if (letra == null || letra.isBlank()) {
+                throw new IllegalArgumentException("La letra del equipo no puede estar vacía.");
+            }
+            if (instalacion == null || grupo == null || club == null) {
+                throw new IllegalArgumentException("Instalación, grupo o club no pueden ser nulos.");
+            }
+            Equipo nuevoEquipo = new Equipo(letra, instalacion, grupo, club);
+            nuevoEquipo.guardarPublic();
+            club.agregarEquipo(nuevoEquipo);
+            grupo.agregarEquipo(nuevoEquipo);
+            equipos.add(nuevoEquipo);
+            return nuevoEquipo;
         } catch (SQLException e) {
-            e.printStackTrace();
-            return null;
+            Logger.getLogger(Federacion.class.getName()).log(Level.SEVERE, "Error al crear un nuevo equipo: " + e.getMessage(), e);
+            throw new RuntimeException("Error al crear un nuevo equipo: " + e.getMessage(), e);
+        }
+    }
+    
+    @Override
+    public Club nuevoClub(String nombre, LocalDate fechaFundacion, Persona presidente) {
+        try {
+            Club nuevoClub = new Club(nombre, fechaFundacion, presidente);
+            nuevoClub.validarDatos(nombre, fechaFundacion, presidente);
+            nuevoClub.guardarPublic();
+            this.clubes.add(nuevoClub);
+            return nuevoClub;
+        } catch (SQLException e) {
+            Logger.getLogger(Federacion.class.getName()).log(Level.SEVERE, "Error al crear un nuevo club: " + e.getMessage(), e);
+            throw new RuntimeException("Error al crear un nuevo club: " + e.getMessage(), e);
         }
     }
 
     @Override
-    public Equipo nuevoEquipo(String letra, Instalacion instalacion, Grupo grupo) {
-        return new Equipo(letra, instalacion, grupo, null); // Club is null as per IFederacion_ORIGINAL
-    }
-
-    @Override
-    public Club nuevoClub(String nombre, LocalDate fechaFundacion, Persona presidente) {
-        Club club = new Club(nombre, fechaFundacion, presidente);
-        clubes.add(club);
-        return club;
-    }
-
-    // CATEGORÍAS
-    @Override
     public Categoria nuevaCategoria(String nombre, int orden, double precioLicencia) {
-        Categoria categoria = new Categoria(nombre, orden, precioLicencia);
-        categorias.add(categoria);
-        return categoria;
+        try {
+            Categoria nuevaCategoria = new Categoria(nombre, orden, precioLicencia);
+            nuevaCategoria.guardarPublic();
+            categorias.add(nuevaCategoria);
+            return nuevaCategoria;
+        } catch (SQLException e) {
+            Logger.getLogger(Federacion.class.getName()).log(Level.SEVERE, "Error al crear una nueva categoría: " + e.getMessage(), e);
+            throw new RuntimeException("Error al crear una nueva categoría: " + e.getMessage(), e);
+        }
     }
 
     @Override
     public List<Categoria> obtenerCategorias() {
-        List<Categoria> result = new ArrayList<>();
-        String sql = "SELECT * FROM Categoria";
-        try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql);
-             ResultSet rs = stmt.executeQuery()) {
-            while (rs.next()) {
-                result.add(new Categoria(
-                    rs.getString("nombre"),
-                    rs.getInt("orden"),
-                    rs.getDouble("precioLicencia")
-                ));
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return result;
+        return Collections.unmodifiableList(categorias);
     }
 
     @Override
-    public List<Grupo> obtenerGrupos(Categoria categoria) {
-        List<Grupo> grupos = new ArrayList<>();
-        String sql = "SELECT * FROM Grupo WHERE categoria_id = ?";
-        try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setInt(1, categoria.getId());
-            ResultSet rs = stmt.executeQuery();
-            while (rs.next()) {
-                grupos.add(new Grupo(categoria, rs.getString("nombre")));
-            }
+    public List<Grupo> obtenerGrupos(Categoria c) {
+        try {
+            return Grupo.buscarGruposPorCategoria(c);
         } catch (SQLException e) {
-            e.printStackTrace();
+            Logger.getLogger(Federacion.class.getName()).log(Level.SEVERE, "Error al obtener grupos para la categoría " + c.getNombre() + ": " + e.getMessage(), e);
+            throw new RuntimeException("Error al obtener grupos para la categoría " + c.getNombre() + ": " + e.getMessage(), e);
         }
-        return grupos;
     }
 
     @Override
-    public Grupo nuevoGrupo(Categoria categoria, String nombre) {
-        return new Grupo(categoria, nombre);
+    public Grupo nuevoGrupo(Categoria c, String nombre) {
+        try {
+            Grupo nuevoGrupo = new Grupo(c, nombre);
+            nuevoGrupo.guardarPublic();
+            c.getGrupos().add(nuevoGrupo);
+            return nuevoGrupo;
+        } catch (SQLException e) {
+            Logger.getLogger(Federacion.class.getName()).log(Level.SEVERE, "Error al crear un nuevo grupo: " + e.getMessage(), e);
+            throw new RuntimeException("Error al crear un nuevo grupo: " + e.getMessage(), e);
+        }
     }
 
-    // PERSONAS
     @Override
     public Persona nuevaPersona(String dni, String nombre, String apellido1, String apellido2, LocalDate fechaNacimiento, String usuario, String password, String poblacion) {
-        Persona persona = new Persona(dni, nombre, apellido1, apellido2, fechaNacimiento, usuario, password, poblacion);
-        afiliados.add(persona);
-        return persona;
+        try {
+            Persona persona = new Persona(dni, nombre, apellido1, apellido2, fechaNacimiento, usuario, password, poblacion);
+            persona.guardarPublic();
+            afiliados.add(persona);
+            return persona;
+        } catch (SQLException e) {
+            Logger.getLogger(Federacion.class.getName()).log(Level.SEVERE, "Error al crear una nueva persona: " + e.getMessage(), e);
+            throw new RuntimeException("Error al crear una nueva persona: " + e.getMessage(), e);
+        }
     }
 
     @Override
     public Empleado nuevoEmpleado(String dni, String nombre, String apellido1, String apellido2, LocalDate fechaNacimiento, String usuario, String password, String poblacion, int numEmpleado, LocalDate inicioContrato, String segSocial) {
-        Empleado empleado = new Empleado(dni, nombre, apellido1, apellido2, fechaNacimiento, usuario, password, poblacion, numEmpleado, inicioContrato, segSocial);
-        empleados.add(empleado);
-        return empleado;
+        try {
+            Empleado empleado = new Empleado(dni, nombre, apellido1, apellido2, fechaNacimiento, usuario, password, poblacion, numEmpleado, inicioContrato, segSocial);
+            empleado.guardarPublic();
+            this.empleados.add(empleado);
+            this.afiliados.add(empleado);
+            return empleado;
+        } catch (SQLException e) {
+            Logger.getLogger(Federacion.class.getName()).log(Level.SEVERE, "Error al crear un nuevo empleado: " + e.getMessage(), e);
+            throw new RuntimeException("Error al crear un nuevo empleado: " + e.getMessage(), e);
+        }
     }
 
     @Override
     public Persona buscaPersona(String dni) {
-        try {
-            return Persona.buscarPorDni(dni);
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return null;
+        for (Persona i : afiliados) {
+            if (i.getDni().equals(dni)) {
+                return i;
+            }
         }
+        return null;
     }
 
     @Override
     public List<Persona> buscaPersonas(String nombre, String apellido1, String apellido2) {
-        List<Persona> personas = new ArrayList<>();
-        String sql = "SELECT * FROM Persona WHERE nombre LIKE ? AND apellido1 LIKE ? AND (apellido2 LIKE ? OR apellido2 IS NULL)";
-        try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setString(1, "%" + nombre + "%");
-            stmt.setString(2, "%" + apellido1 + "%");
-            stmt.setString(3, "%" + (apellido2 != null ? apellido2 : "") + "%");
-            ResultSet rs = stmt.executeQuery();
-            while (rs.next()) {
-                personas.add(new Persona(
-                    rs.getString("dni"),
-                    rs.getString("nombre"),
-                    rs.getString("apellido1"),
-                    rs.getString("apellido2"),
-                    rs.getDate("fechaNacimiento").toLocalDate(),
-                    rs.getString("usuario"),
-                    rs.getString("password"),
-                    rs.getString("poblacion")
-                ));
+        List<Persona> resultados = new ArrayList<>();
+        for (Persona p : afiliados) {
+            boolean coincideNombre = (nombre == null || nombre.isEmpty()) || p.getNombre().equalsIgnoreCase(nombre);
+            boolean coincideApellido1 = (apellido1 == null || apellido1.isEmpty()) || p.getApellido1().equalsIgnoreCase(apellido1);
+            boolean coincideApellido2 = (apellido2 == null || apellido2.isEmpty()) || (p.getApellido2() != null && p.getApellido2().equalsIgnoreCase(apellido2));
+            if (coincideNombre && coincideApellido1 && coincideApellido2) {
+                resultados.add(p);
             }
-        } catch (SQLException e) {
-            e.printStackTrace();
         }
-        return personas;
+        return resultados;
     }
 
-    // LICENCIAS
     @Override
     public Licencia nuevaLicencia(Persona p) {
-        String numeroLicencia = UUID.randomUUID().toString();
-        return new Licencia(numeroLicencia, p, null, false);
+        try {
+            String numeroLicencia = String.format("LIC-%06d", contadorLicencias++);
+            Licencia licencia = new Licencia(numeroLicencia, p, null, false);
+            licencia.guardarPublic();
+            licencias.add(licencia);
+            return licencia;
+        } catch (SQLException e) {
+            Logger.getLogger(Federacion.class.getName()).log(Level.SEVERE, "Error al crear nueva licencia para persona: " + e.getMessage(), e);
+            throw new RuntimeException("Error al crear nueva licencia para persona: " + e.getMessage(), e);
+        }
     }
 
     @Override
     public Licencia nuevaLicencia(Persona p, Equipo e) {
-        String numeroLicencia = UUID.randomUUID().toString();
-        return new Licencia(numeroLicencia, p, e, false);
+        try {
+            String numeroLicencia = String.format("LIC-%06d", contadorLicencias++);
+            Licencia licencia = new Licencia(numeroLicencia, p, e, false);
+            licencia.guardarPublic();
+            licencias.add(licencia);
+            return licencia;
+        } catch (SQLException ex) {
+            Logger.getLogger(Federacion.class.getName()).log(Level.SEVERE, "Error al crear nueva licencia con equipo: " + ex.getMessage(), ex);
+            throw new RuntimeException("Error al crear nueva licencia con equipo: " + ex.getMessage(), ex);
+        }
     }
 
     @Override
     public void addLicencia(Licencia l, Equipo e) {
         try {
-            l.setEquipo(e);
-            l.guardar();
+            if (l.getEquipo() == null) {
+                l.setEquipo(e);
+                l.actualizarPublic();
+            } else if (!l.getEquipo().equals(e)) {
+                l.setEquipo(e);
+                l.actualizarPublic();
+            }
+            if (!licencias.contains(l)) {
+                licencias.add(l);
+            }
         } catch (SQLException ex) {
-            ex.printStackTrace();
+            Logger.getLogger(Federacion.class.getName()).log(Level.SEVERE, "Error al añadir/actualizar licencia con equipo: " + ex.getMessage(), ex);
+            throw new RuntimeException("Error al añadir/actualizar licencia con equipo: " + ex.getMessage(), ex);
         }
     }
 
     @Override
-    public double calcularPrecioLicencia(Equipo equipo) {
-        Grupo grupo = equipo.getGrupo();
-        Categoria categoria = grupo.getCategoria();
-        return categoria.getPrecioLicencia();
+        public double calcularPrecioLicencia(Equipo e) {
+        if (e == null || e.getGrupo() == null || e.getGrupo().getCategoria() == null) {
+            throw new IllegalArgumentException("Equipo, grupo o categoría no pueden ser nulos.");
+        }
+        return e.getGrupo().getCategoria().getPrecioLicencia();
     }
 
-    // INSTALACIÓN
     @Override
     public Instalacion nuevaInstalacion(String nombre, String direccion, String superficie) {
-        Instalacion instalacion = new Instalacion(nombre, direccion, Instalacion.TipoSuperficie.valueOf(superficie));
-        instalaciones.add(instalacion);
-        return instalacion;
+        try {
+            TipoSuperficie tipoSuperficie;
+            try {
+                tipoSuperficie = TipoSuperficie.valueOf(superficie.toUpperCase());
+            } catch (IllegalArgumentException e) {
+                Logger.getLogger(Federacion.class.getName()).log(Level.SEVERE, "Superficie inválida: " + superficie + ". " + e.getMessage(), e);
+                throw new RuntimeException("Superficie inválida: " + superficie + ". " + e.getMessage(), e);
+            }
+            Instalacion nuevaInstalacion = new Instalacion(nombre, direccion, tipoSuperficie);
+            nuevaInstalacion.guardarPublic();
+            instalaciones.add(nuevaInstalacion);
+            return nuevaInstalacion;
+        } catch (SQLException e) {
+            Logger.getLogger(Federacion.class.getName()).log(Level.SEVERE, "Error al crear nueva instalación: " + e.getMessage(), e);
+            throw new RuntimeException("Error al crear nueva instalación: " + e.getMessage(), e);
+        }
     }
 
     @Override
     public List<Instalacion> buscarInstalaciones(String nombre) {
-        List<Instalacion> result = new ArrayList<>();
-        String sql = "SELECT * FROM Instalacion WHERE nombre LIKE ?";
-        try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setString(1, "%" + nombre + "%");
-            ResultSet rs = stmt.executeQuery();
-            while (rs.next()) {
-                result.add(new Instalacion(
-                    rs.getInt("id"),
-                    rs.getString("nombre"),
-                    rs.getString("direccion"),
-                    Instalacion.TipoSuperficie.valueOf(rs.getString("superficie"))
-                ));
+        List<Instalacion> resultados = new ArrayList<>();
+        for (Instalacion i : instalaciones) {
+            if (i.getNombre().toLowerCase().contains(nombre.toLowerCase())) {
+                resultados.add(i);
             }
-        } catch (SQLException e) {
-            e.printStackTrace();
         }
-        return result;
+        return resultados;
+    }
+    
+    // METODOS EXTERNOS PARA USABILIDAD
+    
+    public List<Club> obtenerClubes() {
+        return Collections.unmodifiableList(clubes);
     }
 
-    // Metodo para limpiar tablas en las pruebas
-    public void limpiarTablas() throws SQLException {
+    public List<Equipo> obtenerEquipos() {
+        return Collections.unmodifiableList(equipos);
+    }
+
+    public List<Persona> obtenerPersonas() {
+        return Collections.unmodifiableList(afiliados);
+    }
+
+    public List<Empleado> obtenerEmpleados() {
+        return Collections.unmodifiableList(empleados);
+    }
+
+    public List<Licencia> obtenerLicencias() {
+        return Collections.unmodifiableList(licencias);
+    }
+
+    public void limpiarTablas() throws FederacionException {
         try (Connection conn = DatabaseConnection.getConnection()) {
             conn.setAutoCommit(false);
             try (PreparedStatement stmt = conn.prepareStatement("SET FOREIGN_KEY_CHECKS = 0")) {
                 stmt.executeUpdate();
             }
-            String[] tables = {
-                "licencia", "equipo_jugador", "club_equipo", "equipo", "grupo",
-                "categoria", "instalacion", "club", "empleado", "persona"
-            };
-            for (String table : tables) {
-                try (PreparedStatement stmt = conn.prepareStatement("TRUNCATE TABLE " + table)) {
-                    stmt.executeUpdate();
-                }
-            }
+            try (PreparedStatement stmt = conn.prepareStatement("DELETE FROM Equipo_Jugador")) { stmt.executeUpdate(); }
+            try (PreparedStatement stmt = conn.prepareStatement("DELETE FROM Licencia")) { stmt.executeUpdate(); }
+            try (PreparedStatement stmt = conn.prepareStatement("DELETE FROM Equipo")) { stmt.executeUpdate(); }
+            try (PreparedStatement stmt = conn.prepareStatement("DELETE FROM Instalacion")) { stmt.executeUpdate(); }
+            try (PreparedStatement stmt = conn.prepareStatement("DELETE FROM Grupo")) { stmt.executeUpdate(); }
+            try (PreparedStatement stmt = conn.prepareStatement("DELETE FROM Categoria")) { stmt.executeUpdate(); }
+            try (PreparedStatement stmt = conn.prepareStatement("DELETE FROM Club")) { stmt.executeUpdate(); }
+            try (PreparedStatement stmt = conn.prepareStatement("DELETE FROM Empleado")) { stmt.executeUpdate(); }
+            try (PreparedStatement stmt = conn.prepareStatement("DELETE FROM Persona")) { stmt.executeUpdate(); }
             try (PreparedStatement stmt = conn.prepareStatement("SET FOREIGN_KEY_CHECKS = 1")) {
                 stmt.executeUpdate();
             }
             conn.commit();
+            limpiarListas();
         } catch (SQLException e) {
-            throw new SQLException("Error al limpiar tablas: " + e.getMessage(), e);
+            try {
+                if (DatabaseConnection.getConnection() != null) {
+                    DatabaseConnection.getConnection().rollback();
+                }
+            } catch (SQLException ex) {
+                Logger.getLogger(Federacion.class.getName()).log(Level.SEVERE, "Error al hacer rollback.", ex);
+            }
+            throw new FederacionException("Error al limpiar tablas de la base de datos.", e);
         }
     }
 
@@ -248,5 +344,9 @@ public class Federacion implements IFederacion {
         afiliados.clear();
         clubes.clear();
         instalaciones.clear();
+        licencias.clear();
+        equipos.clear();
+        contadorLicencias = 1;
+        instancia = null;
     }
 }

@@ -1,1916 +1,2592 @@
 package proyectoffcv.ui;
 
 import entidades.*;
-import java.sql.*;
+import java.awt.BorderLayout;
 import proyectoffcv.logica.Federacion;
-import proyectoffcv.logica.IFederacion;
-import java.time.LocalDate;
-import java.time.format.DateTimeParseException;
-import javax.swing.*;
-import javax.swing.border.EmptyBorder;
-import javax.swing.border.TitledBorder;
-import java.awt.*;
+import java.awt.Dimension;
+import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.net.URL;
-import java.sql.SQLException;
-import java.util.ArrayList;
+import java.time.format.DateTimeParseException;
 import java.util.List;
-import proyectoffcv.util.DatabaseConnection;
+import javax.swing.BorderFactory;
+import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.ImageIcon;
+import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
+import javax.swing.JTextField;
+import javax.swing.SwingConstants;
+import javax.swing.SwingUtilities;
+import javax.swing.UIManager;
+import javax.swing.border.EmptyBorder;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Font;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Insets;
+import java.net.URL;
+import javax.swing.border.TitledBorder;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.RenderingHints;
+import java.awt.GradientPaint;
+import java.awt.Image;
+import java.awt.Cursor;
+import javax.swing.UnsupportedLookAndFeelException;
+import entidades.Instalacion;
+import entidades.Categoria;
+import entidades.Grupo;
+import java.time.LocalDate;
+import java.awt.BasicStroke;
+import java.awt.AlphaComposite;
+import java.awt.FlowLayout;
+import java.awt.FontMetrics;
+import java.awt.RadialGradientPaint;
+import java.awt.LinearGradientPaint;
+import java.awt.geom.Point2D;
+import javax.swing.Icon;
+import javax.swing.Timer; 
 
 public class MainApp2 {
 
-    private IFederacion federacion; // Interfaz para la logica de la federacion
-    private JFrame frame; // Ventana principal de la aplicacion
-    private JPanel contentPanel; // Panel que contiene el contenido de la ventana
-    private JMenuBar menuBar; // Barra de menu de la aplicacion
-    private JTextArea errorArea; // Area de texto para mostrar errores
-    private JScrollPane errorScrollPane; // Scroll para el area de errores
-
+    private Federacion federacion;
+    private JFrame frame;
+    private JPanel contentPanel;
+    private JMenuBar menuBar;
+    private JTextArea errorArea;
+    private JScrollPane errorScrollPane;
+    
+    // Colores modernos y profesionales
+    private static final Color PRIMARY_COLOR = new Color(26, 38, 57);      // #1A2639
+    private static final Color SECONDARY_COLOR = new Color(59, 130, 246);   // #3B82F6
+    private static final Color ACCENT_COLOR = new Color(248, 113, 113);    // #F87171
+    private static final Color BACKGROUND_COLOR = new Color(245, 247, 250); // #F5F7FA
+    private static final Color TEXT_PRIMARY = new Color(31, 42, 68);        // #1F2A44
+    private static final Color TEXT_SECONDARY = new Color(107, 114, 128);   // #6B7280
+    private static final Color ERROR_COLOR = new Color(231, 76, 60);        // #E74C3C
+    private static final Color BORDER_COLOR = new Color(229, 231, 235);     // #E5E7EB  
+    
     public MainApp2() {
-        federacion = Federacion.getInstance(); // Inicializa la instancia de la federacion
-        errorArea = new JTextArea(3, 30); // 3 filas, 30 columnas
-        errorArea.setEditable(false); // No editable
-        errorArea.setForeground(Color.WHITE); // Texto blanco
-        errorArea.setBackground(Color.RED); // Fondo rojo para errores
-        errorArea.setLineWrap(true); // Ajuste de linea
-        errorArea.setWrapStyleWord(true); // Ajuste por palabras
-        errorScrollPane = new JScrollPane(errorArea); // Anade scroll al area de errores
+        federacion = Federacion.getInstance();
+
+        errorArea = new JTextArea(3, 30);
+        errorArea.setEditable(false);
+        errorArea.setForeground(ERROR_COLOR);
+        errorArea.setBackground(new Color(255, 248, 248));
+        errorArea.setFont(new Font("Inter", Font.PLAIN, 11));
+        errorArea.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(new Color(254, 226, 226), 2),
+                BorderFactory.createEmptyBorder(8, 12, 8, 12)
+        ));
+        errorScrollPane = new JScrollPane(errorArea);
+        errorScrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+        errorScrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+        errorScrollPane.setBorder(BorderFactory.createEmptyBorder());
+        errorScrollPane.getViewport().setBackground(new Color(255, 248, 248));
+
+        initialize();
+    }
+    
+    // Método para crear un menú con estilo
+    private JMenu createMenu(String title, String iconPath) {
+        JMenu menu = new JMenu(" " + title + " ");
+        menu.setForeground(Color.WHITE);
+        menu.setFont(new Font("Inter", Font.BOLD, 13));
+        menu.setBorder(BorderFactory.createEmptyBorder(6, 6, 6, 6));
+
+        URL iconURL = getClass().getResource("/resources/iconos/" + iconPath);
+        if (iconURL != null) {
+            ImageIcon originalIcon = new ImageIcon(iconURL);
+            Image scaledImage = originalIcon.getImage().getScaledInstance(18, 18, Image.SCALE_SMOOTH);
+            menu.setIcon(new ImageIcon(scaledImage));
+            menu.setIconTextGap(10);
+        }
+
+        return menu;
+    }
+    
+    public static void main(String[] args) {
+        try {
+            // Configurar Look and Feel moderno
+            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+
+            // Configuraciones adicionales para mejorar la apariencia
+            System.setProperty("awt.useSystemAAFontSettings", "on");
+            System.setProperty("swing.aatext", "true");
+
+        } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | UnsupportedLookAndFeelException e) {
+            e.printStackTrace();
+        }
+
+        SwingUtilities.invokeLater(() -> {
+            try {
+                MainApp2 app = new MainApp2();
+                app.frame.setVisible(true);
+            } catch (Exception e) {
+                e.printStackTrace();
+                JOptionPane.showMessageDialog(null,
+                    "Error al inicializar la aplicación: " + e.getMessage(),
+                    "Error de Inicialización",
+                    JOptionPane.ERROR_MESSAGE);
+            }
+        });
     }
 
-    // Metodo para crear y mostrar la interfaz grafica
-    private void createAndShowGUI() {
-        frame = new JFrame("Proyecto FFCV - Gestion Federativa"); // Titulo de la ventana
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE); // Cierra la aplicacion al cerrar la ventana
-        frame.setSize(1000, 750); // Tamano de la ventana
-        frame.setLocationRelativeTo(null); // Centra la ventana en la pantalla
-        setFrameIcon("/resources/logo.png"); // Establece el icono de la ventana
+    private void initialize() {
+        frame = new JFrame("Gestión de Federación FFCV - Sistema Profesional");
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setSize(1400, 900);
+        frame.setMinimumSize(new Dimension(1200, 800));
+        frame.setLocationRelativeTo(null);
+        
+        // Añadir ícono a la ventana
+        URL iconURL = getClass().getResource("/resources/logo.png");
+        if (iconURL != null) {
+            ImageIcon icon = new ImageIcon(iconURL);
+            Image scaledImage = icon.getImage().getScaledInstance(32, 32, Image.SCALE_SMOOTH); // Escala a 32x32
+            frame.setIconImage(scaledImage);
+        } else {
+            System.err.println("No se pudo cargar el ícono: /resources/logo.png");
+        }
+       
+        frame.getContentPane().setBackground(BACKGROUND_COLOR);
 
-        JPanel mainPanel = createGradientPanel(); // Crea el panel principal con un fondo degradado
-        mainPanel.setBorder(new EmptyBorder(15, 15, 15, 15)); // Establece un borde vacio alrededor del panel
+        menuBar = new JMenuBar() {
+            @Override
+            protected void paintComponent(Graphics g) {
+                Graphics2D g2d = (Graphics2D) g;
+                g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                GradientPaint gradient = new GradientPaint(
+                    0, 0, PRIMARY_COLOR,
+                    0, getHeight(), new Color(44, 62, 80)
+                );
+                g2d.setPaint(gradient);
+                g2d.fillRect(0, 0, getWidth(), getHeight());
+                g2d.setColor(new Color(255, 255, 255, 30));
+                g2d.drawLine(0, getHeight() - 1, getWidth(), getHeight() - 1);
+            }
+        };
+        menuBar.setBorder(BorderFactory.createEmptyBorder(12, 30, 12, 30));
+        menuBar.setOpaque(false);
+        menuBar.setLayout(new FlowLayout(FlowLayout.LEFT, 40, 0));
 
-        JPanel headerPanel = createHeaderPanel(); // Crea el panel de encabezado
-        menuBar = createMenuBar(); // Crea la barra de menu
-        headerPanel.add(menuBar, BorderLayout.SOUTH); // Anade la barra de menu al panel de encabezado
+        JMenu clubsMenu = createMenu("Clubs", "club.png");
+        addMenuItem(clubsMenu, "Alta Club", e -> showAltaClubPanel(), "cross.png");
+        addMenuItem(clubsMenu, "Listar Clubes", e -> showListarClubesPanel(), "list.png");
+        menuBar.add(clubsMenu);
+        menuBar.revalidate();
 
-        contentPanel = new JPanel(new BorderLayout()); // Crea el panel de contenido
-        contentPanel.setBackground(Color.WHITE); // Establece el color de fondo del panel de contenido
-        contentPanel.setBorder(new EmptyBorder(10, 10, 10, 10)); // Establece un borde vacio alrededor del panel de contenido
-        contentPanel.add(createWelcomePanel(), BorderLayout.CENTER); // Anade el panel de bienvenida al panel de contenido
+        JMenu equiposMenu = createMenu("Equipos", "teams.png");
+        addMenuItem(equiposMenu, "Alta Equipo", e -> showAltaEquipoPanel(), "cross.png");
+        addMenuItem(equiposMenu, "Listar Equipos", e -> showListarEquiposPanel(), "list.png");
+        menuBar.add(equiposMenu);
+        menuBar.revalidate();
 
-        mainPanel.add(headerPanel, BorderLayout.NORTH); // Anade el panel de encabezado al panel principal
-        mainPanel.add(contentPanel, BorderLayout.CENTER); // Anade el panel de contenido al panel principal
-        frame.add(mainPanel); // Anade el panel principal a la ventana
+        JMenu categoriasGruposMenu = createMenu("Categorías y Grupos", "categorias.png");
+        addMenuItem(categoriasGruposMenu, "Alta Categoría", e -> showAltaCategoriaPanel(), "cross.png");
+        addMenuItem(categoriasGruposMenu, "Alta Grupo", e -> showAltaGrupoPanel(), "cross.png");
+        addMenuItem(categoriasGruposMenu, "Listar Categorías", e -> showListarCategoriasPanel(), "list.png");
+        addMenuItem(categoriasGruposMenu, "Listar Grupos por Categoría", e -> showListarGruposPorCategoriaPanel(), "list.png");
+        menuBar.add(categoriasGruposMenu);
+        menuBar.revalidate();
 
-        setupMenuActions(); // Configura las acciones de los elementos del menu
+        JMenu personasMenu = createMenu("Personas", "persona.png");
+        addMenuItem(personasMenu, "Alta Persona", e -> showAltaPersonaPanel(), "cross.png");
+        addMenuItem(personasMenu, "Alta Empleado", e -> showAltaEmpleadoPanel(), "cross.png");
+        addMenuItem(personasMenu, "Buscar Persona por DNI", e -> showBuscarPersonaDniPanel(), "magnifier.png");
+        addMenuItem(personasMenu, "Buscar Personas por Nombre", e -> showBuscarPersonasPorNombrePanel(), "magnifier.png");
+        addMenuItem(personasMenu, "Listar Personas", e -> showListarPersonasPanel(), "list.png");
+        addMenuItem(personasMenu, "Listar Empleados", e -> showListarEmpleadosPanel(), "list.png");
+        menuBar.add(personasMenu);
+        menuBar.revalidate();
 
-        frame.setVisible(true); // Hace visible la ventana
-    }
+        JMenu licenciasMenu = createMenu("Licencias", "licencia.png");
+        addMenuItem(licenciasMenu, "Alta Licencia (sin equipo)", e -> showAltaLicenciaSinEquipoPanel(), "cross.png");
+        addMenuItem(licenciasMenu, "Alta Licencia (con equipo)", e -> showAltaLicenciaConEquipoPanel(), "cross.png");
+        addMenuItem(licenciasMenu, "Añadir Licencia a Equipo", e -> showAddLicenciaAEquipoPanel(), "cross.png");
+        addMenuItem(licenciasMenu, "Calcular Precio Licencia", e -> showCalcularPrecioLicenciaPanel(), "calculator.png");
+        addMenuItem(licenciasMenu, "Listar Licencias", e -> showListarLicenciasPanel(), "list.png");
+        menuBar.add(licenciasMenu);
+        menuBar.revalidate();
 
-    // Metodo para crear un panel con fondo degradado
-    private JPanel createGradientPanel() {
-        return new JPanel(new BorderLayout()) {
+        JMenu instalacionesMenu = createMenu("Instalaciones", "instalaciones.png");
+        addMenuItem(instalacionesMenu, "Alta Instalación", e -> showAltaInstalacionPanel(), "cross.png");
+        addMenuItem(instalacionesMenu, "Buscar Instalaciones", e -> showBuscarInstalacionesPanel(), "magnifier.png");
+        menuBar.add(instalacionesMenu);
+        menuBar.revalidate();
+        
+        JMenu utilidadesMenu = createMenu("Utilidades", "tools.png");
+        addMenuItem(utilidadesMenu, "Limpiar Base de Datos", e -> limpiarBaseDeDatos(), "trash.png");
+        menuBar.add(utilidadesMenu);
+        menuBar.revalidate();
+
+        frame.setJMenuBar(menuBar);
+
+        contentPanel = new JPanel();
+        contentPanel.setLayout(new BorderLayout(20, 20));
+        contentPanel.setBorder(new EmptyBorder(30, 30, 30, 30));
+        contentPanel.setBackground(BACKGROUND_COLOR);
+
+        JPanel southPanel = new JPanel(new BorderLayout()) {
             @Override
             protected void paintComponent(Graphics g) {
                 super.paintComponent(g);
                 Graphics2D g2d = (Graphics2D) g;
-                g2d.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
-                int w = getWidth(), h = getHeight();
-                Color color1 = new Color(245, 247, 250); // Color superior del degradado
-                Color color2 = new Color(200, 230, 201); // Color inferior del degradado
-                GradientPaint gp = new GradientPaint(0, 0, color1, 0, h, color2); // Crea el degradado
-                g2d.setPaint(gp);
-                g2d.fillRect(0, 0, w, h); // Rellena el panel con el degradado
+                g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                GradientPaint gradient = new GradientPaint(
+                    0, 0, Color.WHITE,
+                    0, getHeight(), new Color(252, 253, 255)
+                );
+                g2d.setPaint(gradient);
+                g2d.fillRoundRect(0, 0, getWidth(), getHeight(), 16, 16);
+                g2d.setColor(BORDER_COLOR);
+                g2d.setStroke(new BasicStroke(2));
+                g2d.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 16, 16);
             }
         };
+        southPanel.setOpaque(false);
+        southPanel.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createEmptyBorder(10, 0, 0, 0),
+                BorderFactory.createCompoundBorder(
+                        BorderFactory.createTitledBorder(
+                                BorderFactory.createEmptyBorder(),
+                                "💬 Mensajes del Sistema",
+                                TitledBorder.LEFT, TitledBorder.TOP,
+                                new Font("Inter", Font.BOLD, 16), PRIMARY_COLOR
+                        ),
+                        BorderFactory.createEmptyBorder(10, 20, 20, 20)
+                )
+        ));
+        southPanel.add(errorScrollPane, BorderLayout.CENTER);
+        southPanel.setPreferredSize(new Dimension(frame.getWidth(), 140));
+
+        frame.add(contentPanel, BorderLayout.CENTER);
+        frame.add(southPanel, BorderLayout.SOUTH);
+        menuBar.revalidate();
+        menuBar.repaint();
+
+        showWelcomePanel();
     }
 
-    // Metodo para crear el panel de encabezado
-    private JPanel createHeaderPanel() {
-        JPanel headerPanel = new JPanel(new BorderLayout()); // Panel de encabezado con layout de BorderLayout
-        headerPanel.setBackground(new Color(166, 7, 7)); // Establece el color de fondo del encabezado
-        headerPanel.setBorder(new EmptyBorder(10, 20, 10, 20)); // Establece un borde vacio alrededor del encabezado
-
-        JLabel headerLabel = createStyledLabel("Sistema de Gestion Federativa FFCV"); // Etiqueta del encabezado
-        headerLabel.setHorizontalAlignment(SwingConstants.CENTER); // Centra el texto
-        headerLabel.setForeground(Color.WHITE); // Establece el color del texto
-
-        JLabel logoLabel = createLogoLabel("/resources/logo.png"); // Crea la etiqueta del logo
-        headerPanel.add(logoLabel, BorderLayout.WEST); // Anade el logo al lado izquierdo del encabezado
-        headerPanel.add(headerLabel, BorderLayout.CENTER); // Anade la etiqueta del encabezado al centro
-        return headerPanel; // Devuelve el panel de encabezado
-    }
-
-    // Metodo para crear la barra de menu
-    private JMenuBar createMenuBar() {
-        JMenuBar menuBar = new JMenuBar(); // Crea la barra de menu
-        menuBar.setBackground(new Color(245, 245, 245)); // Establece el color de fondo de la barra de menu
-        menuBar.setOpaque(true); // Modo opaco para que se vea el rojo mas claro del fondo del menu gestion
-        menuBar.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10)); // Establece un borde vacio alrededor de la barra de menu
-        // Forzar el repintado del fondo
-        menuBar.setUI(new javax.swing.plaf.basic.BasicMenuBarUI() {
+    // Método para añadir elementos al menú
+    private void addMenuItem(JMenu menu, String text, ActionListener listener, String iconPath) {
+        JMenuItem menuItem = new JMenuItem("  " + text) {
             @Override
-            public void paint(Graphics g, JComponent c) {
-                g.setColor(new Color(230, 230, 230)); // Color blanco-gris
-                g.fillRect(0, 0, c.getWidth(), c.getHeight());
-            }
-        });
+            protected void paintComponent(Graphics g) {
+                Graphics2D g2d = (Graphics2D) g;
+                g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
-        Font menuFont = new Font("Segoe UI", Font.PLAIN, 16); // Fuente para los elementos del menu
-        Color menuForeground = Color.WHITE; // Color del texto de los elementos del menu
-        Color menuHover = new Color(66, 66, 66); // Color de fondo al pasar el raton sobre los elementos del menu
+                Color textColor; // Variable para almacenar el color del texto
 
-        JMenu gestionMenu = new JMenu("Gestion"); // Crea el menu de gestion
-        styleMenu(gestionMenu, menuFont, menuForeground, menuHover); // Estiliza el menu
-        gestionMenu.setIcon(loadIcon("/resources/iconos/gestion.png")); // Establece el icono del menu
+                g2d.setColor(PRIMARY_COLOR);
+                g2d.fillRect(0, 0, getWidth(), getHeight());
 
-        // Nombres de los elementos del menu
-        String[] menuItems = {"Personas", "Empleados", "Categorias", "Instalaciones", "Clubes", "Grupos", "Equipos", "Licencias"};
-        // Rutas de los iconos de los elementos del menu
-        String[] iconPaths = {"persona.png", "empleado.png", "categorias.png", "instalaciones.png", "club.png", "grupos.png", "teams.png", "licencia.png"};
-        JMenuItem[] items = new JMenuItem[menuItems.length]; // Array para almacenar los elementos del menu
+                if (getModel().isArmed() || getModel().isSelected()) {
+                    GradientPaint gradient = new GradientPaint(
+                        0, 0, new Color(30, 144, 255), // Azul más oscuro
+                        getWidth(), 0, new Color(0, 120, 215, 200) // Azul más claro con transparencia
+                    );
+                    g2d.setPaint(gradient);
+                    // Utiliza fillRoundRect para las esquinas redondeadas del resalte
+                    g2d.fillRoundRect(4, 2, getWidth() - 8, getHeight() - 4, 6, 6);
 
-        // Crea y anade los elementos del menu
-        for (int i = 0; i < menuItems.length; i++) {
-            items[i] = new JMenuItem(menuItems[i], loadIcon("/resources/iconos/" + iconPaths[i])); // Crea un nuevo elemento del menu
-            styleMenuItem(items[i], menuFont, menuForeground, menuHover); // Estiliza el elemento del menu
-            gestionMenu.add(items[i]); // Anade el elemento al menu de gestion
+                    // El texto será blanco cuando esté resaltado
+                    textColor = Color.WHITE; 
+                } else {
+                    // El texto será gris claro en estado normal
+                    textColor = new Color(236, 240, 241);
+                }
+
+                g2d.setColor(textColor);
+                g2d.setFont(getFont()); // Usa la fuente que ya está configurada en menuItem
+
+                Insets insets = getInsets(); // Obtiene los bordes/relleno del JMenuItem
+                int iconWidth = 0;
+                int textX = insets.left; // La posición inicial del texto (izquierda + insets)
+
+                Icon icon = getIcon();
+                if (icon != null) {
+                    iconWidth = icon.getIconWidth();
+                    int iconY = (getHeight() - icon.getIconHeight()) / 2; // Centrar el icono verticalmente
+                    icon.paintIcon(this, g2d, insets.left, iconY); // Dibuja el icono
+                    textX += iconWidth + getIconTextGap(); // Mueve la posición del texto para dejar espacio al icono
+                }
+                
+                // Dibuja el texto
+                String itemText = getText();
+                FontMetrics fm = g2d.getFontMetrics();
+                int textY = (getHeight() - fm.getHeight()) / 2 + fm.getAscent(); // Centrar el texto verticalmente
+
+                g2d.drawString(itemText, textX, textY);
+                }
+        };
+
+        menuItem.addActionListener(listener);
+        menuItem.setForeground(new Color(236, 240, 241));
+        menuItem.setFont(new Font("Inter", Font.PLAIN, 13));
+        menuItem.setBorder(BorderFactory.createEmptyBorder(8, 16, 8, 16));
+        menuItem.setOpaque(true); 
+
+        URL iconURL = getClass().getResource("/resources/iconos/" + iconPath);
+        if (iconURL != null) {
+            ImageIcon originalIcon = new ImageIcon(iconURL);
+            Image scaledImage = originalIcon.getImage().getScaledInstance(18, 18, Image.SCALE_SMOOTH);
+            menuItem.setIcon(new ImageIcon(scaledImage)); // Sigue configurando el icono para que getIcon() lo obtenga
+            menuItem.setIconTextGap(12); // Sigue configurando el espaciado para que getIconTextGap() lo obtenga
         }
 
-        menuBar.add(gestionMenu); // Anade el menu de gestion a la barra de menu
-        return menuBar; // Devuelve la barra de menu
-    }
-
-    // Metodo para configurar las acciones de los elementos del menu
-    private void setupMenuActions() {
-        JMenu gestionMenu = menuBar.getMenu(0); // Obtiene el primer menu de la barra de menu
-        gestionMenu.getItem(2).addActionListener(e -> switchPanel(createCategoriaPanel())); // Accion para el item "Categorias"
-        gestionMenu.getItem(4).addActionListener(e -> switchPanel(createClubPanel())); // Accion para el item "Clubes"
-        gestionMenu.getItem(0).addActionListener(e -> switchPanel(createPersonaPanel())); // Accion para el item "Personas"
-        gestionMenu.getItem(1).addActionListener(e -> switchPanel(createEmpleadoPanel())); // Accion para el item "Empleados"
-        gestionMenu.getItem(3).addActionListener(e -> switchPanel(createInstalacionPanel())); // Accion para el item "Instalaciones"
-        gestionMenu.getItem(5).addActionListener(e -> switchPanel(createGrupoPanel())); // Accion para el item "Grupos"
-        gestionMenu.getItem(6).addActionListener(e -> switchPanel(createEquipoPanel())); // Accion para el item "Equipos"
-        gestionMenu.getItem(7).addActionListener(e -> switchPanel(createLicenciaPanel())); // Accion para el item "Licencias"
-    }
-
-    // Metodo para cambiar el panel visible en el panel de contenido
-    private void switchPanel(JPanel panel) {
-        contentPanel.removeAll(); // Elimina todos los componentes del panel de contenido
-        contentPanel.add(panel, BorderLayout.CENTER); // Anade el nuevo panel al centro del panel de contenido
-        contentPanel.revalidate(); // Revalida el panel de contenido
-        contentPanel.repaint(); // Repinta el panel de contenido
-    }
-
-    // Metodo para crear el panel de bienvenida
-    private JPanel createWelcomePanel() {
-        JPanel welcomePanel = new JPanel(new BorderLayout()); // Crea el panel de bienvenida
-        welcomePanel.setBackground(Color.WHITE); // Establece el color de fondo del panel de bienvenida
-
-        JLabel welcomeLabel = createStyledLabel("Bienvenido al Sistema de Gestion FFCV"); // Etiqueta de bienvenida
-        welcomeLabel.setHorizontalAlignment(SwingConstants.CENTER); // Centra el texto
-
-        JLabel infoLabel = new JLabel("<html><center>Seleccione una opcion del menu 'Gestion' para comenzar.<br>"
-                + "Gestione categorias, clubes, personas, equipos y mas.</center></html>", SwingConstants.CENTER); // Etiqueta de informacion
-        infoLabel.setFont(new Font("Segoe UI", Font.PLAIN, 16)); // Establece la fuente de la etiqueta
-        infoLabel.setForeground(new Color(66, 66, 66)); // Establece el color del texto de la etiqueta
-
-        welcomePanel.add(welcomeLabel, BorderLayout.NORTH); // Anade la etiqueta de bienvenida al norte del panel
-        welcomePanel.add(infoLabel, BorderLayout.CENTER); // Anade la etiqueta de informacion al centro del panel
-        return welcomePanel; // Devuelve el panel de bienvenida
-    }
-
-    // Metodo para crear el panel de personas
-    private JPanel createPersonaPanel() {
-        JPanel panel = new JPanel(new BorderLayout(10, 10)); // Crea el panel de personas
-        panel.setBackground(Color.WHITE); // Establece el color de fondo del panel
-        panel.setBorder(new EmptyBorder(15, 15, 15, 15)); // Establece un borde vacio alrededor del panel
-
-        JPanel createPanel = createTitledPanel("Crear/Actualizar Persona"); // Crea el panel para crear/actualizar personas
-        GridBagConstraints gbc = new GridBagConstraints(); // Configuracion de la cuadricula
-        gbc.insets = new Insets(8, 10, 8, 10); // Espaciado entre componentes
-        gbc.fill = GridBagConstraints.HORIZONTAL; // Rellena el espacio horizontalmente
-        gbc.weightx = 1.0;
-
-        // Campos para ingresar datos de la persona
-        JTextField dniField = addField(createPanel, gbc, "DNI:", 0); // Campo para el DNI
-        JTextField nombreField = addField(createPanel, gbc, "Nombre:", 1); // Campo para el nombre
-        JTextField apellido1Field = addField(createPanel, gbc, "Primer Apellido:", 2); // Campo para el primer apellido
-        JTextField apellido2Field = addField(createPanel, gbc, "Segundo Apellido:", 3); // Campo para el segundo apellido
-        JTextField fechaNacimientoField = addField(createPanel, gbc, "Fecha Nacimiento (YYYY-MM-DD):", 4); // Campo para la fecha de nacimiento
-        JTextField usuarioField = addField(createPanel, gbc, "Usuario:", 5); // Campo para el usuario
-        JTextField passwordField = addField(createPanel, gbc, "Contrasena:", 6); // Campo para la contrasena
-        JTextField poblacionField = addField(createPanel, gbc, "Poblacion:", 7); // Campo para la poblacion
-
-        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10)); // Panel para los botones
-        buttonPanel.setBackground(Color.WHITE); // Establece el color de fondo del panel de botones
-
-        // Botones para crear, actualizar, eliminar y buscar personas
-        JButton crearButton = new JButton("Crear Persona", loadIcon("/resources/iconos/cross.png")); // Boton para crear persona
-        styleButton(crearButton, new Color(211, 47, 47), true); // Estiliza el boton
-        JButton actualizarButton = new JButton("Actualizar Persona", loadIcon("/resources/iconos/edit.png")); // Boton para actualizar persona
-        styleButton(actualizarButton, new Color(33, 37, 41), false); // Estiliza el boton
-        JButton eliminarButton = new JButton("Eliminar Persona", loadIcon("/resources/iconos/delete.png")); // Boton para eliminar persona
-        styleButton(eliminarButton, new Color(211, 47, 47), true); // Estiliza el boton
-        JButton buscarButton = new JButton("Buscar Persona", loadIcon("/resources/iconos/magnifier.png")); // Boton para buscar persona
-        styleButton(buscarButton, new Color(33, 37, 41), false); // Estiliza el boton
-
-        // Anade los botones al panel de botones
-        buttonPanel.add(crearButton);
-        buttonPanel.add(actualizarButton);
-        buttonPanel.add(eliminarButton);
-        buttonPanel.add(buscarButton);
-
-        // Accion para crear una nueva persona
-        crearButton.addActionListener(event -> {
-            if (!validateFields(dniField, nombreField, apellido1Field, fechaNacimientoField, usuarioField, passwordField, poblacionField)) {
-                showError("Todos los campos obligatorios deben estar completos.");
-                System.out.println("Validation failed: Missing fields");
-                return;
-            }
-            try {
-                String dni = dniField.getText().trim();
-                System.out.println("DNI entered: " + dni);
-                if (!validateDni(dni)) {
-                    showError("DNI inválido. Debe tener 8 dígitos y 1 letra.");
-                    System.out.println("Validation failed: Invalid DNI");
-                    return;
-                }
-                if (federacion.buscaPersona(dni) != null) {
-                    showError("El DNI ya está registrado.");
-                    System.out.println("Validation failed: DNI already exists");
-                    return;
-                }
-                LocalDate fechaNacimiento;
-                try {
-                    fechaNacimiento = LocalDate.parse(fechaNacimientoField.getText().trim());
-                    System.out.println("Fecha Nacimiento parsed: " + fechaNacimiento);
-                } catch (DateTimeParseException ex) {
-                    showError("Fecha de nacimiento inválida. Use formato YYYY-MM-DD.");
-                    System.out.println("Validation failed: Invalid date format");
-                    return;
-                }
-                Persona persona = federacion.nuevaPersona(
-                    dni,
-                    nombreField.getText().trim(),
-                    apellido1Field.getText().trim(),
-                    apellido2Field.getText().trim().isEmpty() ? null : apellido2Field.getText().trim(),
-                    fechaNacimiento,
-                    usuarioField.getText().trim(),
-                    passwordField.getText().trim(),
-                    poblacionField.getText().trim()
-                );
-                System.out.println("Attempting to save persona: " + dni);
-                persona.guardar();
-                System.out.println("Persona saved successfully: " + dni);
-                JOptionPane.showMessageDialog(frame, "Persona creada con éxito: " + persona.getNombre(), "Éxito", JOptionPane.INFORMATION_MESSAGE);
-                clearFields(dniField, nombreField, apellido1Field, apellido2Field, fechaNacimientoField, usuarioField, passwordField, poblacionField);
-            } catch (SQLException ex) {
-                handleError(ex, "Error al guardar persona en la base de datos: " + ex.getMessage());
-                System.out.println("SQLException: " + ex.getMessage());
-            } catch (Exception ex) {
-                handleError(ex, "Error inesperado al crear persona: " + ex.getMessage());
-                System.out.println("Unexpected error: " + ex.getMessage());
-            }
-        });
-
-        // Accion para actualizar una persona existente
-        actualizarButton.addActionListener(event -> {
-            if (!validateFields(dniField, nombreField, apellido1Field, fechaNacimientoField, usuarioField, passwordField, poblacionField)) {
-                return; // Valida que los campos no esten vacios
-            }
-            try {
-                Persona persona = federacion.buscaPersona(dniField.getText()); // Busca la persona por DNI
-                if (persona == null) {
-                    showError("Persona no encontrada.");
-                    return;
-                }
-                LocalDate fechaNacimiento = LocalDate.parse(fechaNacimientoField.getText()); // Convierte la fecha a LocalDate
-                persona.setNombre(nombreField.getText()); // Actualiza el nombre
-                persona.setApellido1(apellido1Field.getText()); // Actualiza el primer apellido
-                persona.setApellido2(apellido2Field.getText()); // Actualiza el segundo apellido
-                persona.setFechaNacimiento(fechaNacimiento); // Actualiza la fecha de nacimiento
-                persona.setUsuario(usuarioField.getText()); // Actualiza el usuario
-                persona.setPassword(passwordField.getText()); // Actualiza la contrasena
-                persona.setPoblacion(poblacionField.getText()); // Actualiza la poblacion
-                persona.actualizar(); // Guarda los cambios en la base de datos
-                JOptionPane.showMessageDialog(frame, "Persona actualizada con exito: " + persona.getNombre(), "Exito", JOptionPane.INFORMATION_MESSAGE); // Muestra mensaje de exito
-                clearFields(dniField, nombreField, apellido1Field, apellido2Field, fechaNacimientoField, usuarioField, passwordField, poblacionField); // Limpia los campos
-            } catch (DateTimeParseException ex) {
-                showError("Fecha de nacimiento invalida. Use formato YYYY-MM-DD.");
-            } catch (SQLException ex) {
-                handleError(ex, "Error al actualizar persona en la base de datos.");
-            } catch (Exception ex) {
-                handleError(ex, "Error al actualizar persona.");
-            }
-        });
-
-        // Accion para eliminar una persona
-        eliminarButton.addActionListener(event -> {
-            if (!validateFields(dniField)) {
-                return; // Valida que el campo no este vacio
-            }
-            try {
-                Persona persona = federacion.buscaPersona(dniField.getText()); // Busca la persona por DNI
-                if (persona == null) {
-                    showError("Persona no encontrada.");
-                    return;
-                }
-                persona.eliminar(); // Elimina la persona de la base de datos
-                JOptionPane.showMessageDialog(frame, "Persona eliminada con exito: " + persona.getNombre(), "Exito", JOptionPane.INFORMATION_MESSAGE); // Muestra mensaje de exito
-                clearFields(dniField, nombreField, apellido1Field, apellido2Field, fechaNacimientoField, usuarioField, passwordField, poblacionField); // Limpia los campos
-            } catch (SQLException ex) {
-                handleError(ex, "Error al eliminar persona de la base de datos.");
-            } catch (Exception ex) {
-                handleError(ex, "Error al eliminar persona.");
-            }
-        });
-
-        // Accion para buscar personas
-        buscarButton.addActionListener(event -> {
-            System.out.println("Buscar Persona button clicked");
-            System.out.println("Nombre: " + nombreField.getText());
-            System.out.println("Apellido1: " + apellido1Field.getText());
-            System.out.println("Apellido2: " + apellido2Field.getText());
-            if (!validateFields(nombreField, apellido1Field)) {
-                showError("Nombre y primer apellido son obligatorios.");
-                System.out.println("Validation failed: Missing fields");
-                return;
-            }
-            try {
-                List<Persona> personas = federacion.buscaPersonas(
-                    nombreField.getText().trim(),
-                    apellido1Field.getText().trim(),
-                    apellido2Field.getText().trim().isEmpty() ? null : apellido2Field.getText().trim()
-                );
-                System.out.println("Personas encontradas: " + personas.size());
-                showListResult(personas, "Personas encontradas:");
-                clearFields(dniField, nombreField, apellido1Field, apellido2Field, fechaNacimientoField, usuarioField, passwordField, poblacionField);
-            } catch (Exception ex) {
-                handleError(ex, "Error al buscar personas: " + ex.getMessage());
-                System.out.println("Exception: " + ex.getMessage());
-            }
-        });
-
-        gbc.gridx = 0;
-        gbc.gridy = 8;
-        gbc.gridwidth = 2; // Configura la posicion del panel de botones
-        gbc.fill = GridBagConstraints.NONE;
-        gbc.anchor = GridBagConstraints.CENTER;
-        createPanel.add(buttonPanel, gbc); // Anade el panel de botones al panel de crear/actualizar persona
-
-        // Anade el panel de errores al final del formulario
-        gbc.gridx = 0;
-        gbc.gridy = 9;
-        gbc.gridwidth = 2;
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        gbc.anchor = GridBagConstraints.SOUTH;
-        gbc.weighty = 0;
-        gbc.insets = new Insets(10, 10, 8, 10);
-        createPanel.add(errorScrollPane, gbc);
-
-        panel.add(createPanel, BorderLayout.NORTH); // Anade el panel de crear/actualizar persona al panel principal
-        return panel; // Devuelve el panel de personas
-    }
-
-    // Metodo para crear el panel de empleados
-    private JPanel createEmpleadoPanel() {
-        // Crear panel principal con borde y fondo blanco
-        JPanel panel = new JPanel(new BorderLayout(10, 10));
-        panel.setBackground(Color.WHITE);
-        panel.setBorder(new EmptyBorder(15, 15, 15, 15));
-
-        // Crear subpanel con titulo
-        JPanel createPanel = createTitledPanel("Gestionar Empleados");
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(8, 10, 8, 10);
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        gbc.weightx = 1.0;
-
-        // Agregar campos de texto
-        JTextField dniField = addField(createPanel, gbc, "DNI:", 0);
-        JTextField nombreField = addField(createPanel, gbc, "Nombre:", 1);
-        JTextField apellido1Field = addField(createPanel, gbc, "Apellido 1:", 2);
-        JTextField apellido2Field = addField(createPanel, gbc, "Apellido 2:", 3);
-        JTextField fechaNacimientoField = addField(createPanel, gbc, "Fecha Nacimiento (YYYY-MM-DD):", 4);
-        JTextField usuarioField = addField(createPanel, gbc, "Usuario:", 5);
-        JTextField passwordField = addField(createPanel, gbc, "Password:", 6);
-        JTextField poblacionField = addField(createPanel, gbc, "Poblacion:", 7);
-        JTextField numEmpleadoField = addField(createPanel, gbc, "Numero Empleado:", 8);
-        JTextField inicioContratoField = addField(createPanel, gbc, "Inicio Contrato (YYYY-MM-DD):", 9);
-        JTextField segSocialField = addField(createPanel, gbc, "Seguridad Social:", 10);
-
-        // Crear panel para botones
-        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10));
-        buttonPanel.setBackground(Color.WHITE);
-
-        // Crear botones
-        JButton crearButton = new JButton("Crear Empleado", loadIcon("/resources/iconos/cross.png"));
-        styleButton(crearButton, new Color(211, 47, 47), true);
-        JButton actualizarButton = new JButton("Actualizar Empleado", loadIcon("/resources/iconos/edit.png"));
-        styleButton(actualizarButton, new Color(33, 37, 41), false);
-        JButton eliminarButton = new JButton("Eliminar Empleado", loadIcon("/resources/iconos/delete.png"));
-        styleButton(eliminarButton, new Color(211, 47, 47), true);
-        JButton buscarButton = new JButton("Buscar Empleado", loadIcon("/resources/iconos/magnifier.png"));
-        styleButton(buscarButton, new Color(33, 37, 41), false);
-
-        // Agregar botones al panel
-        buttonPanel.add(crearButton);
-        buttonPanel.add(actualizarButton);
-        buttonPanel.add(eliminarButton);
-        buttonPanel.add(buscarButton);
-
-        // Boton crear empleado
-        crearButton.addActionListener(event -> {
-            // Validar campos
-            if (!validateFields(dniField, nombreField, apellido1Field, fechaNacimientoField, usuarioField, passwordField, poblacionField, numEmpleadoField, inicioContratoField, segSocialField)) {
-                return;
-            }
-            try {
-                // Validar DNI
-                if (!validateDni(dniField.getText())) {
-                    showError("DNI invalido.");
-                    return;
-                }
-                // Verificar si empleado existe
-                Persona persona = federacion.buscaPersona(dniField.getText().trim());
-                if (persona instanceof Empleado) {
-                    showError("Empleado ya existe.");
-                    return;
-                }
-                // Obtener datos
-                String dni = dniField.getText().trim();
-                String nombre = nombreField.getText().trim();
-                String apellido1 = apellido1Field.getText().trim();
-                String apellido2 = apellido2Field.getText().trim();
-                LocalDate fechaNacimiento = LocalDate.parse(fechaNacimientoField.getText().trim());
-                String usuario = usuarioField.getText().trim();
-                String password = passwordField.getText().trim();
-                String poblacion = poblacionField.getText().trim();
-                int numEmpleado = Integer.parseInt(numEmpleadoField.getText().trim());
-                LocalDate inicioContrato = LocalDate.parse(inicioContratoField.getText().trim());
-                String segSocial = segSocialField.getText().trim();
-                // Crear empleado
-                Empleado empleado = federacion.nuevoEmpleado(dni, nombre, apellido1, apellido2, fechaNacimiento, usuario, password, poblacion, numEmpleado, inicioContrato, segSocial);
-                empleado.guardar();
-                JOptionPane.showMessageDialog(frame, "Empleado creado: " + empleado.getNombre(), "Exito", JOptionPane.INFORMATION_MESSAGE);
-                // Limpiar campos
-                clearFields(dniField, nombreField, apellido1Field, apellido2Field, fechaNacimientoField, usuarioField, passwordField, poblacionField, numEmpleadoField, inicioContratoField, segSocialField);
-            } catch (DateTimeParseException ex) {
-                showError("Formato de fecha invalido. Use YYYY-MM-DD.");
-            } catch (NumberFormatException ex) {
-                showError("Numero de empleado invalido.");
-            } catch (SQLException ex) {
-                handleError(ex, "Error al guardar empleado.");
-            }
-        });
-
-        // Boton actualizar empleado
-        actualizarButton.addActionListener(event -> {
-            // Validar campos
-            if (!validateFields(dniField, nombreField, apellido1Field, fechaNacimientoField, usuarioField, passwordField, poblacionField, numEmpleadoField, inicioContratoField, segSocialField)) {
-                return;
-            }
-            try {
-                // Validar DNI
-                if (!validateDni(dniField.getText())) {
-                    showError("DNI invalido.");
-                    return;
-                }
-                // Buscar empleado
-                Persona persona = federacion.buscaPersona(dniField.getText().trim());
-                if (!(persona instanceof Empleado)) {
-                    showError("Empleado no encontrado.");
-                    return;
-                }
-                Empleado empleado = (Empleado) persona;
-                // Actualizar datos
-                empleado.setNombre(nombreField.getText().trim());
-                empleado.setApellido1(apellido1Field.getText().trim());
-                empleado.setApellido2(apellido2Field.getText().trim());
-                empleado.setFechaNacimiento(LocalDate.parse(fechaNacimientoField.getText().trim()));
-                empleado.setUsuario(usuarioField.getText().trim());
-                empleado.setPassword(passwordField.getText().trim());
-                empleado.setPoblacion(poblacionField.getText().trim());
-                empleado.setNumEmpleado(Integer.parseInt(numEmpleadoField.getText().trim()));
-                empleado.setInicioContrato(LocalDate.parse(inicioContratoField.getText().trim()));
-                empleado.setSegSocial(segSocialField.getText().trim());
-                empleado.actualizar();
-                JOptionPane.showMessageDialog(frame, "Empleado actualizado: " + empleado.getNombre(), "Exito", JOptionPane.INFORMATION_MESSAGE);
-                // Limpiar campos
-                clearFields(dniField, nombreField, apellido1Field, apellido2Field, fechaNacimientoField, usuarioField, passwordField, poblacionField, numEmpleadoField, inicioContratoField, segSocialField);
-            } catch (DateTimeParseException ex) {
-                showError("Formato de fecha invalido. Use YYYY-MM-DD.");
-            } catch (NumberFormatException ex) {
-                showError("Numero de empleado invalido.");
-            } catch (SQLException ex) {
-                handleError(ex, "Error al actualizar empleado.");
-            }
-        });
-
-        // Boton eliminar empleado
-        eliminarButton.addActionListener(event -> {
-            // Validar campo DNI
-            if (!validateFields(dniField)) {
-                return;
-            }
-            try {
-                // Validar DNI
-                if (!validateDni(dniField.getText())) {
-                    showError("DNI invalido.");
-                    return;
-                }
-                // Buscar empleado
-                Persona persona = federacion.buscaPersona(dniField.getText().trim());
-                if (!(persona instanceof Empleado)) {
-                    showError("Empleado no encontrado.");
-                    return;
-                }
-                Empleado empleado = (Empleado) persona;
-                // Eliminar empleado
-                empleado.eliminar();
-                JOptionPane.showMessageDialog(frame, "Empleado eliminado: " + empleado.getNombre(), "Exito", JOptionPane.INFORMATION_MESSAGE);
-                // Limpiar campos
-                clearFields(dniField, nombreField, apellido1Field, apellido2Field, fechaNacimientoField, usuarioField, passwordField, poblacionField, numEmpleadoField, inicioContratoField, segSocialField);
-            } catch (SQLException ex) {
-                handleError(ex, "Error al eliminar empleado.");
-            }
-        });
-
-        // Boton buscar empleado
-        buscarButton.addActionListener(event -> {
-            // Validar campo DNI
-            if (!validateFields(dniField)) {
-                return;
-            }
-            // Validar DNI
-            if (!validateDni(dniField.getText())) {
-                showError("DNI invalido.");
-                return;
-            }
-            // Buscar empleado
-            Persona persona = federacion.buscaPersona(dniField.getText().trim());
-            if (!(persona instanceof Empleado)) {
-                showError("Empleado no encontrado.");
-                return;
-            }
-            Empleado empleado = (Empleado) persona;
-            // Mostrar resultado
-            List<Empleado> empleados = new ArrayList<>();
-            empleados.add(empleado);
-            showListResult(empleados, "Empleado encontrado:");
-            // Limpiar campos
-            clearFields(dniField, nombreField, apellido1Field, apellido2Field, fechaNacimientoField, usuarioField, passwordField, poblacionField, numEmpleadoField, inicioContratoField, segSocialField);
-        });
-
-        // Configurar posicion de panel de botones
-        gbc.gridx = 0;
-        gbc.gridy = 11;
-        gbc.gridwidth = 2;
-        gbc.fill = GridBagConstraints.NONE;
-        gbc.anchor = GridBagConstraints.CENTER;
-        createPanel.add(buttonPanel, gbc);
-
-        // Configurar posicion de panel de errores
-        gbc.gridx = 0;
-        gbc.gridy = 12;
-        gbc.gridwidth = 2;
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        gbc.anchor = GridBagConstraints.SOUTH;
-        gbc.weighty = 0;
-        gbc.insets = new Insets(10, 10, 8, 10);
-        createPanel.add(errorScrollPane, gbc);
-
-        // Agregar subpanel al panel principal
-        panel.add(createPanel, BorderLayout.NORTH);
-        return panel;
-    }
-
-    // Metodo para crear el panel de categorias
-    private JPanel createCategoriaPanel() {
-        JPanel panel = new JPanel(new BorderLayout(10, 10)); // Crea el panel de categorias
-        panel.setBackground(Color.WHITE); // Establece el color de fondo del panel
-        panel.setBorder(new EmptyBorder(15, 15, 15, 15)); // Establece un borde vacio alrededor del panel
-
-        JPanel createPanel = createTitledPanel("Crear/Actualizar Categoria"); // Crea el panel para crear/actualizar categorias
-        GridBagConstraints gbc = new GridBagConstraints(); // Configuracion de la cuadricula
-        gbc.insets = new Insets(8, 10, 8, 10); // Espaciado entre componentes
-        gbc.fill = GridBagConstraints.HORIZONTAL; // Rellena el espacio horizontalmente
-        gbc.weightx = 1.0; // Permite que los campos se expandan horizontalmente
-
-        // Campos para ingresar datos de la categoria
-        JTextField nombreField = addField(createPanel, gbc, "Nombre:", 0); // Campo para el nombre
-        JTextField ordenField = addField(createPanel, gbc, "Orden:", 1); // Campo para el orden
-        JTextField precioField = addField(createPanel, gbc, "Precio Licencia:", 2); // Campo para el precio
-
-        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10)); // Panel para los botones
-        buttonPanel.setBackground(Color.WHITE); // Establece el color de fondo del panel de botones
-
-        // Botones para crear, actualizar, eliminar y listar categorias
-        JButton crearButton = new JButton("Crear Categoria", loadIcon("/resources/iconos/cross.png")); // Boton para crear categoria
-        styleButton(crearButton, new Color(211, 47, 47), true); // Estiliza el boton
-        JButton actualizarButton = new JButton("Actualizar Categoria", loadIcon("/resources/iconos/edit.png")); // Boton para actualizar categoria
-        styleButton(actualizarButton, new Color(33, 37, 41), false); // Estiliza el boton
-        JButton eliminarButton = new JButton("Eliminar Categoria", loadIcon("/resources/iconos/delete.png")); // Boton para eliminar categoria
-        styleButton(eliminarButton, new Color(211, 47, 47), true); // Estiliza el boton
-        JButton listarButton = new JButton("Listar Categorias", loadIcon("/resources/iconos/magnifier.png")); // Boton para listar categorias
-        styleButton(listarButton, new Color(33, 37, 41), false); // Estiliza el boton
-
-        // Anade los botones al panel de botones
-        buttonPanel.add(crearButton);
-        buttonPanel.add(actualizarButton);
-        buttonPanel.add(eliminarButton);
-        buttonPanel.add(listarButton);
-
-        // Accion para crear una nueva categoria
-        crearButton.addActionListener(event -> {
-            if (!validateFields(nombreField, ordenField, precioField)) {
-                showError("Todos los campos obligatorios deben estar completos.");
-                return;
-            }
-            try {
-                int orden = Integer.parseInt(ordenField.getText());
-                double precio = Double.parseDouble(precioField.getText());
-                if (orden <= 0) {
-                    showError("El orden debe ser un número positivo.");
-                    return;
-                }
-                if (precio < 0) {
-                    showError("El precio no puede ser negativo.");
-                    return;
-                }
-                Categoria categoria = federacion.nuevaCategoria(nombreField.getText(), orden, precio);
-                categoria.guardar();
-                JOptionPane.showMessageDialog(frame, "Categoría creada con éxito: " + categoria.getNombre(), "Éxito", JOptionPane.INFORMATION_MESSAGE);
-                clearFields(nombreField, ordenField, precioField);
-            } catch (NumberFormatException ex) {
-                showError("Orden y precio deben ser numéricos.");
-            } catch (SQLException ex) {
-                handleError(ex, "Error al guardar categoría en la base de datos.");
-            } catch (Exception ex) {
-                handleError(ex, "Error al crear categoría.");
-            }
-        });
-
-        // Accion para actualizar una categoria existente
-        actualizarButton.addActionListener(event -> {
-            if (!validateFields(nombreField, ordenField, precioField)) {
-                return; // Valida que los campos no esten vacios
-            }
-            try {
-                Categoria categoria = Categoria.buscarPorNombre(nombreField.getText()); // Busca la categoria por nombre
-                if (categoria == null) {
-                    showError("Categoria no encontrada.");
-                    return;
-                }
-                int orden = Integer.parseInt(ordenField.getText()); // Convierte el orden a entero
-                double precio = Double.parseDouble(precioField.getText()); // Convierte el precio a double
-                if (orden <= 0) {
-                    showError("El orden debe ser un numero positivo.");
-                    return;
-                }
-                if (precio < 0) {
-                    showError("El precio no puede ser negativo.");
-                    return;
-                }
-                categoria.setOrden(orden); // Actualiza el orden
-                categoria.setPrecioLicencia(precio); // Actualiza el precio
-                categoria.actualizar(); // Guarda los cambios en la base de datos
-                JOptionPane.showMessageDialog(frame, "Categoria actualizada con exito: " + categoria.getNombre(), "Exito", JOptionPane.INFORMATION_MESSAGE); // Muestra mensaje de exito
-                clearFields(nombreField, ordenField, precioField); // Limpia los campos
-            } catch (NumberFormatException ex) {
-                showError("Orden y precio deben ser numericos.");
-            } catch (SQLException ex) {
-                handleError(ex, "Error al actualizar categoria en la base de datos.");
-            } catch (Exception ex) {
-                handleError(ex, "Error al actualizar categoria.");
-            }
-        });
-
-        // Accion para eliminar una categoria
-        eliminarButton.addActionListener(event -> {
-            if (!validateFields(nombreField)) {
-                return; // Valida que el campo no este vacio
-            }
-            try {
-                Categoria categoria = Categoria.buscarPorNombre(nombreField.getText()); // Busca la categoria por nombre
-                if (categoria == null) {
-                    showError("Categoria no encontrada.");
-                    return;
-                }
-                categoria.eliminar(); // Elimina la categoria de la base de datos
-                JOptionPane.showMessageDialog(frame, "Categoria eliminada con exito: " + categoria.getNombre(), "Exito", JOptionPane.INFORMATION_MESSAGE); // Muestra mensaje de exito
-                clearFields(nombreField, ordenField, precioField); // Limpia los campos
-            } catch (SQLException ex) {
-                handleError(ex, "Error al eliminar categoria de la base de datos.");
-            } catch (Exception ex) {
-                handleError(ex, "Error al eliminar categoria.");
-            }
-        });
-
-        // Accion para listar categorias
-        listarButton.addActionListener(event -> {
-            clearFields(nombreField, ordenField, precioField); // Limpia campos y errores
-            try {
-                List<Categoria> categorias = federacion.obtenerCategorias(); // Obtiene la lista de categorias
-                showListResult(categorias, "Categorias disponibles:"); // Muestra los resultados
-                clearFields(nombreField, ordenField, precioField); // Limpia los campos
-            } catch (Exception ex) {
-                handleError(ex, "Error al listar categorias.");
-            }
-        });
-
-        gbc.gridx = 0;
-        gbc.gridy = 3;
-        gbc.gridwidth = 2; // Configura la posicion del panel de botones
-        gbc.fill = GridBagConstraints.NONE; // Para que el panel de botones no se estire
-        gbc.anchor = GridBagConstraints.CENTER; // Centra el panel de botones
-        createPanel.add(buttonPanel, gbc); // Anade el panel de botones al panel de crear/actualizar categoria
-
-        // Anade el panel de errores al final del formulario
-        gbc.gridx = 0;
-        gbc.gridy = 4; // Siguiente fila despues del panel de botones
-        gbc.gridwidth = 2;
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        gbc.anchor = GridBagConstraints.SOUTH;
-        gbc.weighty = 0; // No permitir que crezca verticalmente
-        gbc.insets = new Insets(10, 10, 8, 10); // Espaciado
-        createPanel.add(errorScrollPane, gbc);
-
-        panel.add(createPanel, BorderLayout.NORTH); // Anade el panel de crear/actualizar categoria al panel principal
-        return panel; // Devuelve el panel de categorias
+        menu.add(menuItem);
     }
     
-    // Metodo para crear el panel de instalaciones
-    private JPanel createInstalacionPanel() {
-        JPanel panel = new JPanel(new BorderLayout(10, 10)); // Crea el panel de instalaciones
-        panel.setBackground(Color.WHITE); // Establece el color de fondo del panel
-        panel.setBorder(new EmptyBorder(15, 15, 15, 15)); // Establece un borde vacio alrededor del panel
+    // Método para actualizar el panel de contenido principal
+    private void updateContentPanel(JPanel panel, String title) {
+        contentPanel.removeAll();
+        contentPanel.setLayout(new BorderLayout(20, 20));
 
-        JPanel createPanel = createTitledPanel("Crear/Actualizar Instalacion"); // Crea el panel para crear/actualizar instalaciones
-        GridBagConstraints gbc = new GridBagConstraints(); // Configuracion de la cuadricula
-        gbc.insets = new Insets(8, 10, 8, 10); // Espaciado entre componentes
-        gbc.fill = GridBagConstraints.HORIZONTAL; // Rellena el espacio horizontalmente
-        gbc.weightx = 1.0;
+        JPanel titlePanel = new JPanel() {
+            @Override
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                Graphics2D g2d = (Graphics2D) g;
+                g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
-        // Campos para ingresar datos de la instalacion
-        JTextField nombreField = addField(createPanel, gbc, "Nombre:", 0); // Campo para el nombre
-        JTextField direccionField = addField(createPanel, gbc, "Direccion:", 1); // Campo para la direccion
-        JComboBox<entidades.Instalacion.TipoSuperficie> superficieComboBox = addComboBox(createPanel, gbc, "Superficie:", 2); // Combo box para la superficie
+                GradientPaint gradient = new GradientPaint(
+                    0, 0, Color.WHITE,
+                    0, getHeight(), new Color(248, 250, 252)
+                );
+                g2d.setPaint(gradient);
+                g2d.fillRoundRect(0, 0, getWidth(), getHeight(), 16, 16);
 
-        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10)); // Panel para los botones
-        buttonPanel.setBackground(Color.WHITE); // Establece el color de fondo del panel de botones
-
-        // Botones para crear, actualizar, eliminar y buscar instalaciones
-        JButton crearButton = new JButton("Crear Instalacion", loadIcon("/resources/iconos/cross.png")); // Boton para crear instalacion
-        styleButton(crearButton, new Color(211, 47, 47), true); // Estiliza el boton
-        JButton actualizarButton = new JButton("Actualizar Instalacion", loadIcon("/resources/iconos/edit.png")); // Boton para actualizar instalacion
-        styleButton(actualizarButton, new Color(33, 37, 41), false); // Estiliza el boton
-        JButton eliminarButton = new JButton("Eliminar Instalacion", loadIcon("/resources/iconos/delete.png")); // Boton para eliminar instalacion
-        styleButton(eliminarButton, new Color(211, 47, 47), true); // Estiliza el boton
-        JButton buscarButton = new JButton("Buscar Instalaciones", loadIcon("/resources/iconos/magnifier.png")); // Boton para buscar instalaciones
-        styleButton(buscarButton, new Color(33, 37, 41), false); // Estiliza el boton
-
-        // Anade los botones al panel de botones
-        buttonPanel.add(crearButton);
-        buttonPanel.add(actualizarButton);
-        buttonPanel.add(eliminarButton);
-        buttonPanel.add(buscarButton);
-
-        // Accion para crear una nueva instalacion
-        crearButton.addActionListener(event -> {
-            if (!validateFields(nombreField, direccionField)) {
-                return; // Valida que los campos no esten vacios
+                g2d.setColor(BORDER_COLOR);
+                g2d.setStroke(new BasicStroke(2));
+                g2d.drawLine(20, getHeight() - 1, getWidth() - 20, getHeight() - 1);
             }
-            try {
-                entidades.Instalacion.TipoSuperficie superficie = (entidades.Instalacion.TipoSuperficie) superficieComboBox.getSelectedItem(); // Obtiene la superficie seleccionada
-                Instalacion instalacion = federacion.nuevaInstalacion(nombreField.getText(), direccionField.getText(), superficie.toString()); // Crea la instalacion
-                instalacion.guardar(); // Persiste la instalacion en la base de datos
-                JOptionPane.showMessageDialog(frame, "Instalacion creada con exito: " + instalacion.getNombre(), "Exito", JOptionPane.INFORMATION_MESSAGE); // Muestra mensaje de exito
-                clearFields(nombreField, direccionField); // Limpia los campos
-                superficieComboBox.setSelectedIndex(0); // Resetea el combo box
-            } catch (SQLException ex) {
-                handleError(ex, "Error al guardar instalacion en la base de datos.");
-            } catch (Exception ex) {
-                handleError(ex, "Error al crear instalacion.");
+        };
+        titlePanel.setLayout(new BoxLayout(titlePanel, BoxLayout.Y_AXIS));
+        titlePanel.setOpaque(false);
+        titlePanel.setBorder(new EmptyBorder(10, 0, 15, 0));
+
+        JLabel panelTitle = new JLabel(title, SwingConstants.CENTER);
+        panelTitle.setFont(new Font("Inter", Font.BOLD, 20));
+        panelTitle.setForeground(PRIMARY_COLOR);
+        panelTitle.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+        JPanel decorativeLine = new JPanel() {
+            @Override
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                Graphics2D g2d = (Graphics2D) g;
+                g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+                LinearGradientPaint gradient = new LinearGradientPaint(
+                    0, getHeight() / 2f, getWidth(), getHeight() / 2f,
+                    new float[]{0.0f, 0.3f, 0.7f, 1.0f},
+                    new Color[]{
+                        new Color(52, 152, 219, 0),
+                        SECONDARY_COLOR,
+                        ACCENT_COLOR,
+                        new Color(46, 204, 113, 0)
+                    }
+                );
+                g2d.setPaint(gradient);
+                g2d.fillRoundRect(0, 0, getWidth(), getHeight(), 4, 4);
             }
-        });
+        };
+        decorativeLine.setPreferredSize(new Dimension(300, 6));
+        decorativeLine.setMaximumSize(new Dimension(300, 6));
+        decorativeLine.setAlignmentX(Component.CENTER_ALIGNMENT);
+        decorativeLine.setOpaque(false);
 
-        // Accion para actualizar una instalacion existente
-        actualizarButton.addActionListener(event -> {
-            if (!validateFields(nombreField, direccionField)) {
-                return; // Valida que los campos no esten vacios
-            }
-            try {
-                Instalacion instalacion = Instalacion.buscarPorNombre(nombreField.getText()); // Busca la instalacion por nombre
-                if (instalacion == null) {
-                    showError("Instalacion no encontrada.");
-                    return;
-                }
-                entidades.Instalacion.TipoSuperficie superficie = (entidades.Instalacion.TipoSuperficie) superficieComboBox.getSelectedItem(); // Obtiene la superficie seleccionada
-                instalacion.setDireccion(direccionField.getText()); // Actualiza la direccion
-                instalacion.setSuperficie(superficie); // Actualiza la superficie
-                instalacion.actualizar(); // Guarda los cambios en la base de datos
-                JOptionPane.showMessageDialog(frame, "Instalacion actualizada con exito: " + instalacion.getNombre(), "Exito", JOptionPane.INFORMATION_MESSAGE); // Muestra mensaje de exito
-                clearFields(nombreField, direccionField); // Limpia los campos
-                superficieComboBox.setSelectedIndex(0); // Resetea el combo box
-            } catch (SQLException ex) {
-                handleError(ex, "Error al actualizar instalacion en la base de datos.");
-            } catch (Exception ex) {
-                handleError(ex, "Error al actualizar instalacion.");
-            }
-        });
+        titlePanel.add(panelTitle);
+        titlePanel.add(Box.createVerticalStrut(15));
+        titlePanel.add(decorativeLine);
 
-        // Accion para eliminar una instalacion
-        eliminarButton.addActionListener(event -> {
-            if (!validateFields(nombreField)) {
-                return; // Valida que el campo no este vacio
-            }
-            try {
-                Instalacion instalacion = Instalacion.buscarPorNombre(nombreField.getText()); // Busca la instalacion por nombre
-                if (instalacion == null) {
-                    showError("Instalacion no encontrada.");
-                    return;
-                }
-                instalacion.eliminar(); // Elimina la instalacion de la base de datos
-                JOptionPane.showMessageDialog(frame, "Instalacion eliminada con exito: " + instalacion.getNombre(), "Exito", JOptionPane.INFORMATION_MESSAGE); // Muestra mensaje de exito
-                clearFields(nombreField, direccionField); // Limpia los campos
-                superficieComboBox.setSelectedIndex(0); // Resetea el combo box
-            } catch (SQLException ex) {
-                handleError(ex, "Error al eliminar instalacion de la base de datos.");
-            } catch (Exception ex) {
-                handleError(ex, "Error al eliminar instalacion.");
-            }
-        });
-
-        // Accion para buscar instalaciones
-        buscarButton.addActionListener(event -> {
-            if (!validateFields(nombreField)) {
-                return; // Valida que el campo no este vacio
-            }
-            try {
-                List<Instalacion> instalaciones = federacion.buscarInstalaciones(nombreField.getText()); // Busca instalaciones por nombre
-                showListResult(instalaciones, "Instalaciones encontradas:"); // Muestra los resultados
-                clearFields(nombreField, direccionField); // Limpia los campos
-                superficieComboBox.setSelectedIndex(0); // Resetea el combo box
-            } catch (Exception ex) {
-                handleError(ex, "Error al buscar instalaciones.");
-            }
-        });
-
-        gbc.gridx = 0;
-        gbc.gridy = 3;
-        gbc.gridwidth = 2; // Configura la posicion del panel de botones
-        gbc.fill = GridBagConstraints.NONE;
-        gbc.anchor = GridBagConstraints.CENTER;
-        createPanel.add(buttonPanel, gbc); // Anade el panel de botones al panel de crear/actualizar instalacion
-
-        // Anade el panel de errores al final del formulario
-        gbc.gridx = 0;
-        gbc.gridy = 4;
-        gbc.gridwidth = 2;
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        gbc.anchor = GridBagConstraints.SOUTH;
-        gbc.weighty = 0;
-        gbc.insets = new Insets(10, 10, 8, 10);
-        createPanel.add(errorScrollPane, gbc);
-
-        panel.add(createPanel, BorderLayout.NORTH); // Anade el panel de crear/actualizar instalacion al panel principal
-        return panel; // Devuelve el panel de instalaciones
-    }
-
-    // Metodo para crear el panel de clubes
-    private JPanel createClubPanel() {
-        // Crear panel principal con borde y fondo blanco
-        JPanel panel = new JPanel(new BorderLayout(10, 10));
-        panel.setBackground(Color.WHITE);
-        panel.setBorder(new EmptyBorder(15, 15, 15, 15));
-
-        // Crear subpanel con titulo
-        JPanel createPanel = createTitledPanel("Gestionar Clubes");
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(8, 10, 8, 10);
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        gbc.weightx = 1.0;
-
-        // Agregar campos de texto
-        JTextField nombreField = addField(createPanel, gbc, "Nombre Club:", 0);
-        JTextField fechaFundacionField = addField(createPanel, gbc, "Fecha Fundacion (YYYY-MM-DD):", 1);
-        JTextField dniPresidenteField = addField(createPanel, gbc, "DNI Presidente:", 2);
-
-        // Crear panel para botones
-        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10));
-        buttonPanel.setBackground(Color.WHITE);
-
-        // Crear botones
-        JButton crearButton = new JButton("Crear Club", loadIcon("/resources/iconos/cross.png"));
-        styleButton(crearButton, new Color(211, 47, 47), true);
-        JButton actualizarButton = new JButton("Actualizar Club", loadIcon("/resources/iconos/edit.png"));
-        styleButton(actualizarButton, new Color(33, 37, 41), false);
-        JButton eliminarButton = new JButton("Eliminar Club", loadIcon("/resources/iconos/delete.png"));
-        styleButton(eliminarButton, new Color(211, 47, 47), true);
-        JButton buscarButton = new JButton("Buscar Club", loadIcon("/resources/iconos/magnifier.png"));
-        styleButton(buscarButton, new Color(33, 37, 41), false);
-
-        // Agregar botones al panel
-        buttonPanel.add(crearButton);
-        buttonPanel.add(actualizarButton);
-        buttonPanel.add(eliminarButton);
-        buttonPanel.add(buscarButton);
-
-        // Boton crear club
-        crearButton.addActionListener(event -> {
-            // Validar campos
-            if (!validateFields(nombreField, fechaFundacionField, dniPresidenteField)) {
-                return;
-            }
-            try {
-                // Obtener datos de campos
-                String nombre = nombreField.getText().trim();
-                LocalDate fechaFundacion = LocalDate.parse(fechaFundacionField.getText().trim());
-                String dniPresidente = dniPresidenteField.getText().trim();
-                // Buscar presidente
-                Persona presidente = federacion.buscaPersona(dniPresidente);
-                if (presidente == null) {
-                    showError("Presidente no encontrado.");
-                    return;
-                }
-                // Verificar si club existe
-                Club existingClub = federacion.buscarClub(nombre);
-                if (existingClub != null) {
-                    showError("El club ya existe.");
-                    return;
-                }
-                // Crear y guardar club
-                Club club = federacion.nuevoClub(nombre, fechaFundacion, presidente);
-                club.guardar();
-                JOptionPane.showMessageDialog(frame, "Club creado: " + club.getNombre(), "Exito", JOptionPane.INFORMATION_MESSAGE);
-                // Limpiar campos
-                clearFields(nombreField, fechaFundacionField, dniPresidenteField);
-            } catch (DateTimeParseException ex) {
-                showError("Formato de fecha invalido. Use YYYY-MM-DD.");
-            } catch (SQLException ex) {
-                handleError(ex, "Error al guardar club.");
-            }
-        });
-
-        // Boton actualizar club
-        actualizarButton.addActionListener(event -> {
-            // Validar campos
-            if (!validateFields(nombreField, fechaFundacionField, dniPresidenteField)) {
-                return;
-            }
-            try {
-                // Obtener datos de campos
-                String nombre = nombreField.getText().trim();
-                LocalDate fechaFundacion = LocalDate.parse(fechaFundacionField.getText().trim());
-                String dniPresidente = dniPresidenteField.getText().trim();
-                // Buscar presidente
-                Persona presidente = federacion.buscaPersona(dniPresidente);
-                if (presidente == null) {
-                    showError("Presidente no encontrado.");
-                    return;
-                }
-                // Buscar club
-                Club club = federacion.buscarClub(nombre);
-                if (club == null) {
-                    showError("Club no encontrado.");
-                    return;
-                }
-                // Actualizar datos
-                club.setFechaFundacion(fechaFundacion);
-                club.setPresidente(presidente);
-                club.actualizar();
-                JOptionPane.showMessageDialog(frame, "Club actualizado: " + club.getNombre(), "Exito", JOptionPane.INFORMATION_MESSAGE);
-                // Limpiar campos
-                clearFields(nombreField, fechaFundacionField, dniPresidenteField);
-            } catch (DateTimeParseException ex) {
-                showError("Formato de fecha invalido. Use YYYY-MM-DD.");
-            } catch (SQLException ex) {
-                handleError(ex, "Error al actualizar club.");
-            }
-        });
-
-        // Boton eliminar club
-        eliminarButton.addActionListener(event -> {
-            // Validar campo nombre
-            if (!validateFields(nombreField)) {
-                return;
-            }
-            try {
-                // Obtener nombre
-                String nombre = nombreField.getText().trim();
-                // Buscar club
-                Club club = federacion.buscarClub(nombre);
-                if (club == null) {
-                    showError("Club no encontrado.");
-                    return;
-                }
-                // Eliminar club
-                club.eliminar();
-                JOptionPane.showMessageDialog(frame, "Club eliminado: " + club.getNombre(), "Exito", JOptionPane.INFORMATION_MESSAGE);
-                // Limpiar campos
-                clearFields(nombreField, fechaFundacionField, dniPresidenteField);
-            } catch (SQLException ex) {
-                handleError(ex, "Error al eliminar club.");
-            }
-        });
-
-        // Boton buscar club
-        buscarButton.addActionListener(event -> {
-            // Validar campo nombre
-            if (!validateFields(nombreField)) {
-                return;
-            }
-            // Obtener nombre
-            String nombre = nombreField.getText().trim();
-            // Buscar club
-            Club club = federacion.buscarClub(nombre);
-            if (club == null) {
-                showError("Club no encontrado.");
-                return;
-            }
-            // Mostrar resultado
-            List<Club> clubes = new ArrayList<>();
-            clubes.add(club);
-            showListResult(clubes, "Club encontrado:");
-            // Limpiar campos
-            clearFields(nombreField, fechaFundacionField, dniPresidenteField);
-        });
-
-        // Configurar posicion de panel de botones
-        gbc.gridx = 0;
-        gbc.gridy = 3;
-        gbc.gridwidth = 2;
-        gbc.fill = GridBagConstraints.NONE;
-        gbc.anchor = GridBagConstraints.CENTER;
-        createPanel.add(buttonPanel, gbc);
-
-        // Configurar posicion de panel de errores
-        gbc.gridx = 0;
-        gbc.gridy = 4;
-        gbc.gridwidth = 2;
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        gbc.anchor = GridBagConstraints.SOUTH;
-        gbc.weighty = 0;
-        gbc.insets = new Insets(10, 10, 8, 10);
-        createPanel.add(errorScrollPane, gbc);
-
-        // Agregar subpanel al panel principal
-        panel.add(createPanel, BorderLayout.NORTH);
-        return panel;
-    }
+        contentPanel.add(titlePanel, BorderLayout.NORTH);
         
-    // Metodo para crear el panel de grupos
-    private JPanel createGrupoPanel() {
-        JPanel panel = new JPanel(new BorderLayout(10, 10)); // Crea el panel de grupos
-        panel.setBackground(Color.WHITE); // Establece el color de fondo del panel
-        panel.setBorder(new EmptyBorder(15, 15, 15, 15)); // Establece un borde vacio alrededor del panel
+        // Envuelve el panel de contenido en un JScrollPane
+        JScrollPane scrollPane = new JScrollPane(panel);
+        scrollPane.setBorder(BorderFactory.createEmptyBorder()); // Eliminar el borde predeterminado
+        scrollPane.getViewport().setBackground(BACKGROUND_COLOR); // Coincidir el color de fondo
+        scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+        scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER); // Generalmente no es necesario para formularios
 
-        JPanel createPanel = createTitledPanel("Crear/Actualizar Grupo"); // Crea el panel para crear/actualizar grupos
-        GridBagConstraints gbc = new GridBagConstraints(); // Configuracion de la cuadricula
-        gbc.insets = new Insets(8, 10, 8, 10); // Espaciado entre componentes
-        gbc.fill = GridBagConstraints.HORIZONTAL; // Rellena el espacio horizontalmente
-        gbc.weightx = 1.0;
-
-        // Campos para ingresar datos del grupo
-        JTextField categoriaField = addField(createPanel, gbc, "Nombre Categoria:", 0); // Campo para la categoria
-        JTextField nombreField = addField(createPanel, gbc, "Nombre Grupo:", 1); // Campo para el nombre
-
-        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10)); // Panel para los botones
-        buttonPanel.setBackground(Color.WHITE); // Establece el color de fondo del panel de botones
-
-        // Botones para crear, actualizar, eliminar y listar grupos
-        JButton crearButton = new JButton("Crear Grupo", loadIcon("/resources/iconos/cross.png")); // Boton para crear grupo
-        styleButton(crearButton, new Color(211, 47, 47), true); // Estiliza el boton
-        JButton actualizarButton = new JButton("Actualizar Grupo", loadIcon("/resources/iconos/edit.png")); // Boton para actualizar grupo
-        styleButton(actualizarButton, new Color(33, 37, 41), false); // Estiliza el boton
-        JButton eliminarButton = new JButton("Eliminar Grupo", loadIcon("/resources/iconos/delete.png")); // Boton para eliminar grupo
-        styleButton(eliminarButton, new Color(211, 47, 47), true); // Estiliza el boton
-        JButton listarButton = new JButton("Listar Grupos", loadIcon("/resources/iconos/magnifier.png")); // Boton para listar grupos
-        styleButton(listarButton, new Color(33, 37, 41), false); // Estiliza el boton
-
-        // Anade los botones al panel de botones
-        buttonPanel.add(crearButton);
-        buttonPanel.add(actualizarButton);
-        buttonPanel.add(eliminarButton);
-        buttonPanel.add(listarButton);
-
-        // Accion para crear un nuevo grupo
-        crearButton.addActionListener(event -> {
-            if (!validateFields(categoriaField, nombreField)) {
-                return; // Valida que los campos no esten vacios
-            }
-            try {
-                Categoria categoria = Categoria.buscarPorNombre(categoriaField.getText()); // Busca la categoria por nombre
-                if (categoria == null) {
-                    showError("Categoria no encontrada.");
-                    return;
-                }
-                Grupo grupo = federacion.nuevoGrupo(categoria, nombreField.getText()); // Crea un nuevo grupo
-                grupo.guardar(); // Persiste el grupo en la base de datos
-                JOptionPane.showMessageDialog(frame, "Grupo creado con exito: " + grupo.getNombre(), "Exito", JOptionPane.INFORMATION_MESSAGE); // Muestra mensaje de exito
-                clearFields(categoriaField, nombreField); // Limpia los campos
-            } catch (SQLException ex) {
-                handleError(ex, "Error al guardar grupo en la base de datos.");
-            } catch (Exception ex) {
-                handleError(ex, "Error al crear grupo.");
-            }
-        });
-
-        // Accion para actualizar un grupo existente
-        actualizarButton.addActionListener(event -> {
-            if (!validateFields(categoriaField, nombreField)) {
-                return; // Valida que los campos no esten vacios
-            }
-            try {
-                Categoria categoria = Categoria.buscarPorNombre(categoriaField.getText()); // Busca la categoria por nombre
-                if (categoria == null) {
-                    showError("Categoria no encontrada.");
-                    return;
-                }
-                Grupo grupo = Grupo.buscarPorNombre(nombreField.getText()); // Busca el grupo por nombre
-                if (grupo == null) {
-                    showError("Grupo no encontrado.");
-                    return;
-                }
-                grupo.setCategoria(categoria); // Actualiza la categoria
-                grupo.actualizar(); // Guarda los cambios en la base de datos
-                JOptionPane.showMessageDialog(frame, "Grupo actualizado con exito: " + grupo.getNombre(), "Exito", JOptionPane.INFORMATION_MESSAGE); // Muestra mensaje de exito
-                clearFields(categoriaField, nombreField); // Limpia los campos
-            } catch (SQLException ex) {
-                handleError(ex, "Error al actualizar grupo en la base de datos.");
-            } catch (Exception ex) {
-                handleError(ex, "Error al actualizar grupo.");
-            }
-        });
-
-        // Accion para eliminar un grupo
-        eliminarButton.addActionListener(event -> {
-            if (!validateFields(nombreField)) {
-                return; // Valida que el campo no este vacio
-            }
-            try {
-                Grupo grupo = Grupo.buscarPorNombre(nombreField.getText()); // Busca el grupo por nombre
-                if (grupo == null) {
-                    showError("Grupo no encontrado.");
-                    return;
-                }
-                grupo.eliminar(); // Elimina el grupo de la base de datos
-                JOptionPane.showMessageDialog(frame, "Grupo eliminado con exito: " + grupo.getNombre(), "Exito", JOptionPane.INFORMATION_MESSAGE); // Muestra mensaje de exito
-                clearFields(categoriaField, nombreField); // Limpia los campos
-            } catch (SQLException ex) {
-                handleError(ex, "Error al eliminar grupo de la base de datos.");
-            } catch (Exception ex) {
-                handleError(ex, "Error al eliminar grupo.");
-            }
-        });
-
-        // Accion para listar grupos en una categoria
-        listarButton.addActionListener(event -> {
-            if (!validateFields(categoriaField)) {
-                return; // Valida que el campo no este vacio
-            }
-            try {
-                Categoria categoria = Categoria.buscarPorNombre(categoriaField.getText()); // Busca la categoria por nombre
-                if (categoria == null) {
-                    showError("Categoria no encontrada.");
-                    return;
-                }
-                List<Grupo> grupos = federacion.obtenerGrupos(categoria); // Obtiene la lista de grupos
-                showListResult(grupos, "Grupos en " + categoria.getNombre() + ":"); // Muestra los resultados
-                clearFields(categoriaField, nombreField); // Limpia los campos
-            } catch (SQLException ex) {
-                handleError(ex, "Error al listar grupos de la base de datos.");
-            } catch (Exception ex) {
-                handleError(ex, "Error al listar grupos.");
-            }
-        });
-
-        gbc.gridx = 0;
-        gbc.gridy = 2;
-        gbc.gridwidth = 2; // Configura la posicion del panel de botones
-        gbc.fill = GridBagConstraints.NONE;
-        gbc.anchor = GridBagConstraints.CENTER;
-        createPanel.add(buttonPanel, gbc); // Anade el panel de botones al panel de crear/actualizar grupo
-
-        // Anade el panel de errores al final del formulario
-        gbc.gridx = 0;
-        gbc.gridy = 3;
-        gbc.gridwidth = 2;
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        gbc.anchor = GridBagConstraints.SOUTH;
-        gbc.weighty = 0;
-        gbc.insets = new Insets(10, 10, 8, 10);
-        createPanel.add(errorScrollPane, gbc);
-
-        panel.add(createPanel, BorderLayout.NORTH); // Anade el panel de crear/actualizar grupo al panel principal
-        return panel; // Devuelve el panel de grupos
+        contentPanel.add(scrollPane, BorderLayout.CENTER); // Añadir el JScrollPane en lugar del panel directamente
+        contentPanel.revalidate();
+        contentPanel.repaint();
     }
 
-    // Metodo para crear el panel de equipos
-    private JPanel createEquipoPanel() {
-        // Crear panel principal con borde y fondo blanco
-        JPanel panel = new JPanel(new BorderLayout(10, 10));
-        panel.setBackground(Color.WHITE);
-        panel.setBorder(new EmptyBorder(15, 15, 15, 15));
+    // Panel de bienvenida con animación
+    private void showWelcomePanel() {
+        contentPanel.removeAll();
+        contentPanel.setLayout(new BorderLayout(30, 30));
 
-        // Crear subpanel con titulo
-        JPanel createPanel = createTitledPanel("Gestionar Equipos");
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(8, 10, 8, 10);
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        gbc.weightx = 1.0;
+        // Instancia la nueva clase AnimatedWelcomePanel
+        AnimatedWelcomePanel welcomePanel = new AnimatedWelcomePanel();
 
-        // Agregar campos de texto
-        JTextField letraField = addField(createPanel, gbc, "Letra Equipo:", 0);
-        JTextField instalacionField = addField(createPanel, gbc, "Instalacion:", 1);
-        JTextField grupoField = addField(createPanel, gbc, "Grupo:", 2);
-        JTextField clubField = addField(createPanel, gbc, "Club:", 3);
-        JTextField buscarLetraField = addField(createPanel, gbc, "Buscar Letra Equipo:", 4);
-        JTextField dniField = addField(createPanel, gbc, "DNI Entrenador:", 5);
-        JTextField dniJugadorField = addField(createPanel, gbc, "DNI Jugador:", 6);
+        welcomePanel.setLayout(new BoxLayout(welcomePanel, BoxLayout.Y_AXIS));
+        welcomePanel.setBorder(BorderFactory.createEmptyBorder(80, 100, 80, 100));
+        // welcomePanel.setOpaque(false); // Ya está en el constructor de AnimatedWelcomePanel
 
-        // Crear combo box para equipos
-        JComboBox<Equipo> equiposComboBox = new JComboBox<>();
-        try {
-            List<Equipo> equipos = Equipo.obtenerTodos();
-            for (Equipo e : equipos) {
-                equiposComboBox.addItem(e);
-            }
-        } catch (SQLException ex) {
-            handleError(ex, "Error al cargar equipos.");
+        // Logo si existe
+        URL logoURL = getClass().getResource("/resources/logo.png");
+        if (logoURL != null) {
+            ImageIcon originalIcon = new ImageIcon(logoURL);
+            Image scaledImage = originalIcon.getImage().getScaledInstance(200, 200, Image.SCALE_SMOOTH);
+            JLabel logoLabel = new JLabel(new ImageIcon(scaledImage));
+            logoLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+            welcomePanel.add(logoLabel);
+            welcomePanel.add(Box.createVerticalStrut(40));
         }
-        gbc.gridx = 0;
-        gbc.gridy = 7;
-        gbc.gridwidth = 2;
-        createPanel.add(equiposComboBox, gbc);
 
-        // Crear panel para botones
-        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10));
-        buttonPanel.setBackground(Color.WHITE);
+        // Título principal
+        JLabel welcomeTitle = new JLabel("🏆 Federación FFCV");
+        welcomeTitle.setFont(new Font("Inter", Font.BOLD, 36));
+        welcomeTitle.setForeground(PRIMARY_COLOR);
+        welcomeTitle.setAlignmentX(Component.CENTER_ALIGNMENT);
 
-        // Crear botones
-        JButton crearButton = new JButton("Crear Equipo", loadIcon("/resources/iconos/cross.png"));
-        styleButton(crearButton, new Color(211, 47, 47), true);
-        JButton actualizarButton = new JButton("Actualizar Equipo", loadIcon("/resources/iconos/edit.png"));
-        styleButton(actualizarButton, new Color(33, 37, 41), false);
-        JButton eliminarButton = new JButton("Eliminar Equipo", loadIcon("/resources/iconos/delete.png"));
-        styleButton(eliminarButton, new Color(211, 47, 47), true);
-        JButton buscarButton = new JButton("Buscar Equipo", loadIcon("/resources/iconos/magnifier.png"));
-        styleButton(buscarButton, new Color(33, 37, 41), false);
+        // Subtítulo
+        JLabel subtitle = new JLabel("Sistema de Gestión Profesional");
+        subtitle.setFont(new Font("Inter", Font.PLAIN, 18));
+        subtitle.setForeground(SECONDARY_COLOR);
+        subtitle.setAlignmentX(Component.CENTER_ALIGNMENT);
 
-        // Agregar botones al panel
-        buttonPanel.add(crearButton);
-        buttonPanel.add(actualizarButton);
-        buttonPanel.add(eliminarButton);
-        buttonPanel.add(buscarButton);
+        // Mensaje de bienvenida
+        JLabel welcomeMessage = new JLabel("<html><div style='text-align: center; color: #7f8c8d;'>" +
+                "Bienvenido al sistema de gestión integral de la FFCV.<br>" +
+                "Utilice el menú superior para gestionar clubes, equipos, personas,<br>" +
+                "licencias e instalaciones de manera eficiente y profesional." +
+                "</div></html>");
+        welcomeMessage.setFont(new Font("Inter", Font.PLAIN, 14));
+        welcomeMessage.setAlignmentX(Component.CENTER_ALIGNMENT);
+        welcomeMessage.setBorder(new EmptyBorder(20, 0, 30, 0));
+        welcomeMessage.setHorizontalAlignment(SwingConstants.CENTER); // Asegurar alineación horizontal
 
-        // Boton crear equipo
-        crearButton.addActionListener(event -> {
-            // Validar campos
-            if (!validateFields(letraField, instalacionField, grupoField, clubField)) {
-                showError("Letra, instalacion, grupo y club son obligatorios.");
-                return;
+        // Indicadores de funcionalidades
+        JPanel featuresPanel = new JPanel();
+        featuresPanel.setLayout(new BoxLayout(featuresPanel, BoxLayout.X_AXIS));
+        featuresPanel.setOpaque(false);
+        featuresPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+        String[] features = {"👥 Gestión de Personas", "🏟️ Control de Instalaciones", "📋 Administración de Licencias"};
+        for (String feature : features) {
+            JLabel featureLabel = new JLabel(feature);
+            featureLabel.setFont(new Font("Inter", Font.PLAIN, 12));
+            featureLabel.setForeground(TEXT_SECONDARY);
+            featureLabel.setBorder(BorderFactory.createEmptyBorder(6, 12, 6, 12));
+            featuresPanel.add(featureLabel);
+            if (!feature.equals(features[features.length - 1])) {
+                featuresPanel.add(Box.createHorizontalStrut(15));
             }
-            try {
-                // Validar formato letra
-                if (!letraField.getText().trim().matches("[A-Za-z]")) {
-                    showError("Letra debe ser un caracter alfabetico.");
-                    return;
+        }
+
+        welcomePanel.add(welcomeTitle);
+        welcomePanel.add(Box.createVerticalStrut(15));
+        welcomePanel.add(subtitle);
+        welcomePanel.add(Box.createVerticalStrut(25));
+        welcomePanel.add(welcomeMessage);
+        welcomePanel.add(featuresPanel);
+
+        contentPanel.add(welcomePanel, BorderLayout.CENTER);
+        contentPanel.revalidate();
+        contentPanel.repaint();
+
+        // Animación de fade-in
+        Timer timer = new Timer(20, new ActionListener() {
+            private float alpha = 0.0f;
+            @Override
+            public void actionPerformed(java.awt.event.ActionEvent e) {
+                alpha += 0.02f; // Incrementar la transparencia
+                if (alpha > 1.0f) {
+                    alpha = 1.0f;
+                    ((Timer)e.getSource()).stop(); // Detener el timer cuando la animación termina
                 }
-                // Buscar instalacion
-                Instalacion instalacion = Instalacion.buscarPorNombre(instalacionField.getText().trim());
-                if (instalacion == null) {
-                    showError("Instalacion no encontrada.");
-                    return;
-                }
-                // Buscar grupo
-                Grupo grupo = Grupo.buscarPorNombre(grupoField.getText().trim());
-                if (grupo == null) {
-                    showError("Grupo no encontrado.");
-                    return;
-                }
-                // Buscar club
-                Club club = federacion.buscarClub(clubField.getText().trim());
-                if (club == null) {
-                    showError("Club no encontrado.");
-                    return;
-                }
-                // Crear equipo
-                Equipo equipo = federacion.nuevoEquipo(letraField.getText().trim(), instalacion, grupo);
-                // Asignar club manualmente
-                equipo.setClub(club);
-                equipo.guardar();
-                JOptionPane.showMessageDialog(frame, "Equipo creado: " + equipo.getLetra(), "Exito", JOptionPane.INFORMATION_MESSAGE);
-                // Limpiar campos
-                clearFields(letraField, instalacionField, grupoField, clubField, buscarLetraField, dniField, dniJugadorField);
-                // Actualizar combo box
-                equiposComboBox.removeAllItems();
-                List<Equipo> equipos = Equipo.obtenerTodos();
-                for (Equipo e : equipos) {
-                    equiposComboBox.addItem(e);
-                }
-            } catch (SQLException ex) {
-                handleError(ex, "Error al guardar equipo.");
+                welcomePanel.setAlpha(alpha); // Ahora welcomePanel es de tipo AnimatedWelcomePanel y tiene setAlpha
             }
         });
-
-        // Boton actualizar equipo
-        actualizarButton.addActionListener(event -> {
-            // Validar campos
-            if (!validateFields(letraField, instalacionField, grupoField, clubField)) {
-                showError("Letra, instalacion, grupo y club son obligatorios.");
-                return;
-            }
-            try {
-                // Validar formato letra
-                if (!letraField.getText().trim().matches("[A-Za-z]")) {
-                    showError("Letra debe ser un caracter alfabetico.");
-                    return;
-                }
-                // Buscar instalacion
-                Instalacion instalacion = Instalacion.buscarPorNombre(instalacionField.getText().trim());
-                if (instalacion == null) {
-                    showError("Instalacion no encontrada.");
-                    return;
-                }
-                // Buscar grupo
-                Grupo grupo = Grupo.buscarPorNombre(grupoField.getText().trim());
-                if (grupo == null) {
-                    showError("Grupo no encontrado.");
-                    return;
-                }
-                // Buscar club
-                Club club = federacion.buscarClub(clubField.getText().trim());
-                if (club == null) {
-                    showError("Club no encontrado.");
-                    return;
-                }
-                // Buscar equipo
-                Equipo equipo = Equipo.buscarPorLetraYClub(letraField.getText().trim(), clubField.getText().trim());
-                if (equipo == null) {
-                    showError("Equipo no encontrado.");
-                    return;
-                }
-                // Actualizar datos
-                equipo.setInstalacion(instalacion);
-                equipo.setGrupo(grupo);
-                equipo.setClub(club);
-                equipo.actualizar();
-                JOptionPane.showMessageDialog(frame, "Equipo actualizado: " + equipo.getLetra(), "Exito", JOptionPane.INFORMATION_MESSAGE);
-                // Limpiar campos
-                clearFields(letraField, instalacionField, grupoField, clubField, buscarLetraField, dniField, dniJugadorField);
-                // Actualizar combo box
-                equiposComboBox.removeAllItems();
-                List<Equipo> equipos = Equipo.obtenerTodos();
-                for (Equipo e : equipos) {
-                    equiposComboBox.addItem(e);
-                }
-            } catch (SQLException ex) {
-                handleError(ex, "Error al actualizar equipo.");
-            }
-        });
-
-        // Boton eliminar equipo
-        eliminarButton.addActionListener(event -> {
-            // Validar campo letra
-            if (!validateFields(letraField, clubField)) {
-                showError("Letra y club son obligatorios.");
-                return;
-            }
-            try {
-                // Buscar equipo
-                Equipo equipo = Equipo.buscarPorLetraYClub(letraField.getText().trim(), clubField.getText().trim());
-                if (equipo == null) {
-                    showError("Equipo no encontrado.");
-                    return;
-                }
-                // Eliminar equipo
-                equipo.eliminar();
-                JOptionPane.showMessageDialog(frame, "Equipo eliminado: " + equipo.getLetra(), "Exito", JOptionPane.INFORMATION_MESSAGE);
-                // Limpiar campos
-                clearFields(letraField, instalacionField, grupoField, clubField, buscarLetraField, dniField, dniJugadorField);
-                // Actualizar combo box
-                equiposComboBox.removeAllItems();
-                List<Equipo> equipos = Equipo.obtenerTodos();
-                for (Equipo e : equipos) {
-                    equiposComboBox.addItem(e);
-                }
-            } catch (SQLException ex) {
-                handleError(ex, "Error al eliminar equipo.");
-            }
-        });
-
-        // Boton buscar equipo
-        buscarButton.addActionListener(event -> {
-            // Validar campo buscar letra
-            if (!validateFields(buscarLetraField, clubField)) {
-                showError("Letra y club son obligatorios.");
-                return;
-            }
-            try {
-                // Buscar equipo
-                Equipo equipo = Equipo.buscarPorLetraYClub(buscarLetraField.getText().trim(), clubField.getText().trim());
-                if (equipo == null) {
-                    showError("Equipo no encontrado.");
-                    return;
-                }
-                // Mostrar resultado
-                List<Equipo> equipos = new ArrayList<>();
-                equipos.add(equipo);
-                showListResult(equipos, "Equipo encontrado:");
-                // Limpiar campos
-                clearFields(letraField, instalacionField, grupoField, clubField, buscarLetraField, dniField, dniJugadorField);
-            } catch (SQLException ex) {
-                handleError(ex, "Error al buscar equipo.");
-            }
-        });
-
-        // Configurar posicion de panel de botones
-        gbc.gridx = 0;
-        gbc.gridy = 8;
-        gbc.gridwidth = 2;
-        gbc.fill = GridBagConstraints.NONE;
-        gbc.anchor = GridBagConstraints.CENTER;
-        createPanel.add(buttonPanel, gbc);
-
-        // Configurar posicion de panel de errores
-        gbc.gridx = 0;
-        gbc.gridy = 9;
-        gbc.gridwidth = 2;
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        gbc.anchor = GridBagConstraints.SOUTH;
-        gbc.weighty = 0;
-        gbc.insets = new Insets(10, 10, 8, 10);
-        createPanel.add(errorScrollPane, gbc);
-
-        // Agregar subpanel al panel principal
-        panel.add(createPanel, BorderLayout.NORTH);
-        return panel;
+        timer.start();
     }
 
-    // Metodo para crear el panel de licencias
-    private JPanel createLicenciaPanel() {
-        // Crear panel principal con borde y fondo blanco
-        JPanel panel = new JPanel(new BorderLayout(10, 10));
-        panel.setBackground(Color.WHITE);
-        panel.setBorder(new EmptyBorder(15, 15, 15, 15));
+    // Método para crear un panel de formulario con estilo
+    private JPanel createFormPanel() {
+        JPanel panel = new JPanel() {
+            @Override
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                Graphics2D g2d = (Graphics2D) g;
+                g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
-        // Crear subpanel con titulo
-        JPanel createPanel = createTitledPanel("Gestionar Licencias");
+                g2d.setColor(BACKGROUND_COLOR); // Usar BACKGROUND_COLOR en lugar de blanco
+                g2d.fillRoundRect(0, 0, getWidth(), getHeight(), 16, 16);
+
+                g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.1f));
+                g2d.setColor(Color.BLACK);
+                for (int i = 1; i <= 6; i++) {
+                    g2d.drawRoundRect(-i, -i, getWidth() + 2*i, getHeight() + 2*i, 16 + i, 16 + i);
+                }
+                g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1.0f));
+
+                g2d.setColor(BORDER_COLOR);
+                g2d.setStroke(new BasicStroke(2));
+                g2d.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 16, 16);
+            }
+        };
+
+        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+        panel.setBorder(BorderFactory.createEmptyBorder(30, 50, 30, 50));
+        panel.setOpaque(false);
+        return panel;
+    }
+    
+    private static final Dimension TEXT_FIELD_SIZE = new Dimension(300, 36); // Tamaño uniforme para todos los campos
+    private JPanel createFormFieldPanel(JLabel label, JTextField textField) {
+        JPanel fieldPanel = new JPanel();
+        fieldPanel.setLayout(new GridBagLayout());
+        fieldPanel.setOpaque(false);
+        fieldPanel.setBorder(BorderFactory.createEmptyBorder(6, 0, 6, 0)); // Espacio vertical entre cada par de etiqueta-campo
+
         GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(8, 10, 8, 10);
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        gbc.weightx = 1.0;
+        gbc.insets = new Insets(5, 5, 5, 5); // Espacio entre la etiqueta y el campo
+        gbc.anchor = GridBagConstraints.WEST; // Alineación a la izquierda para la etiqueta
 
-        // Agregar campos de texto
-        JTextField dniField = addField(createPanel, gbc, "DNI Jugador:", 0);
-        JTextField letraField = addField(createPanel, gbc, "Letra Equipo:", 1);
-        JTextField clubField = addField(createPanel, gbc, "Nombre Club:", 2);
-        JTextField precioField = addField(createPanel, gbc, "Precio Estimado:", 3);
-        precioField.setEditable(false); // Campo no editable
+        // Configuración para la etiqueta (Label)
+        label.setFont(new Font("Inter", Font.PLAIN, 14));
+        label.setForeground(TEXT_PRIMARY);
+        gbc.gridx = 0; // Columna 0 para la etiqueta
+        gbc.gridy = 0; // Fila 0
+        gbc.weightx = 0.0; // La etiqueta no se estira horizontalmente
+        gbc.fill = GridBagConstraints.NONE; // No rellenar espacio adicional
+        fieldPanel.add(label, gbc);
 
-        // Crear panel para botones
-        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10));
-        buttonPanel.setBackground(Color.WHITE);
+        // Configuración para el campo de texto (JTextField)
+        // Establecer el tamaño mínimo, preferido y máximo para forzar la uniformidad
+        textField.setPreferredSize(TEXT_FIELD_SIZE);
+        textField.setMinimumSize(TEXT_FIELD_SIZE);
+        textField.setMaximumSize(TEXT_FIELD_SIZE);
+        
+        textField.setFont(new Font("Inter", Font.PLAIN, 13));
+        textField.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(BORDER_COLOR, 2),
+                BorderFactory.createEmptyBorder(8, 12, 8, 12)
+        ));
+        textField.setBackground(new Color(252, 253, 255));
 
-        // Crear botones
-        JButton estimarButton = new JButton("Estimar Precio", loadIcon("/resources/iconos/calculator.png"));
-        styleButton(estimarButton, new Color(33, 37, 41), false);
-        JButton crearButton = new JButton("Crear Licencia", loadIcon("/resources/iconos/cross.png"));
-        styleButton(crearButton, new Color(211, 47, 47), true);
-        JButton actualizarButton = new JButton("Actualizar Licencia", loadIcon("/resources/iconos/edit.png"));
-        styleButton(actualizarButton, new Color(33, 37, 41), false);
-        JButton eliminarButton = new JButton("Eliminar Licencia", loadIcon("/resources/iconos/delete.png"));
-        styleButton(eliminarButton, new Color(211, 47, 47), true);
-
-        // Agregar botones al panel
-        buttonPanel.add(estimarButton);
-        buttonPanel.add(crearButton);
-        buttonPanel.add(actualizarButton);
-        buttonPanel.add(eliminarButton);
-
-        // Boton estimar precio
-        estimarButton.addActionListener(event -> {
-            // Validar campos
-            if (!validateFields(letraField, clubField)) {
-                showError("Letra y club son obligatorios.");
-                return;
+        textField.addFocusListener(new java.awt.event.FocusAdapter() {
+            @Override
+            public void focusGained(java.awt.event.FocusEvent evt) {
+                textField.setBorder(BorderFactory.createCompoundBorder(
+                        BorderFactory.createLineBorder(SECONDARY_COLOR, 2),
+                        BorderFactory.createEmptyBorder(8, 12, 8, 12)
+                ));
             }
-            try {
-                // Buscar equipo por letra y club
-                Equipo equipo = Equipo.buscarPorLetraYClub(letraField.getText().trim(), clubField.getText().trim());
-                if (equipo == null) {
-                    showError("Equipo no encontrado.");
-                    return;
-                }
-                // Calcular precio y mostrar
-                double precio = federacion.calcularPrecioLicencia(equipo);
-                precioField.setText(String.format("%.2f", precio));
-            } catch (Exception ex) {
-                handleError(ex, "Error al estimar precio.");
+
+            @Override
+            public void focusLost(java.awt.event.FocusEvent evt) {
+                textField.setBorder(BorderFactory.createCompoundBorder(
+                        BorderFactory.createLineBorder(BORDER_COLOR, 2),
+                        BorderFactory.createEmptyBorder(8, 12, 8, 12)
+                ));
             }
         });
 
-        // Boton crear licencia
-        crearButton.addActionListener(event -> {
-            // Validar campos
-            if (!validateFields(dniField, letraField, clubField)) {
-                return;
-            }
-            try {
-                // Validar formato DNI
-                if (!validateDni(dniField.getText())) {
-                    showError("DNI invalido.");
-                    return;
-                }
-                // Buscar persona por DNI
-                Persona jugador = federacion.buscaPersona(dniField.getText().trim());
-                if (jugador == null) {
-                    showError("Jugador no encontrado.");
-                    return;
-                }
-                // Buscar equipo por letra y club
-                Equipo equipo = Equipo.buscarPorLetraYClub(letraField.getText().trim(), clubField.getText().trim());
-                if (equipo == null) {
-                    showError("Equipo no encontrado.");
-                    return;
-                }
-                // Crear y asociar licencia
-                Licencia licencia = federacion.nuevaLicencia(jugador, equipo);
-                federacion.addLicencia(licencia, equipo);
-                JOptionPane.showMessageDialog(frame, "Licencia creada para: " + jugador.getNombre(), "Exito", JOptionPane.INFORMATION_MESSAGE);
-                // Limpiar campos
-                clearFields(dniField, letraField, clubField, precioField);
-            } catch (SQLException ex) {
-                handleError(ex, "Error al guardar licencia.");
-            }
-        });
+        gbc.gridx = 1; // Columna 1 para el campo de texto
+        gbc.weightx = 1.0; // Permitir que el campo de texto use el espacio restante en su columna (aunque su tamaño ya está fijado)
+        gbc.fill = GridBagConstraints.HORIZONTAL; // Permitir que el campo de texto rellene horizontalmente (hasta su tamaño máximo)
+        fieldPanel.add(textField, gbc);
 
-        // Boton actualizar licencia
-        actualizarButton.addActionListener(event -> {
-            // Validar campos
-            if (!validateFields(dniField, letraField, clubField)) {
-                return;
-            }
-            try {
-                // Validar formato DNI
-                if (!validateDni(dniField.getText())) {
-                    showError("DNI invalido.");
-                    return;
-                }
-                // Buscar persona por DNI
-                Persona jugador = federacion.buscaPersona(dniField.getText().trim());
-                if (jugador == null) {
-                    showError("Jugador no encontrado.");
-                    return;
-                }
-                // Buscar equipo por letra y club
-                Equipo equipo = Equipo.buscarPorLetraYClub(letraField.getText().trim(), clubField.getText().trim());
-                if (equipo == null) {
-                    showError("Equipo no encontrado.");
-                    return;
-                }
-                // Buscar licencia existente
-                Licencia licencia = Licencia.buscarPorJugadorYEquipo(jugador.getDni(), equipo.getId());
-                if (licencia == null) {
-                    showError("Licencia no encontrada.");
-                    return;
-                }
-                // Actualizar licencia
-                licencia.setEquipo(equipo);
-                licencia.actualizar();
-                JOptionPane.showMessageDialog(frame, "Licencia actualizada para: " + jugador.getNombre(), "Exito", JOptionPane.INFORMATION_MESSAGE);
-                // Limpiar campos
-                clearFields(dniField, letraField, clubField, precioField);
-            } catch (SQLException ex) {
-                handleError(ex, "Error al actualizar licencia.");
-            }
-        });
-
-        // Boton eliminar licencia
-        eliminarButton.addActionListener(event -> {
-            // Validar campos
-            if (!validateFields(dniField, letraField, clubField)) {
-                return;
-            }
-            try {
-                // Validar formato DNI
-                if (!validateDni(dniField.getText())) {
-                    showError("DNI invalido.");
-                    return;
-                }
-                // Buscar persona por DNI
-                Persona jugador = federacion.buscaPersona(dniField.getText().trim());
-                if (jugador == null) {
-                    showError("Jugador no encontrado.");
-                    return;
-                }
-                // Buscar equipo por letra y club
-                Equipo equipo = Equipo.buscarPorLetraYClub(letraField.getText().trim(), clubField.getText().trim());
-                if (equipo == null) {
-                    showError("Equipo no encontrado.");
-                    return;
-                }
-                // Buscar licencia existente
-                Licencia licencia = Licencia.buscarPorJugadorYEquipo(jugador.getDni(), equipo.getId());
-                if (licencia == null) {
-                    showError("Licencia no encontrada.");
-                    return;
-                }
-                // Eliminar licencia
-                licencia.eliminar();
-                JOptionPane.showMessageDialog(frame, "Licencia eliminada para: " + jugador.getNombre(), "Exito", JOptionPane.INFORMATION_MESSAGE);
-                // Limpiar campos
-                clearFields(dniField, letraField, clubField, precioField);
-            } catch (SQLException ex) {
-                handleError(ex, "Error al eliminar licencia.");
-            }
-        });
-
-        // Configurar posicion de panel de botones
-        gbc.gridx = 0;
-        gbc.gridy = 4;
-        gbc.gridwidth = 2;
-        gbc.fill = GridBagConstraints.NONE;
-        gbc.anchor = GridBagConstraints.CENTER;
-        createPanel.add(buttonPanel, gbc);
-
-        // Configurar posicion de panel de errores
-        gbc.gridx = 0;
-        gbc.gridy = 5;
-        gbc.gridwidth = 2;
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        gbc.anchor = GridBagConstraints.SOUTH;
-        gbc.weighty = 0;
-        gbc.insets = new Insets(10, 10, 8, 10);
-        createPanel.add(errorScrollPane, gbc);
-
-        // Agregar subpanel al panel principal
-        panel.add(createPanel, BorderLayout.NORTH);
-        return panel;
+        return fieldPanel;
     }
 
-    // Metodo para estilizar un menu
-    private void styleMenu(JMenu menu, Font font, Color foreground, Color hover) {
-        menu.setFont(font); // Establece la fuente
-        menu.setForeground(foreground); // Establece el color del texto
-        menu.setOpaque(true); // Habilita el fondo opaco
-        menu.setBackground(new Color(33, 37, 41)); // Establece el color de fondo
-        menu.addMouseListener(new MouseAdapter() {
+    // Método para crear un botón de acción con estilo
+    private JButton createActionButton(String text, ActionListener listener) {
+        JButton button = new JButton(text) {
             @Override
-            public void mouseEntered(MouseEvent e) {
-                menu.setBackground(hover); // Cambia el color de fondo al pasar el raton
-            }
+            protected void paintComponent(Graphics g) {
+                Graphics2D g2d = (Graphics2D) g;
+                g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
-            @Override
-            public void mouseExited(MouseEvent e) {
-                menu.setBackground(new Color(33, 37, 41)); // Restaura el color de fondo
-            }
-        });
-    }
+                Color startColor, endColor;
+                if (getModel().isPressed()) {
+                    startColor = new Color(41, 128, 185);
+                    endColor = new Color(52, 152, 219);
+                } else if (getModel().isRollover()) {
+                    startColor = new Color(52, 152, 219);
+                    endColor = new Color(74, 144, 226);
+                } else {
+                    startColor = SECONDARY_COLOR;
+                    endColor = new Color(41, 128, 185);
+                }
 
-    // Metodo para estilizar un elemento del menu
-    private void styleMenuItem(JMenuItem item, Font font, Color foreground, Color hover) {
-        item.setFont(font); // Establece la fuente
-        item.setForeground(foreground); // Establece el color del texto
-        item.setOpaque(true); // Habilita el fondo opaco
-        item.setBackground(new Color(33, 37, 41)); // Establece el color de fondo
-        item.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10)); // Establece un borde vacio
-        item.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mouseEntered(MouseEvent e) {
-                item.setBackground(hover); // Cambia el color de fondo al pasar el raton
-            }
+                GradientPaint gradient = new GradientPaint(
+                    0, 0, startColor,
+                    0, getHeight(), endColor
+                );
+                g2d.setPaint(gradient);
+                g2d.fillRoundRect(0, 0, getWidth(), getHeight(), 12, 12);
 
-            @Override
-            public void mouseExited(MouseEvent e) {
-                item.setBackground(new Color(33, 37, 41)); // Restaura el color de fondo
-            }
-        });
-    }
+                g2d.setColor(new Color(255, 255, 255, 30));
+                g2d.drawRoundRect(1, 1, getWidth() - 3, getHeight() - 3, 10, 10);
 
-    // Metodo para estilizar un boton
-    private void styleButton(JButton button, Color background, boolean isDanger) {
-        button.setFont(new Font("Segoe UI", Font.BOLD, 14)); // Establece la fuente
-        button.setForeground(Color.BLACK); // Establece el color del texto
-        button.setBackground(background); // Establece el color de fondo
-        button.setFocusPainted(false); // Deshabilita el borde de foco
-        button.setBorder(BorderFactory.createEmptyBorder(8, 15, 8, 15)); // Establece un borde vacio
-        Color hoverColor = isDanger ? new Color(198, 40, 40) : new Color(66, 66, 66); // Color al pasar el raton
+                super.paintComponent(g);
+            }
+        };
+
+        button.addActionListener(listener);
+        button.setForeground(Color.WHITE);
+        button.setFont(new Font("Inter", Font.BOLD, 14));
+        button.setBorder(BorderFactory.createEmptyBorder(12, 30, 12, 30));
+        button.setFocusPainted(false);
+        button.setContentAreaFilled(false);
+        button.setPreferredSize(new Dimension(280, 48));
+        button.setMaximumSize(new Dimension(280, 48));
+        button.setAlignmentX(Component.CENTER_ALIGNMENT);
+
         button.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseEntered(MouseEvent e) {
-                button.setBackground(hoverColor); // Cambia el color de fondo al pasar el raton
+                button.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
             }
 
             @Override
             public void mouseExited(MouseEvent e) {
-                button.setBackground(background); // Restaura el color de fondo
+                button.setCursor(Cursor.getDefaultCursor());
+                button.repaint(); // Repintar para restaurar el color si se cambia con el rollover
             }
         });
+        return button;
     }
+   
+    // Método para mostrar mensajes en el área de errores
+    private void showMessage(String message, boolean isError) {
+        SwingUtilities.invokeLater(() -> {
+            String timestamp = java.time.format.DateTimeFormatter
+                .ofPattern("HH:mm:ss")
+                .format(java.time.LocalTime.now());
 
-    // Metodo para crear una etiqueta estilizada
-    private JLabel createStyledLabel(String text) {
-        JLabel label = new JLabel(text); // Crea una nueva etiqueta
-        label.setFont(new Font("Segoe UI", Font.BOLD, 24)); // Establece la fuente
-        label.setForeground(new Color(33, 37, 41)); // Establece el color del texto
-        return label; // Devuelve la etiqueta
-    }
+            String icon = isError ? "❌" : "✅";
+            String formattedMessage = String.format("[%s] %s %s\n", timestamp, icon, message);
 
-    // Metodo para crear una etiqueta de logo
-    private JLabel createLogoLabel(String path) {
-        JLabel logoLabel = new JLabel(); // Crea una nueva etiqueta
-        ImageIcon icon = loadIcon(path); // Carga el icono
-        if (icon != null) {
-            Image img = icon.getImage().getScaledInstance(48, 48, Image.SCALE_SMOOTH); // Escala a 48x48 (ajusta según necesites)
-            logoLabel.setIcon(new ImageIcon(img)); // Establece el icono escalado
-        }
-        logoLabel.setBorder(new EmptyBorder(0, 0, 0, 20)); // Establece un borde vacio
-        return logoLabel; // Devuelve la etiqueta
-    }
+            errorArea.append(formattedMessage);
+            errorArea.setCaretPosition(errorArea.getDocument().getLength());
 
-    // Metodo para cargar un icono
-    private ImageIcon loadIcon(String path) {
-        URL imgURL = getClass().getResource(path); // Obtiene la URL del recurso
-        if (imgURL != null) {
-            ImageIcon icon = new ImageIcon(imgURL); // Crea el icono
-            Image img = icon.getImage().getScaledInstance(30, 30, Image.SCALE_SMOOTH); // Escala la imagen
-            return new ImageIcon(img); // Devuelve el icono escalado
-        }
-        System.err.println("No se pudo encontrar el icono: " + path);
-        return null; // Devuelve null si no se encuentra el icono
-    }
-
-    // Metodo para establecer el icono de la ventana
-    private void setFrameIcon(String path) {
-        URL imgURL = getClass().getResource(path); // Obtiene la URL del recurso
-        if (imgURL != null) {
-            ImageIcon icon = new ImageIcon(imgURL); // Crea el icono
-            frame.setIconImage(icon.getImage()); // Establece el icono de la ventana
-        } else {
-            System.err.println("No se pudo encontrar el icono: " + path);
-        }
-    }
-
-    // Metodo para crear un panel con un titulo
-    private JPanel createTitledPanel(String title) {
-        JPanel panel = new JPanel(new GridBagLayout()); // Crea un nuevo panel con GridBagLayout
-        panel.setBackground(Color.WHITE); // Establece el color de fondo
-        panel.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createTitledBorder(BorderFactory.createLineBorder(Color.RED, 1), title,
-                        TitledBorder.DEFAULT_JUSTIFICATION, TitledBorder.DEFAULT_POSITION,
-                        new Font("Segoe UI", Font.BOLD, 16), new Color(33, 37, 41)),
-                new EmptyBorder(10, 10, 10, 10))); // Establece un borde compuesto
-        return panel; // Devuelve el panel
-    }
-
-    // Metodo para anadir un campo de texto a un panel
-    private JTextField addField(JPanel panel, GridBagConstraints gbc, String label, int row) {
-        JLabel fieldLabel = new JLabel(label); // Crea una nueva etiqueta
-        fieldLabel.setFont(new Font("Segoe UI", Font.PLAIN, 14)); // Establece la fuente
-        fieldLabel.setForeground(new Color(33, 37, 41)); // Establece el color del texto
-        gbc.gridx = 0;
-        gbc.gridy = row;
-        gbc.gridwidth = 1;
-        gbc.weightx = 0;
-        panel.add(fieldLabel, gbc); // Anade la etiqueta al panel
-
-        JTextField field = new JTextField(20); // Crea un nuevo campo de texto
-        field.setFont(new Font("Segoe UI", Font.PLAIN, 14)); // Establece la fuente
-        gbc.gridx = 1;
-        gbc.weightx = 1.0;
-        panel.add(field, gbc); // Anade el campo de texto al panel
-        return field; // Devuelve el campo de texto
-    }
-
-    // Sobrecarga del metodo para anadir un campo de texto con etiqueta de error
-    private JTextField addField(JPanel panel, GridBagConstraints gbc, String label, int row, JLabel errorLabel) {
-        JLabel fieldLabel = new JLabel(label); // Crea una nueva etiqueta
-        fieldLabel.setFont(new Font("Segoe UI", Font.PLAIN, 14)); // Establece la fuente
-        fieldLabel.setForeground(new Color(33, 37, 41)); // Establece el color del texto
-        gbc.gridx = 0;
-        gbc.gridy = row;
-        gbc.gridwidth = 1;
-        gbc.weightx = 0;
-        panel.add(fieldLabel, gbc); // Anade la etiqueta al panel
-
-        JTextField field = new JTextField(20); // Crea un nuevo campo de texto
-        field.setFont(new Font("Segoe UI", Font.PLAIN, 14)); // Establece la fuente
-        gbc.gridx = 1;
-        gbc.weightx = 1.0;
-        panel.add(field, gbc); // Anade el campo de texto al panel
-
-        errorLabel.setFont(new Font("Segoe UI", Font.PLAIN, 12)); // Establece la fuente de la etiqueta de error
-        errorLabel.setForeground(Color.RED); // Establece el color del texto
-        gbc.gridx = 1;
-        gbc.gridy = row + 1;
-        gbc.weightx = 1.0;
-        panel.add(errorLabel, gbc); // Anade la etiqueta de error al panel
-        return field; // Devuelve el campo de texto
-    }
-
-    // Metodo para anadir un combo box a un panel
-    private JComboBox<entidades.Instalacion.TipoSuperficie> addComboBox(JPanel panel, GridBagConstraints gbc, String label, int row) {
-        JLabel fieldLabel = new JLabel(label); // Crea una nueva etiqueta
-        fieldLabel.setFont(new Font("Segoe UI", Font.PLAIN, 14)); // Establece la fuente
-        fieldLabel.setForeground(new Color(33, 37, 41)); // Establece el color del texto
-        gbc.gridx = 0;
-        gbc.gridy = row;
-        gbc.gridwidth = 1;
-        gbc.weightx = 0;
-        panel.add(fieldLabel, gbc); // Anade la etiqueta al panel
-
-        JComboBox<entidades.Instalacion.TipoSuperficie> comboBox = new JComboBox<>(entidades.Instalacion.TipoSuperficie.values()); // Crea un nuevo combo box
-        comboBox.setFont(new Font("Segoe UI", Font.PLAIN, 14)); // Establece la fuente
-        gbc.gridx = 1;
-        gbc.weightx = 1.0;
-        panel.add(comboBox, gbc); // Anade el combo box al panel
-        return comboBox; // Devuelve el combo box
-    }
-
-    // Metodo para validar que los campos no esten vacios
-    private boolean validateFields(JTextField... fields) {
-        for (JTextField field : fields) {
-            if (field.getText().trim().isEmpty()) {
-                showError("Todos los campos obligatorios deben estar completos.");
-                return false;
+            if (isError) {
+                errorArea.setBackground(new Color(255, 248, 248));
+                errorScrollPane.setBorder(BorderFactory.createCompoundBorder(
+                    BorderFactory.createLineBorder(new Color(254, 226, 226), 2),
+                    BorderFactory.createEmptyBorder()
+                ));
+            } else {
+                errorArea.setBackground(new Color(248, 255, 248));
+                errorScrollPane.setBorder(BorderFactory.createCompoundBorder(
+                    BorderFactory.createLineBorder(new Color(220, 255, 220), 2),
+                    BorderFactory.createEmptyBorder()
+                ));
             }
-        }
-        return true;
-    }
-
-    // Metodo para validar el formato del DNI
-    private boolean validateDni(String dni) {
-        return dni.matches("\\d{8}[A-Za-z]"); // Valida 8 digitos y 1 letra
-    }
-
-    // Metodo para validar el formato de la fecha
-    private boolean validateDateFormat(String date) {
-        try {
-            LocalDate.parse(date); // Intenta parsear la fecha
-            return true;
-        } catch (DateTimeParseException e) {
-            return false;
-        }
-    }
-
-    // Metodo para limpiar los campos y el area de errores
-    private void clearFields(JTextField... fields) {
-        for (JTextField field : fields) {
-            field.setText(""); // Limpia el texto del campo
-        }
-        errorArea.setText(""); // Limpia el area de errores
-    }
-
-    // Metodo para mostrar un error en el area de errores
-    private void showError(String message) {
-        errorArea.setText(errorArea.getText() + message + "\n");
-        errorArea.setCaretPosition(errorArea.getDocument().getLength()); // Desplazar al final
-    }
-
-    // Metodo para manejar excepciones
-    private void handleError(Exception ex, String message) {
-        String errorMessage = message + " " + ex.getMessage();
-        errorArea.setText(errorArea.getText() + errorMessage + "\n");
-        errorArea.setCaretPosition(errorArea.getDocument().getLength());
-        ex.printStackTrace();
+        });
     }
     
-    // Metodo para mostrar una lista de resultados
-    private void showListResult(List<?> list, String title) {
-        System.out.println("Showing list result: " + list.size() + " items");
-        if (list.isEmpty()) {
-            JOptionPane.showMessageDialog(frame, "No se encontraron resultados.", "Información", JOptionPane.INFORMATION_MESSAGE);
-            return;
-        }
-        JTextArea textArea = new JTextArea(15, 50);
-        textArea.setEditable(false);
-        textArea.append(title + "\n\n");
-        for (Object item : list) {
-            textArea.append(item.toString() + "\n");
-        }
-        JScrollPane scrollPane = new JScrollPane(textArea);
-        scrollPane.setPreferredSize(new Dimension(600, 400));
-        JDialog dialog = new JDialog(frame, "Resultados", true);
-        dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
-        dialog.add(scrollPane);
-        dialog.setSize(650, 450); // Ligeramente más grande para bordes
-        dialog.setLocationRelativeTo(frame);
-        dialog.setVisible(true);
+    // Panel para Alta Club
+    private void showAltaClubPanel() {
+        JPanel formPanel = createFormPanel();
+
+        JTextField nombreField = new JTextField();
+        JTextField fechaFundacionField = new JTextField();
+        JTextField presidenteDNIField = new JTextField();
+        JTextField presidenteNombreField = new JTextField();
+        JTextField presidenteApellido1Field = new JTextField();
+        JTextField presidenteApellido2Field = new JTextField();
+        JTextField presidenteFechaNacimientoField = new JTextField();
+        JTextField presidenteUsuarioField = new JTextField();
+        JTextField presidentePasswordField = new JTextField();
+        JTextField presidentePoblacionField = new JTextField();
+
+
+        fechaFundacionField.setToolTipText("Formato: YYYY-MM-DD (ej: 2000-01-01)");
+        presidenteFechaNacimientoField.setToolTipText("Formato: YYYY-MM-DD (ej: 1980-05-15)");
+
+        formPanel.add(createFormFieldPanel(new JLabel("Nombre del Club:"), nombreField));
+        formPanel.add(createFormFieldPanel(new JLabel("Fecha Fundación (YYYY-MM-DD):"), fechaFundacionField));
+        formPanel.add(createFormFieldPanel(new JLabel("DNI Presidente:"), presidenteDNIField));
+        formPanel.add(createFormFieldPanel(new JLabel("Nombre Presidente:"), presidenteNombreField));
+        formPanel.add(createFormFieldPanel(new JLabel("Primer Apellido Presidente:"), presidenteApellido1Field));
+        formPanel.add(createFormFieldPanel(new JLabel("Segundo Apellido Presidente:"), presidenteApellido2Field));
+        formPanel.add(createFormFieldPanel(new JLabel("Fecha Nac. Presidente (YYYY-MM-DD):"), presidenteFechaNacimientoField));
+        formPanel.add(createFormFieldPanel(new JLabel("Usuario Presidente:"), presidenteUsuarioField));
+        formPanel.add(createFormFieldPanel(new JLabel("Password Presidente:"), presidentePasswordField));
+        formPanel.add(createFormFieldPanel(new JLabel("Población Presidente:"), presidentePoblacionField));
+
+        formPanel.add(Box.createVerticalStrut(30));
+
+        JButton altaButton = createActionButton("🏆 Dar de Alta Club", e -> {
+            String nombre = nombreField.getText().trim();
+            String fechaFundacionStr = fechaFundacionField.getText().trim();
+            String presidenteDNI = presidenteDNIField.getText().trim();
+            String presidenteNombre = presidenteNombreField.getText().trim();
+            String presidenteApellido1 = presidenteApellido1Field.getText().trim();
+            String presidenteApellido2 = presidenteApellido2Field.getText().trim();
+            String presidenteFechaNacimientoStr = presidenteFechaNacimientoField.getText().trim();
+            String presidenteUsuario = presidenteUsuarioField.getText().trim();
+            String presidentePassword = presidentePasswordField.getText().trim();
+            String presidentePoblacion = presidentePoblacionField.getText().trim();
+
+
+            if (nombre.isEmpty() || fechaFundacionStr.isEmpty() || presidenteDNI.isEmpty() ||
+                presidenteNombre.isEmpty() || presidenteApellido1.isEmpty() ||
+                presidenteFechaNacimientoStr.isEmpty() || presidenteUsuario.isEmpty() ||
+                presidentePassword.isEmpty() || presidentePoblacion.isEmpty()) {
+                showMessage("Por favor, complete todos los campos obligatorios para el club y el presidente.", true);
+                return;
+            }
+
+            try {
+                LocalDate fechaFundacion = LocalDate.parse(fechaFundacionStr);
+                LocalDate presidenteFechaNacimiento = LocalDate.parse(presidenteFechaNacimientoStr);
+
+                // Primero crear y guardar la Persona del presidente
+                Persona presidente = federacion.nuevaPersona(presidenteDNI, presidenteNombre,
+                                                            presidenteApellido1, presidenteApellido2,
+                                                            presidenteFechaNacimiento, presidenteUsuario,
+                                                            presidentePassword, presidentePoblacion);
+
+                // Luego crear el Club usando la Persona del presidente
+                Club nuevoClub = federacion.nuevoClub(nombre, fechaFundacion, presidente);
+                showMessage("Club '" + nombre + "' dado de alta exitosamente con presidente " + presidente.getNombre() + ".", false);
+
+                // Limpiar campos
+                nombreField.setText("");
+                fechaFundacionField.setText("");
+                presidenteDNIField.setText("");
+                presidenteNombreField.setText("");
+                presidenteApellido1Field.setText("");
+                presidenteApellido2Field.setText("");
+                presidenteFechaNacimientoField.setText("");
+                presidenteUsuarioField.setText("");
+                presidentePasswordField.setText("");
+                presidentePoblacionField.setText("");
+
+            } catch (DateTimeParseException ex) {
+                showMessage("Formato de fecha incorrecto. Use: YYYY-MM-DD", true);
+            } catch (RuntimeException ex) { // Capturar las RuntimeException lanzadas desde Federacion
+                showMessage("Error al dar de alta el club o presidente: " + ex.getMessage(), true);
+            } catch (Exception ex) {
+                showMessage("Error inesperado: " + ex.getMessage(), true);
+            }
+        });
+
+        formPanel.add(altaButton);
+        updateContentPanel(formPanel, "🏆 Alta de Club");
     }
 
-    // Metodo principal para iniciar la aplicacion
-    public static void main(String[] args) {
-        SwingUtilities.invokeLater(() -> {
-            try {
-                UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName()); // Establece el look and feel del sistema
-            } catch (Exception e) {
-                e.printStackTrace(); // Imprime el stack trace en caso de error
+    // Panel para listar clubes con diseño tipo tarjetas
+    private void showListarClubesPanel() {
+        JPanel mainPanel = new JPanel(new BorderLayout(20, 20));
+        mainPanel.setOpaque(false);
+
+        try {
+            List<Club> clubes = federacion.obtenerClubes(); // Corregido el nombre del método
+
+            if (clubes.isEmpty()) {
+                JPanel emptyPanel = createEmptyStatePanel("🏆", "No hay clubes registrados",
+                    "Comience agregando un nuevo club desde el menú superior.");
+                mainPanel.add(emptyPanel, BorderLayout.CENTER);
+            } else {
+                JPanel clubesPanel = new JPanel();
+                clubesPanel.setLayout(new BoxLayout(clubesPanel, BoxLayout.Y_AXIS));
+                clubesPanel.setOpaque(false);
+
+                for (Club club : clubes) {
+                    JPanel clubCard = createClubCard(club);
+                    clubesPanel.add(clubCard);
+                    clubesPanel.add(Box.createVerticalStrut(15));
+                }
+
+                JScrollPane scrollPane = new JScrollPane(clubesPanel);
+                scrollPane.setBorder(BorderFactory.createEmptyBorder());
+                scrollPane.getViewport().setBackground(BACKGROUND_COLOR);
+                scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+                scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+
+                mainPanel.add(scrollPane, BorderLayout.CENTER);
             }
-            new MainApp2().createAndShowGUI(); // Crea y muestra la interfaz grafica
+
+        } catch (Exception ex) { // Capturar Exception genérica ya que obtenerClubes no lanza SQLException
+            showMessage("Error al cargar la lista de clubes: " + ex.getMessage(), true);
+            JPanel errorPanel = createErrorPanel("Error al cargar clubes", ex.getMessage());
+            mainPanel.add(errorPanel, BorderLayout.CENTER);
+        }
+
+        updateContentPanel(mainPanel, "📋 Lista de Clubes");
+    } 
+
+    // Crear tarjeta visual para cada club
+    private JPanel createClubCard(Club club) {
+        JPanel card = new JPanel() {
+            @Override
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                Graphics2D g2d = (Graphics2D) g;
+                g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2d.setColor(new Color(0, 0, 0, 15));
+                g2d.fillRoundRect(4, 4, getWidth() - 4, getHeight() - 4, 12, 12); // Reducido de 16 a 12
+                GradientPaint gradient = new GradientPaint(
+                        0, 0, Color.WHITE,
+                        0, getHeight(), new Color(252, 253, 255)
+                );
+                g2d.setPaint(gradient);
+                g2d.fillRoundRect(0, 0, getWidth() - 4, getHeight() - 4, 12, 12);
+                g2d.setColor(BORDER_COLOR);
+                g2d.setStroke(new BasicStroke(2));
+                g2d.drawRoundRect(0, 0, getWidth() - 5, getHeight() - 5, 12, 12);
+                g2d.setColor(SECONDARY_COLOR);
+                g2d.setStroke(new BasicStroke(4)); // Reducido de 6 a 4
+                g2d.drawLine(6, 12, 6, getHeight() - 12); // Ajustado de 16 a 12
+            }
+        };
+
+        card.setLayout(new GridBagLayout());
+        card.setBorder(BorderFactory.createEmptyBorder(15, 20, 15, 20)); // Reducido de 20, 30, 20, 20
+        card.setOpaque(false);
+        card.setMaximumSize(new Dimension(Integer.MAX_VALUE, 100)); // Reducido de 120 a 100
+
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(5, 5, 5, 5);
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.weightx = 1.0;
+        gbc.anchor = GridBagConstraints.WEST;
+        gbc.insets = new Insets(5, 5, 5, 5); // Reducido de 5, 15, 5, 15
+
+        JLabel nombreLabel = new JLabel("🏆 " + club.getNombre());
+        nombreLabel.setFont(new Font("Inter", Font.BOLD, 16)); // Cambiado de 20 a 16
+        nombreLabel.setForeground(PRIMARY_COLOR);
+        gbc.gridx = 0; gbc.gridy = 0;
+        gbc.gridwidth = 2;
+        card.add(nombreLabel, gbc);
+
+        JLabel presidenteLabel = new JLabel("👤 " + club.getPresidente().getNombre() + " " + club.getPresidente().getApellido1());
+        presidenteLabel.setFont(new Font("Inter", Font.PLAIN, 14)); // Cambiado de 16 a 14
+        presidenteLabel.setForeground(TEXT_SECONDARY);
+        gbc.gridx = 1; gbc.gridy = 1;
+        card.add(presidenteLabel, gbc);
+
+        card.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseEntered(MouseEvent e) {
+                card.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+                card.repaint();
+            }
+
+            @Override
+            public void mouseExited(MouseEvent e) {
+                card.setCursor(Cursor.getDefaultCursor());
+                card.repaint();
+            }
         });
+
+        return card;
     }
+
+    // Panel de estado vacío elegante
+    private JPanel createEmptyStatePanel(String icon, String title, String message) {
+        JPanel emptyPanel = new JPanel();
+        emptyPanel.setLayout(new BoxLayout(emptyPanel, BoxLayout.Y_AXIS));
+        emptyPanel.setOpaque(false);
+        emptyPanel.setBorder(BorderFactory.createEmptyBorder(120, 50, 40, 50));
+        
+        // Asegurar que el panel mismo intente centrar sus componentes
+        emptyPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        
+        // Icono grande
+        JLabel iconLabel = new JLabel(icon);
+        iconLabel.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 80));
+        iconLabel.setAlignmentX(Component.CENTER_ALIGNMENT); // Centrar el icono
+        iconLabel.setForeground(new Color(189, 195, 199));
+        
+        // Título
+        JLabel titleLabel = new JLabel(title);
+        titleLabel.setFont(new Font("Inter", Font.BOLD, 24));
+        titleLabel.setForeground(TEXT_SECONDARY);
+        titleLabel.setAlignmentX(Component.CENTER_ALIGNMENT); // Centrar el título
+        
+        // Mensaje
+        JLabel messageLabel = new JLabel("<html><div style='text-align: center;'>" + message + "</div></html>");
+        messageLabel.setFont(new Font("Inter", Font.PLAIN, 16));
+        messageLabel.setForeground(TEXT_SECONDARY);
+        messageLabel.setAlignmentX(Component.CENTER_ALIGNMENT); // Centrar el mensaje
+        messageLabel.setHorizontalAlignment(SwingConstants.CENTER); // Asegurar alineación horizontal del texto HTML
+        
+        emptyPanel.add(iconLabel);
+        emptyPanel.add(Box.createVerticalStrut(10));
+        emptyPanel.add(titleLabel);
+        emptyPanel.add(Box.createVerticalStrut(5));
+        emptyPanel.add(messageLabel);
+        
+        return emptyPanel;
+    }
+
+    // Panel de error elegante
+    private JPanel createErrorPanel(String title, String errorMessage) {
+        JPanel errorPanel = new JPanel() {
+            @Override
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                Graphics2D g2d = (Graphics2D) g;
+                g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                
+                // Fondo con gradiente de error sutil
+                GradientPaint gradient = new GradientPaint(
+                    0, 0, new Color(255, 248, 248),
+                    0, getHeight(), new Color(255, 235, 235)
+                );
+                g2d.setPaint(gradient);
+                g2d.fillRoundRect(0, 0, getWidth(), getHeight(), 16, 16);
+                
+                // Borde de error
+                g2d.setColor(new Color(254, 226, 226));
+                g2d.setStroke(new BasicStroke(3));
+                g2d.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 16, 16);
+            }
+        };
+        
+        errorPanel.setLayout(new BoxLayout(errorPanel, BoxLayout.Y_AXIS));
+        errorPanel.setBorder(BorderFactory.createEmptyBorder(60, 80, 60, 80));
+        errorPanel.setOpaque(false);
+        
+        // Icono de error
+        JLabel iconLabel = new JLabel("⚠️");
+        iconLabel.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 60));
+        iconLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        
+        // Título del error
+        JLabel titleLabel = new JLabel(title);
+        titleLabel.setFont(new Font("Inter", Font.BOLD, 20));
+        titleLabel.setForeground(ERROR_COLOR);
+        titleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        
+        // Mensaje de error
+        JLabel messageLabel = new JLabel("<html><div style='text-align: center; color: #e74c3c;'>" + 
+                                        errorMessage + "</div></html>");
+        messageLabel.setFont(new Font("Inter", Font.PLAIN, 14));
+        messageLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        
+        errorPanel.add(iconLabel);
+        errorPanel.add(Box.createVerticalStrut(15));
+        errorPanel.add(titleLabel);
+        errorPanel.add(Box.createVerticalStrut(10));
+        errorPanel.add(messageLabel);
+        
+        return errorPanel;
+    }
+
+    // Panel para Alta Equipo
+    private Club selectedClub;
+    private void showAltaEquipoPanel() {
+        JPanel formPanel = createFormPanel();
+
+        JTextField letraField = new JTextField();
+        JTextField clubSeleccionadoField = new JTextField();
+        clubSeleccionadoField.setEditable(false);
+        JButton seleccionarClubButton = createActionButton("Seleccionar Club", e -> {
+            List<Club> clubes = federacion.obtenerClubes();
+            if (clubes.isEmpty()) {
+                showMessage("No hay clubes registrados. Por favor, cree un club primero.", true);
+                return;
+            }
+            String[] nombresClubes = clubes.stream().map(Club::getNombre).toArray(String[]::new);
+            String selectedClubName = (String) JOptionPane.showInputDialog(
+                frame,
+                "Seleccione un Club:",
+                "Seleccionar Club",
+                JOptionPane.QUESTION_MESSAGE,
+                null,
+                nombresClubes,
+                nombresClubes[0]);
+
+            if (selectedClubName != null) {
+                selectedClub = federacion.buscarClub(selectedClubName);
+                if (selectedClub != null) {
+                    clubSeleccionadoField.setText(selectedClub.getNombre());
+                    showMessage("Club '" + selectedClub.getNombre() + "' seleccionado.", false);
+                }
+            }
+        });
+
+        JTextField instalacionField = new JTextField();
+        JTextField grupoField = new JTextField();
+        JTextField categoriaField = new JTextField();
+
+        formPanel.add(createFormFieldPanel(new JLabel("Letra del Equipo:"), letraField));
+        formPanel.add(createFormFieldPanel(new JLabel("Club Seleccionado:"), clubSeleccionadoField));
+        formPanel.add(seleccionarClubButton);
+        formPanel.add(createFormFieldPanel(new JLabel("Nombre de Instalación:"), instalacionField));
+        formPanel.add(createFormFieldPanel(new JLabel("Nombre de Categoría del Grupo:"), categoriaField));
+        formPanel.add(createFormFieldPanel(new JLabel("Nombre del Grupo:"), grupoField));
+
+        formPanel.add(Box.createVerticalStrut(30));
+
+        JButton altaButton = createActionButton("⚽ Dar de Alta Equipo", e -> {
+            String letra = letraField.getText().trim();
+            String nombreInstalacion = instalacionField.getText().trim();
+            String nombreCategoria = categoriaField.getText().trim();
+            String nombreGrupo = grupoField.getText().trim();
+
+            if (letra.isEmpty() || nombreInstalacion.isEmpty() || nombreCategoria.isEmpty() || nombreGrupo.isEmpty()) {
+                showMessage("Por favor, complete todos los campos obligatorios.", true);
+                return;
+            }
+
+            if (selectedClub == null) {
+                showMessage("Por favor, seleccione un Club primero.", true);
+                return;
+            }
+
+            try {
+                List<Instalacion> instalacionesEncontradas = federacion.buscarInstalaciones(nombreInstalacion);
+                Instalacion instalacion = null;
+                if (!instalacionesEncontradas.isEmpty()) {
+                    instalacion = instalacionesEncontradas.get(0);
+                } else {
+                    showMessage("Instalación no encontrada: " + nombreInstalacion + ". Cree la instalación primero.", true);
+                    return;
+                }
+
+                Categoria categoria = null;
+                for (Categoria c : federacion.obtenerCategorias()) {
+                    if (c.getNombre().equalsIgnoreCase(nombreCategoria)) {
+                        categoria = c;
+                        break;
+                    }
+                }
+                if (categoria == null) {
+                    showMessage("Categoría no encontrada: " + nombreCategoria + ". Cree la categoría primero.", true);
+                    return;
+                }
+
+                Grupo grupo = null;
+                List<Grupo> gruposEncontrados = federacion.obtenerGrupos(categoria);
+                for (Grupo g : gruposEncontrados) {
+                    if (g.getNombre().equalsIgnoreCase(nombreGrupo)) {
+                        grupo = g;
+                        break;
+                    }
+                }
+                if (grupo == null) {
+                    showMessage("Grupo no encontrado en la categoría '" + nombreCategoria + "': " + nombreGrupo + ". Cree el grupo primero.", true);
+                    return;
+                }
+
+                Equipo nuevoEquipo = federacion.nuevoEquipo(letra, instalacion, grupo, selectedClub);
+                showMessage("Equipo '" + letra + "' dado de alta exitosamente para el club '" + selectedClub.getNombre() + "'.", false);
+
+                letraField.setText("");
+                instalacionField.setText("");
+                categoriaField.setText("");
+                grupoField.setText("");
+                clubSeleccionadoField.setText("");
+                selectedClub = null; // Limpiar selección
+            } catch (IllegalStateException ex) {
+                showMessage("Error: " + ex.getMessage(), true);
+            } catch (RuntimeException ex) {
+                showMessage("Error al dar de alta el equipo: " + ex.getMessage(), true);
+            } catch (Exception ex) {
+                showMessage("Error inesperado al dar de alta el equipo: " + ex.getMessage(), true);
+            }
+        });
+
+        formPanel.add(altaButton);
+        updateContentPanel(formPanel, "⚽ Alta de Equipo");
+    }
+
+    // Panel para Alta Persona
+    private void showAltaPersonaPanel() {
+        JPanel formPanel = createFormPanel();
+
+        JTextField dniField = new JTextField();
+        JTextField nombreField = new JTextField();
+        JTextField apellido1Field = new JTextField();
+        JTextField apellido2Field = new JTextField();
+        JTextField fechaNacimientoField = new JTextField();
+        JTextField usuarioField = new JTextField();
+        JTextField passwordField = new JTextField();
+        JTextField poblacionField = new JTextField();
+        
+
+        fechaNacimientoField.setToolTipText("Formato: YYYY-MM-DD (ej: 1990-12-25)");
+
+        formPanel.add(createFormFieldPanel(new JLabel("DNI:"), dniField));
+        formPanel.add(createFormFieldPanel(new JLabel("Nombre:"), nombreField));
+        formPanel.add(createFormFieldPanel(new JLabel("Primer Apellido:"), apellido1Field)); // Actualizado el label
+        formPanel.add(createFormFieldPanel(new JLabel("Segundo Apellido:"), apellido2Field)); // Nuevo campo
+        formPanel.add(createFormFieldPanel(new JLabel("Fecha de Nacimiento (YYYY-MM-DD):"), fechaNacimientoField));
+        formPanel.add(createFormFieldPanel(new JLabel("Usuario:"), usuarioField));
+        formPanel.add(createFormFieldPanel(new JLabel("Contraseña:"), passwordField));
+        formPanel.add(createFormFieldPanel(new JLabel("Población:"), poblacionField));
+        formPanel.add(Box.createVerticalStrut(30));
+
+        JButton altaButton = createActionButton("👤 Dar de Alta Persona", e -> {
+            String dni = dniField.getText().trim();
+            String nombre = nombreField.getText().trim();
+            String apellido1 = apellido1Field.getText().trim();
+            String apellido2 = apellido2Field.getText().trim();
+            String fechaStr = fechaNacimientoField.getText().trim();
+            String usuario = usuarioField.getText().trim();
+            String password = passwordField.getText().trim();
+            String poblacion = poblacionField.getText().trim();
+
+
+            if (dni.isEmpty() || nombre.isEmpty() || apellido1.isEmpty() || fechaStr.isEmpty() ||
+                usuario.isEmpty() || password.isEmpty() || poblacion.isEmpty()) {
+                showMessage("Por favor, complete todos los campos obligatorios.", true);
+                return;
+            }
+
+            try {
+                LocalDate fechaNacimiento = LocalDate.parse(fechaStr);
+                Persona nuevaPersona = federacion.nuevaPersona(dni, nombre, apellido1, apellido2,
+                                                              fechaNacimiento, usuario, password, poblacion); // Corregido
+                showMessage("Persona '" + nombre + " " + apellido1 + "' dada de alta exitosamente.", false);
+
+                // Limpiar campos
+                dniField.setText("");
+                nombreField.setText("");
+                apellido1Field.setText("");
+                apellido2Field.setText("");
+                fechaNacimientoField.setText("");
+                usuarioField.setText("");
+                passwordField.setText("");
+                poblacionField.setText("");
+
+            } catch (DateTimeParseException ex) {
+                showMessage("Formato de fecha de nacimiento incorrecto. Use: YYYY-MM-DD", true);
+            } catch (RuntimeException ex) { // Capturar las RuntimeException lanzadas desde Federacion
+                showMessage("Error al dar de alta la persona: " + ex.getMessage(), true);
+            } catch (Exception ex) {
+                showMessage("Error inesperado: " + ex.getMessage(), true);
+            }
+        });
+
+        formPanel.add(altaButton);
+        updateContentPanel(formPanel, "👤 Alta de Persona");
+    }
+
+    // Método para listar equipos
+    private void showListarEquiposPanel() {
+        JPanel mainPanel = new JPanel(new BorderLayout(20, 20));
+        mainPanel.setOpaque(false);
+
+        try {
+            List<Equipo> equipos = federacion.obtenerEquipos();
+            if (equipos.isEmpty()) {
+                JPanel emptyPanel = createEmptyStatePanel("⚽", "No hay equipos registrados",
+                    "Comience agregando un nuevo equipo desde el menú superior.");
+                mainPanel.add(emptyPanel, BorderLayout.CENTER);
+            } else {
+                JPanel equiposPanel = new JPanel();
+                equiposPanel.setLayout(new BoxLayout(equiposPanel, BoxLayout.Y_AXIS));
+                equiposPanel.setOpaque(false);
+
+                for (Equipo equipo : equipos) {
+                    JPanel equipoCard = createEquipoCard(equipo);
+                    equiposPanel.add(equipoCard);
+                    equiposPanel.add(Box.createVerticalStrut(15));
+                }
+
+                JScrollPane scrollPane = new JScrollPane(equiposPanel);
+                scrollPane.setBorder(BorderFactory.createEmptyBorder());
+                scrollPane.getViewport().setBackground(BACKGROUND_COLOR);
+                scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+                scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+
+                mainPanel.add(scrollPane, BorderLayout.CENTER);
+            }
+        } catch (Exception ex) {
+            showMessage("Error al cargar la lista de equipos: " + ex.getMessage(), true);
+            JPanel errorPanel = createErrorPanel("Error al cargar equipos", ex.getMessage());
+            mainPanel.add(errorPanel, BorderLayout.CENTER);
+        }
+
+        updateContentPanel(mainPanel, "📋 Lista de Equipos");
+    }
+
+    // Método auxiliar para crear tarjeta de equipo
+    private JPanel createEquipoCard(Equipo equipo) {
+        JPanel card = new JPanel() {
+            @Override
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                Graphics2D g2d = (Graphics2D) g;
+                g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2d.setColor(new Color(0, 0, 0, 15));
+                g2d.fillRoundRect(4, 4, getWidth() - 4, getHeight() - 4, 16, 16);
+                GradientPaint gradient = new GradientPaint(
+                    0, 0, Color.WHITE,
+                    0, getHeight(), new Color(252, 253, 255)
+                );
+                g2d.setPaint(gradient);
+                g2d.fillRoundRect(0, 0, getWidth() - 4, getHeight() - 4, 16, 16);
+                g2d.setColor(BORDER_COLOR);
+                g2d.setStroke(new BasicStroke(2));
+                g2d.drawRoundRect(0, 0, getWidth() - 5, getHeight() - 5, 16, 16);
+                g2d.setColor(SECONDARY_COLOR);
+                g2d.setStroke(new BasicStroke(6));
+                g2d.drawLine(6, 16, 6, getHeight() - 16);
+            }
+        };
+
+        card.setLayout(new GridBagLayout());
+        card.setBorder(BorderFactory.createEmptyBorder(20, 30, 20, 20));
+        card.setOpaque(false);
+        card.setMaximumSize(new Dimension(Integer.MAX_VALUE, 120));
+
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(5, 5, 5, 5);
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.weightx = 1.0;
+        gbc.anchor = GridBagConstraints.WEST;
+        gbc.insets = new Insets(5, 5, 5, 5);
+
+        JLabel nombreLabel = new JLabel("⚽ " + equipo.getLetra());
+        nombreLabel.setFont(new Font("Inter", Font.BOLD, 20));
+        nombreLabel.setForeground(PRIMARY_COLOR);
+        gbc.gridx = 0; gbc.gridy = 0;
+        gbc.gridwidth = 2;
+        card.add(nombreLabel, gbc);
+
+        JLabel clubLabel = new JLabel("🏆 Club: " + equipo.getClub().getNombre());
+        clubLabel.setFont(new Font("Inter", Font.PLAIN, 16));
+        clubLabel.setForeground(TEXT_SECONDARY);
+        gbc.gridx = 1; gbc.gridy = 1;
+        card.add(clubLabel, gbc);
+
+        card.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseEntered(MouseEvent e) {
+                card.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+                card.repaint();
+            }
+
+            @Override
+            public void mouseExited(MouseEvent e) {
+                card.setCursor(Cursor.getDefaultCursor());
+                card.repaint();
+            }
+        });
+
+        return card;
+    }
+
+    // Método para alta de categoría
+    private void showAltaCategoriaPanel() {
+        JPanel formPanel = createFormPanel();
+
+        JTextField nombreField = new JTextField();
+        JTextField ordenField = new JTextField();
+        JTextField precioLicenciaField = new JTextField();
+        
+        formPanel.add(createFormFieldPanel(new JLabel("Nombre de la Categoría:"), nombreField));
+        formPanel.add(createFormFieldPanel(new JLabel("Orden:"), ordenField));
+        formPanel.add(createFormFieldPanel(new JLabel("Precio Licencia (€):"), precioLicenciaField));
+        formPanel.add(Box.createVerticalStrut(30));
+
+        JButton altaButton = createActionButton("📋 Dar de Alta Categoría", e -> {
+            String nombre = nombreField.getText().trim();
+            String ordenStr = ordenField.getText().trim();
+            String precioStr = precioLicenciaField.getText().trim();
+
+            if (nombre.isEmpty() || ordenStr.isEmpty() || precioStr.isEmpty()) {
+                showMessage("Por favor, complete todos los campos obligatorios.", true);
+                return;
+            }
+
+            try {
+                int orden = Integer.parseInt(ordenStr);
+                double precio = Double.parseDouble(precioStr);
+                Categoria nuevaCategoria = federacion.nuevaCategoria(nombre, orden, precio);
+                showMessage("Categoría '" + nombre + "' dada de alta exitosamente.", false);
+
+                nombreField.setText("");
+                ordenField.setText("");
+                precioLicenciaField.setText("");
+            } catch (NumberFormatException ex) {
+                showMessage("Orden y precio deben ser valores numéricos válidos.", true);
+            } catch (RuntimeException ex) {
+                showMessage("Error al dar de alta la categoría: " + ex.getMessage(), true);
+            }
+        });
+
+        formPanel.add(altaButton);
+        updateContentPanel(formPanel, "📋 Alta de Categoría");
+    }
+
+    // Método para alta de grupo
+    private void showAltaGrupoPanel() {
+        JPanel formPanel = createFormPanel();
+
+        JTextField categoriaField = new JTextField();
+        categoriaField.setEditable(false);
+        JButton seleccionarCategoriaButton = createActionButton("Seleccionar Categoría", e -> {
+            List<Categoria> categorias = federacion.obtenerCategorias();
+            if (categorias.isEmpty()) {
+                showMessage("No hay categorías registradas. Por favor, cree una categoría primero.", true);
+                return;
+            }
+            String[] nombresCategorias = categorias.stream().map(Categoria::getNombre).toArray(String[]::new);
+            String selectedCategoria = (String) JOptionPane.showInputDialog(
+                frame,
+                "Seleccione una Categoría:",
+                "Seleccionar Categoría",
+                JOptionPane.QUESTION_MESSAGE,
+                null,
+                nombresCategorias,
+                nombresCategorias[0]);
+
+            if (selectedCategoria != null) {
+                categoriaField.setText(selectedCategoria);
+                showMessage("Categoría '" + selectedCategoria + "' seleccionada.", false);
+            }
+        });
+
+        JTextField nombreField = new JTextField();
+        
+        formPanel.add(createFormFieldPanel(new JLabel("Categoría Seleccionada:"), categoriaField));
+        formPanel.add(seleccionarCategoriaButton);
+        formPanel.add(createFormFieldPanel(new JLabel("Nombre del Grupo:"), nombreField));
+        formPanel.add(Box.createVerticalStrut(30));
+
+        JButton altaButton = createActionButton("📋 Dar de Alta Grupo", e -> {
+            String nombreCategoria = categoriaField.getText().trim();
+            String nombreGrupo = nombreField.getText().trim();
+
+            if (nombreCategoria.isEmpty() || nombreGrupo.isEmpty()) {
+                showMessage("Por favor, seleccione una categoría y complete el nombre del grupo.", true);
+                return;
+            }
+
+            try {
+                Categoria categoria = federacion.obtenerCategorias().stream()
+                    .filter(c -> c.getNombre().equalsIgnoreCase(nombreCategoria))
+                    .findFirst()
+                    .orElse(null);
+                if (categoria == null) {
+                    showMessage("Categoría no encontrada: " + nombreCategoria, true);
+                    return;
+                }
+
+                Grupo nuevoGrupo = federacion.nuevoGrupo(categoria, nombreGrupo);
+                showMessage("Grupo '" + nombreGrupo + "' dado de alta exitosamente en la categoría '" + nombreCategoria + "'.", false);
+
+                categoriaField.setText("");
+                nombreField.setText("");
+            } catch (RuntimeException ex) {
+                showMessage("Error al dar de alta el grupo: " + ex.getMessage(), true);
+            }
+        });
+
+        formPanel.add(altaButton);
+        updateContentPanel(formPanel, "📋 Alta de Grupo");
+    }
+
+    // Método para listar categorías
+    private void showListarCategoriasPanel() {
+        JPanel mainPanel = new JPanel(new BorderLayout(20, 20));
+        mainPanel.setOpaque(false);
+
+        try {
+            List<Categoria> categorias = federacion.obtenerCategorias();
+            if (categorias.isEmpty()) {
+                JPanel emptyPanel = createEmptyStatePanel("📋", "No hay categorías registradas",
+                    "Comience agregando una nueva categoría desde el menú superior.");
+                mainPanel.add(emptyPanel, BorderLayout.CENTER);
+            } else {
+                JPanel categoriasPanel = new JPanel();
+                categoriasPanel.setLayout(new BoxLayout(categoriasPanel, BoxLayout.Y_AXIS));
+                categoriasPanel.setOpaque(false);
+
+                for (Categoria categoria : categorias) {
+                    JPanel categoriaCard = createCategoriaCard(categoria);
+                    categoriasPanel.add(categoriaCard);
+                    categoriasPanel.add(Box.createVerticalStrut(15));
+                }
+
+                JScrollPane scrollPane = new JScrollPane(categoriasPanel);
+                scrollPane.setBorder(BorderFactory.createEmptyBorder());
+                scrollPane.getViewport().setBackground(BACKGROUND_COLOR);
+                scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+                scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+
+                mainPanel.add(scrollPane, BorderLayout.CENTER);
+            }
+        } catch (Exception ex) {
+            showMessage("Error al cargar la lista de categorías: " + ex.getMessage(), true);
+            JPanel errorPanel = createErrorPanel("Error al cargar categorías", ex.getMessage());
+            mainPanel.add(errorPanel, BorderLayout.CENTER);
+        }
+
+        updateContentPanel(mainPanel, "📋 Lista de Categorías");
+    }
+
+    // Método auxiliar para crear tarjeta de categoría
+    private JPanel createCategoriaCard(Categoria categoria) {
+        JPanel card = new JPanel() {
+            @Override
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                Graphics2D g2d = (Graphics2D) g;
+                g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2d.setColor(new Color(0, 0, 0, 15));
+                g2d.fillRoundRect(4, 4, getWidth() - 4, getHeight() - 4, 16, 16);
+                GradientPaint gradient = new GradientPaint(
+                    0, 0, Color.WHITE,
+                    0, getHeight(), new Color(252, 253, 255)
+                );
+                g2d.setPaint(gradient);
+                g2d.fillRoundRect(0, 0, getWidth() - 4, getHeight() - 4, 16, 16);
+                g2d.setColor(BORDER_COLOR);
+                g2d.setStroke(new BasicStroke(2));
+                g2d.drawRoundRect(0, 0, getWidth() - 5, getHeight() - 5, 16, 16);
+                g2d.setColor(SECONDARY_COLOR);
+                g2d.setStroke(new BasicStroke(6));
+                g2d.drawLine(6, 16, 6, getHeight() - 16);
+            }
+        };
+
+        card.setLayout(new GridBagLayout());
+        card.setBorder(BorderFactory.createEmptyBorder(20, 30, 20, 20));
+        card.setOpaque(false);
+        card.setMaximumSize(new Dimension(Integer.MAX_VALUE, 120));
+
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(5, 5, 5, 5);
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.weightx = 1.0;
+        gbc.anchor = GridBagConstraints.WEST;
+        gbc.insets = new Insets(5, 5, 5, 5);
+
+    JLabel nombreLabel = new JLabel("📋 " + categoria.getNombre());
+    nombreLabel.setFont(new Font("Inter", Font.BOLD, 20));
+    nombreLabel.setForeground(PRIMARY_COLOR);
+    gbc.gridx = 0; gbc.gridy = 0;
+    gbc.gridwidth = 2;
+    card.add(nombreLabel, gbc);
+
+    JLabel precioLabel = new JLabel("💶 Precio Licencia: €" + categoria.getPrecioLicencia());
+    precioLabel.setFont(new Font("Inter", Font.PLAIN, 16));
+    precioLabel.setForeground(TEXT_SECONDARY);
+    gbc.gridx = 1; gbc.gridy = 1;
+    card.add(precioLabel, gbc);
+
+    card.addMouseListener(new MouseAdapter() {
+        @Override
+        public void mouseEntered(MouseEvent e) {
+            card.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+            card.repaint();
+        }
+
+        @Override
+        public void mouseExited(MouseEvent e) {
+            card.setCursor(Cursor.getDefaultCursor());
+            card.repaint();
+        }
+    });
+
+    return card;
+}
+
+    // Método para listar grupos por categoría
+    private void showListarGruposPorCategoriaPanel() {
+        JPanel formPanel = createFormPanel();
+
+        JTextField categoriaField = new JTextField();
+        categoriaField.setEditable(false);
+        JButton seleccionarCategoriaButton = createActionButton("Seleccionar Categoría", e -> {
+            List<Categoria> categorias = federacion.obtenerCategorias();
+            if (categorias.isEmpty()) {
+                showMessage("No hay categorías registradas. Por favor, cree una categoría primero.", true);
+                return;
+            }
+            String[] nombresCategorias = categorias.stream().map(Categoria::getNombre).toArray(String[]::new);
+            String selectedCategoria = (String) JOptionPane.showInputDialog(
+                frame,
+                "Seleccione una Categoría:",
+                "Seleccionar Categoría",
+                JOptionPane.QUESTION_MESSAGE,
+                null,
+                nombresCategorias,
+                nombresCategorias[0]);
+
+            if (selectedCategoria != null) {
+                categoriaField.setText(selectedCategoria);
+                showMessage("Categoría '" + selectedCategoria + "' seleccionada.", false);
+            }
+        });
+
+        JPanel gruposPanel = new JPanel();
+        gruposPanel.setLayout(new BoxLayout(gruposPanel, BoxLayout.Y_AXIS));
+        gruposPanel.setOpaque(false);
+
+        formPanel.add(createFormFieldPanel(new JLabel("Categoría Seleccionada:"), categoriaField));
+        formPanel.add(seleccionarCategoriaButton);
+        formPanel.add(Box.createVerticalStrut(20));
+
+        JButton listarButton = createActionButton("📋 Listar Grupos", e -> {
+            String nombreCategoria = categoriaField.getText().trim();
+            if (nombreCategoria.isEmpty()) {
+                showMessage("Por favor, seleccione una categoría.", true);
+                return;
+            }
+
+            try {
+                Categoria categoria = federacion.obtenerCategorias().stream()
+                    .filter(c -> c.getNombre().equalsIgnoreCase(nombreCategoria))
+                    .findFirst()
+                    .orElse(null);
+                if (categoria == null) {
+                    showMessage("Categoría no encontrada: " + nombreCategoria, true);
+                    return;
+                }
+
+                List<Grupo> grupos = federacion.obtenerGrupos(categoria);
+                gruposPanel.removeAll();
+                if (grupos.isEmpty()) {
+                    JPanel emptyPanel = createEmptyStatePanel("📋", "No hay grupos registrados",
+                        "Comience agregando un nuevo grupo desde el menú superior.");
+                    gruposPanel.add(emptyPanel);
+                } else {
+                    for (Grupo grupo : grupos) {
+                        JPanel grupoCard = createGrupoCard(grupo);
+                        gruposPanel.add(grupoCard);
+                        gruposPanel.add(Box.createVerticalStrut(15));
+                    }
+                }
+                gruposPanel.revalidate();
+                gruposPanel.repaint();
+                showMessage("Grupos listados para la categoría '" + nombreCategoria + "'.", false);
+            } catch (RuntimeException ex) {
+                showMessage("Error al listar grupos: " + ex.getMessage(), true);
+            }
+        });
+
+        formPanel.add(listarButton);
+        formPanel.add(Box.createVerticalStrut(20));
+        formPanel.add(new JScrollPane(gruposPanel));
+        updateContentPanel(formPanel, "📋 Lista de Grupos por Categoría");
+    }
+
+    // Método auxiliar para crear tarjeta de grupo
+    private JPanel createGrupoCard(Grupo grupo) {
+        JPanel card = new JPanel() {
+            @Override
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                Graphics2D g2d = (Graphics2D) g;
+                g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2d.setColor(new Color(0, 0, 0, 15));
+                g2d.fillRoundRect(4, 4, getWidth() - 4, getHeight() - 4, 16, 16);
+                GradientPaint gradient = new GradientPaint(
+                    0, 0, Color.WHITE,
+                    0, getHeight(), new Color(252, 253, 255)
+                );
+                g2d.setPaint(gradient);
+                g2d.fillRoundRect(0, 0, getWidth() - 4, getHeight() - 4, 16, 16);
+                g2d.setColor(BORDER_COLOR);
+                g2d.setStroke(new BasicStroke(2));
+                g2d.drawRoundRect(0, 0, getWidth() - 5, getHeight() - 5, 16, 16);
+                g2d.setColor(SECONDARY_COLOR);
+                g2d.setStroke(new BasicStroke(6));
+                g2d.drawLine(6, 16, 6, getHeight() - 16);
+            }
+        };
+
+        card.setLayout(new GridBagLayout());
+        card.setBorder(BorderFactory.createEmptyBorder(20, 30, 20, 20));
+        card.setOpaque(false);
+        card.setMaximumSize(new Dimension(Integer.MAX_VALUE, 120));
+
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(5, 5, 5, 5);
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.weightx = 1.0;
+        gbc.anchor = GridBagConstraints.WEST;
+        gbc.insets = new Insets(5, 5, 5, 5);
+
+        JLabel nombreLabel = new JLabel("📋 " + grupo.getNombre());
+        nombreLabel.setFont(new Font("Inter", Font.BOLD, 20));
+        nombreLabel.setForeground(PRIMARY_COLOR);
+        gbc.gridx = 0; gbc.gridy = 0;
+        gbc.gridwidth = 2;
+        card.add(nombreLabel, gbc);
+
+        JLabel categoriaLabel = new JLabel("📋 Categoría: " + grupo.getCategoria().getNombre());
+        categoriaLabel.setFont(new Font("Inter", Font.PLAIN, 16));
+        categoriaLabel.setForeground(TEXT_SECONDARY);
+        gbc.gridx = 1; gbc.gridy = 1;
+        card.add(categoriaLabel, gbc);
+
+        card.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseEntered(MouseEvent e) {
+                card.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+                card.repaint();
+            }
+
+            @Override
+            public void mouseExited(MouseEvent e) {
+                card.setCursor(Cursor.getDefaultCursor());
+                card.repaint();
+            }
+        });
+
+        return card;
+    }
+
+    // Método para alta de empleado
+    private void showAltaEmpleadoPanel() {
+        JPanel formPanel = createFormPanel();
+
+        JTextField dniField = new JTextField();
+        JTextField nombreField = new JTextField();
+        JTextField apellido1Field = new JTextField();
+        JTextField apellido2Field = new JTextField();
+        JTextField fechaNacimientoField = new JTextField();
+        JTextField usuarioField = new JTextField();
+        JTextField passwordField = new JTextField();
+        JTextField poblacionField = new JTextField();
+        JTextField numEmpleadoField = new JTextField();
+        JTextField inicioContratoField = new JTextField();
+        JTextField segSocialField = new JTextField();
+        
+        fechaNacimientoField.setToolTipText("Formato: YYYY-MM-DD (ej: 1990-12-25)");
+        inicioContratoField.setToolTipText("Formato: YYYY-MM-DD (ej: 2023-01-01)");
+
+        formPanel.add(createFormFieldPanel(new JLabel("DNI:"), dniField));
+        formPanel.add(createFormFieldPanel(new JLabel("Nombre:"), nombreField));
+        formPanel.add(createFormFieldPanel(new JLabel("Primer Apellido:"), apellido1Field));
+        formPanel.add(createFormFieldPanel(new JLabel("Segundo Apellido:"), apellido2Field));
+        formPanel.add(createFormFieldPanel(new JLabel("Fecha de Nacimiento (YYYY-MM-DD):"), fechaNacimientoField));
+        formPanel.add(createFormFieldPanel(new JLabel("Usuario:"), usuarioField));
+        formPanel.add(createFormFieldPanel(new JLabel("Contraseña:"), passwordField));
+        formPanel.add(createFormFieldPanel(new JLabel("Población:"), poblacionField));
+        formPanel.add(createFormFieldPanel(new JLabel("Número de Empleado:"), numEmpleadoField));
+        formPanel.add(createFormFieldPanel(new JLabel("Inicio Contrato (YYYY-MM-DD):"), inicioContratoField));
+        formPanel.add(createFormFieldPanel(new JLabel("Seguridad Social:"), segSocialField));
+        formPanel.add(Box.createVerticalStrut(30));
+
+        JButton altaButton = createActionButton("👤 Dar de Alta Empleado", e -> {
+            String dni = dniField.getText().trim();
+            String nombre = nombreField.getText().trim();
+            String apellido1 = apellido1Field.getText().trim();
+            String apellido2 = apellido2Field.getText().trim();
+            String fechaNacimientoStr = fechaNacimientoField.getText().trim();
+            String usuario = usuarioField.getText().trim();
+            String password = passwordField.getText().trim();
+            String poblacion = poblacionField.getText().trim();
+            String numEmpleadoStr = numEmpleadoField.getText().trim();
+            String inicioContratoStr = inicioContratoField.getText().trim();
+            String segSocial = segSocialField.getText().trim();
+
+            if (dni.isEmpty() || nombre.isEmpty() || apellido1.isEmpty() || fechaNacimientoStr.isEmpty() ||
+                usuario.isEmpty() || password.isEmpty() || poblacion.isEmpty() ||
+                numEmpleadoStr.isEmpty() || inicioContratoStr.isEmpty() || segSocial.isEmpty()) {
+                showMessage("Por favor, complete todos los campos obligatorios.", true);
+                return;
+            }
+
+            try {
+                LocalDate fechaNacimiento = LocalDate.parse(fechaNacimientoStr);
+                LocalDate inicioContrato = LocalDate.parse(inicioContratoStr);
+                int numEmpleado = Integer.parseInt(numEmpleadoStr);
+                Empleado nuevoEmpleado = federacion.nuevoEmpleado(dni, nombre, apellido1, apellido2,
+                    fechaNacimiento, usuario, password, poblacion, numEmpleado, inicioContrato, segSocial);
+                showMessage("Empleado '" + nombre + " " + apellido1 + "' dado de alta exitosamente.", false);
+
+                dniField.setText("");
+                nombreField.setText("");
+                apellido1Field.setText("");
+                apellido2Field.setText("");
+                fechaNacimientoField.setText("");
+                usuarioField.setText("");
+                passwordField.setText("");
+                poblacionField.setText("");
+                numEmpleadoField.setText("");
+                inicioContratoField.setText("");
+                segSocialField.setText("");
+            } catch (DateTimeParseException ex) {
+                showMessage("Formato de fecha incorrecto. Use: YYYY-MM-DD", true);
+            } catch (NumberFormatException ex) {
+                showMessage("Número de empleado debe ser un valor numérico válido.", true);
+            } catch (RuntimeException ex) {
+                showMessage("Error al dar de alta el empleado: " + ex.getMessage(), true);
+            }
+        });
+
+        formPanel.add(altaButton);
+        updateContentPanel(formPanel, "👤 Alta de Empleado");
+    }
+
+    // Método para buscar persona por DNI
+    private void showBuscarPersonaDniPanel() {
+        JPanel formPanel = createFormPanel();
+
+        JTextField dniField = new JTextField();
+        JTextArea resultArea = new JTextArea(5, 30);
+        resultArea.setEditable(false);
+        resultArea.setFont(new Font("Inter", Font.PLAIN, 12)); // Cambiado de 14 a 12
+        resultArea.setBackground(new Color(252, 253, 255));
+        resultArea.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(BORDER_COLOR, 2),
+                BorderFactory.createEmptyBorder(8, 12, 8, 12) // Reducido de 10, 16, 10, 16
+        ));
+
+        formPanel.add(createFormFieldPanel(new JLabel("DNI:"), dniField));
+        formPanel.add(Box.createVerticalStrut(20));
+        formPanel.add(createActionButton("🔍 Buscar Persona", e -> {
+            String dni = dniField.getText().trim();
+            if (dni.isEmpty()) {
+                showMessage("Por favor, ingrese un DNI.", true);
+                return;
+            }
+
+            try {
+                Persona persona = federacion.buscaPersona(dni);
+                if (persona == null) {
+                    resultArea.setText("No se encontró ninguna persona con DNI: " + dni);
+                    showMessage("No se encontró ninguna persona con DNI: " + dni, true);
+                } else {
+                    resultArea.setText("DNI: " + persona.getDni() + "\n" +
+                        "Nombre: " + persona.getNombre() + "\n" +
+                        "Apellido1: " + persona.getApellido1() + "\n" +
+                        "Apellido2: " + (persona.getApellido2() != null ? persona.getApellido2() : "") + "\n" +
+                        "Fecha de Nacimiento: " + persona.getFechaNacimiento() + "\n" +
+                        "Población: " + persona.getPoblacion());
+                    showMessage("Persona encontrada: " + persona.getNombre() + " " + persona.getApellido1(), false);
+                }
+            } catch (RuntimeException ex) {
+                showMessage("Error al buscar persona: " + ex.getMessage(), true);
+                resultArea.setText("Error: " + ex.getMessage());
+            }
+        }));
+
+        formPanel.add(Box.createVerticalStrut(20));
+        formPanel.add(new JScrollPane(resultArea));
+        updateContentPanel(formPanel, "🔍 Buscar Persona por DNI");
+    }
+
+    // Método para buscar personas por nombre
+    private void showBuscarPersonasPorNombrePanel() {
+        JPanel formPanel = createFormPanel();
+
+        JTextField nombreField = new JTextField();
+        JTextField apellido1Field = new JTextField();
+        JTextField apellido2Field = new JTextField();
+        JTextArea resultArea = new JTextArea(10, 30);
+        resultArea.setEditable(false);
+        resultArea.setFont(new Font("Inter", Font.PLAIN, 14));
+        resultArea.setBackground(new Color(252, 253, 255));
+        resultArea.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(BORDER_COLOR, 2),
+            BorderFactory.createEmptyBorder(10, 16, 10, 16)
+        ));
+
+        formPanel.add(createFormFieldPanel(new JLabel("Nombre (opcional):"), nombreField));
+        formPanel.add(createFormFieldPanel(new JLabel("Primer Apellido (opcional):"), apellido1Field));
+        formPanel.add(createFormFieldPanel(new JLabel("Segundo Apellido (opcional):"), apellido2Field));
+        formPanel.add(Box.createVerticalStrut(20));
+        formPanel.add(createActionButton("🔍 Buscar Personas", e -> {
+            String nombre = nombreField.getText().trim();
+            String apellido1 = apellido1Field.getText().trim();
+            String apellido2 = apellido2Field.getText().trim();
+
+            try {
+                List<Persona> personas = federacion.buscaPersonas(
+                    nombre.isEmpty() ? null : nombre,
+                    apellido1.isEmpty() ? null : apellido1,
+                    apellido2.isEmpty() ? null : apellido2
+                );
+                if (personas.isEmpty()) {
+                    resultArea.setText("No se encontraron personas con los criterios especificados.");
+                    showMessage("No se encontraron personas con los criterios especificados.", true);
+                } else {
+                    StringBuilder sb = new StringBuilder();
+                    for (Persona persona : personas) {
+                        sb.append("DNI: ").append(persona.getDni()).append("\n")
+                          .append("Nombre: ").append(persona.getNombre()).append("\n")
+                          .append("Apellido1: ").append(persona.getApellido1()).append("\n")
+                          .append("Apellido2: ").append(persona.getApellido2() != null ? persona.getApellido2() : "").append("\n")
+                          .append("Fecha de Nacimiento: ").append(persona.getFechaNacimiento()).append("\n")
+                          .append("Población: ").append(persona.getPoblacion()).append("\n")
+                          .append("----------------------------------------\n");
+                    }
+                    resultArea.setText(sb.toString());
+                    showMessage("Personas encontradas: " + personas.size(), false);
+                }
+            } catch (RuntimeException ex) {
+                showMessage("Error al buscar personas: " + ex.getMessage(), true);
+                resultArea.setText("Error: " + ex.getMessage());
+            }
+        }));
+
+        formPanel.add(Box.createVerticalStrut(20));
+        formPanel.add(new JScrollPane(resultArea));
+        updateContentPanel(formPanel, "🔍 Buscar Personas por Nombre");
+    }
+
+    // Método para listar personas
+    private void showListarPersonasPanel() {
+        JPanel mainPanel = new JPanel(new BorderLayout(20, 20));
+        mainPanel.setOpaque(false);
+
+        try {
+            List<Persona> personas = federacion.obtenerPersonas();
+            if (personas.isEmpty()) {
+                JPanel emptyPanel = createEmptyStatePanel("👤", "No hay personas registradas",
+                    "Comience agregando una nueva persona desde el menú superior.");
+                mainPanel.add(emptyPanel, BorderLayout.CENTER);
+            } else {
+                JPanel personasPanel = new JPanel();
+                personasPanel.setLayout(new BoxLayout(personasPanel, BoxLayout.Y_AXIS));
+                personasPanel.setOpaque(false);
+
+                for (Persona persona : personas) {
+                    JPanel personaCard = createPersonaCard(persona);
+                    personasPanel.add(personaCard);
+                    personasPanel.add(Box.createVerticalStrut(15));
+                }
+
+                JScrollPane scrollPane = new JScrollPane(personasPanel);
+                scrollPane.setBorder(BorderFactory.createEmptyBorder());
+                scrollPane.getViewport().setBackground(BACKGROUND_COLOR);
+                scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+                scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+
+                mainPanel.add(scrollPane, BorderLayout.CENTER);
+            }
+        } catch (Exception ex) {
+            showMessage("Error al cargar la lista de personas: " + ex.getMessage(), true);
+            JPanel errorPanel = createErrorPanel("Error al cargar personas", ex.getMessage());
+            mainPanel.add(errorPanel, BorderLayout.CENTER);
+        }
+
+        updateContentPanel(mainPanel, "📋 Lista de Personas");
+    }
+
+    // Método auxiliar para crear tarjeta de persona
+    private JPanel createPersonaCard(Persona persona) {
+        JPanel card = new JPanel() {
+            @Override
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                Graphics2D g2d = (Graphics2D) g;
+                g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2d.setColor(new Color(0, 0, 0, 15));
+                g2d.fillRoundRect(4, 4, getWidth() - 4, getHeight() - 4, 16, 16);
+                GradientPaint gradient = new GradientPaint(
+                    0, 0, Color.WHITE,
+                    0, getHeight(), new Color(252, 253, 255)
+                );
+                g2d.setPaint(gradient);
+                g2d.fillRoundRect(0, 0, getWidth() - 4, getHeight() - 4, 16, 16);
+                g2d.setColor(BORDER_COLOR);
+                g2d.setStroke(new BasicStroke(2));
+                g2d.drawRoundRect(0, 0, getWidth() - 5, getHeight() - 5, 16, 16);
+                g2d.setColor(SECONDARY_COLOR);
+                g2d.setStroke(new BasicStroke(6));
+                g2d.drawLine(6, 16, 6, getHeight() - 16);
+            }
+        };
+
+        card.setLayout(new GridBagLayout());
+        card.setBorder(BorderFactory.createEmptyBorder(20, 30, 20, 20));
+        card.setOpaque(false);
+        card.setMaximumSize(new Dimension(Integer.MAX_VALUE, 120));
+
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(5, 5, 5, 5);
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.weightx = 1.0;
+        gbc.anchor = GridBagConstraints.WEST;
+        gbc.insets = new Insets(5, 5, 5, 5);
+
+        JLabel nombreLabel = new JLabel("👤 " + persona.getNombre() + " " + persona.getApellido1());
+        nombreLabel.setFont(new Font("Inter", Font.BOLD, 20));
+        nombreLabel.setForeground(PRIMARY_COLOR);
+        gbc.gridx = 0; gbc.gridy = 0;
+        gbc.gridwidth = 2;
+        card.add(nombreLabel, gbc);
+
+        JLabel dniLabel = new JLabel("DNI: " + persona.getDni());
+        dniLabel.setFont(new Font("Inter", Font.PLAIN, 16));
+        dniLabel.setForeground(TEXT_SECONDARY);
+        gbc.gridx = 1; gbc.gridy = 1;
+        card.add(dniLabel, gbc);
+
+        card.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseEntered(MouseEvent e) {
+                card.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+                card.repaint();
+            }
+
+            @Override
+            public void mouseExited(MouseEvent e) {
+                card.setCursor(Cursor.getDefaultCursor());
+                card.repaint();
+            }
+        });
+
+        return card;
+    }
+
+    // Método para listar empleados
+    private void showListarEmpleadosPanel() {
+        JPanel mainPanel = new JPanel(new BorderLayout(20, 20));
+        mainPanel.setOpaque(false);
+
+        try {
+            List<Empleado> empleados = federacion.obtenerEmpleados();
+            if (empleados.isEmpty()) {
+                JPanel emptyPanel = createEmptyStatePanel("👤", "No hay empleados registrados",
+                    "Comience agregando un nuevo empleado desde el menú superior.");
+                mainPanel.add(emptyPanel, BorderLayout.CENTER);
+            } else {
+                JPanel empleadosPanel = new JPanel();
+                empleadosPanel.setLayout(new BoxLayout(empleadosPanel, BoxLayout.Y_AXIS));
+                empleadosPanel.setOpaque(false);
+
+                for (Empleado empleado : empleados) {
+                    JPanel empleadoCard = createEmpleadoCard(empleado);
+                    empleadosPanel.add(empleadoCard);
+                    empleadosPanel.add(Box.createVerticalStrut(15));
+                }
+
+                JScrollPane scrollPane = new JScrollPane(empleadosPanel);
+                scrollPane.setBorder(BorderFactory.createEmptyBorder());
+                scrollPane.getViewport().setBackground(BACKGROUND_COLOR);
+                scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+                scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+
+                mainPanel.add(scrollPane, BorderLayout.CENTER);
+            }
+        } catch (Exception ex) {
+            showMessage("Error al cargar la lista de empleados: " + ex.getMessage(), true);
+            JPanel errorPanel = createErrorPanel("Error al cargar empleados", ex.getMessage());
+            mainPanel.add(errorPanel, BorderLayout.CENTER);
+        }
+
+        updateContentPanel(mainPanel, "📋 Lista de Empleados");
+    }
+
+    // Método auxiliar para crear tarjeta de empleado
+    private JPanel createEmpleadoCard(Empleado empleado) {
+        JPanel card = new JPanel() {
+            @Override
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                Graphics2D g2d = (Graphics2D) g;
+                g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2d.setColor(new Color(0, 0, 0, 15));
+                g2d.fillRoundRect(4, 4, getWidth() - 4, getHeight() - 4, 16, 16);
+                GradientPaint gradient = new GradientPaint(
+                    0, 0, Color.WHITE,
+                    0, getHeight(), new Color(252, 253, 255)
+                );
+                g2d.setPaint(gradient);
+                g2d.fillRoundRect(0, 0, getWidth() - 4, getHeight() - 4, 16, 16);
+                g2d.setColor(BORDER_COLOR);
+                g2d.setStroke(new BasicStroke(2));
+                g2d.drawRoundRect(0, 0, getWidth() - 5, getHeight() - 5, 16, 16);
+                g2d.setColor(SECONDARY_COLOR);
+                g2d.setStroke(new BasicStroke(6));
+                g2d.drawLine(6, 16, 6, getHeight() - 16);
+            }
+        };
+
+        card.setLayout(new GridBagLayout());
+        card.setBorder(BorderFactory.createEmptyBorder(20, 30, 20, 20));
+        card.setOpaque(false);
+        card.setMaximumSize(new Dimension(Integer.MAX_VALUE, 120));
+
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(5, 5, 5, 5);
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.weightx = 1.0;
+        gbc.anchor = GridBagConstraints.WEST;
+        gbc.insets = new Insets(5, 5, 5, 5);
+
+        JLabel nombreLabel = new JLabel("👤 " + empleado.getNombre() + " " + empleado.getApellido1());
+        nombreLabel.setFont(new Font("Inter", Font.BOLD, 20));
+        nombreLabel.setForeground(PRIMARY_COLOR);
+        gbc.gridx = 0; gbc.gridy = 0;
+        gbc.gridwidth = 2;
+        card.add(nombreLabel, gbc);
+
+        JLabel numEmpleadoLabel = new JLabel("Nº Empleado: " + empleado.getNumEmpleado());
+        numEmpleadoLabel.setFont(new Font("Inter", Font.PLAIN, 16));
+        numEmpleadoLabel.setForeground(TEXT_SECONDARY);
+        gbc.gridx = 1; gbc.gridy = 1;
+        card.add(numEmpleadoLabel, gbc);
+
+        card.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseEntered(MouseEvent e) {
+                card.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+                card.repaint();
+            }
+
+            @Override
+            public void mouseExited(MouseEvent e) {
+                card.setCursor(Cursor.getDefaultCursor());
+                card.repaint();
+            }
+        });
+
+        return card;
+    }
+    
+    // Método para alta licencia sin equipo
+    private void showAltaLicenciaSinEquipoPanel() {
+        JPanel formPanel = createFormPanel();
+
+        JTextField dniField = new JTextField();
+
+        formPanel.add(createFormFieldPanel(new JLabel("DNI de la Persona:"), dniField));
+        formPanel.add(Box.createVerticalStrut(30));
+
+        JButton altaButton = createActionButton("📜 Dar de Alta Licencia", e -> {
+            String dni = dniField.getText().trim();
+            if (dni.isEmpty()) {
+                showMessage("Por favor, ingrese un DNI.", true);
+                return;
+            }
+
+            try {
+                Persona persona = federacion.buscaPersona(dni);
+                if (persona == null) {
+                    showMessage("Persona no encontrada con DNI: " + dni, true);
+                    return;
+                }
+                Licencia nuevaLicencia = federacion.nuevaLicencia(persona);
+                showMessage("Licencia creada exitosamente para " + persona.getNombre() + " " + persona.getApellido1() + ".", false);
+                dniField.setText("");
+            } catch (RuntimeException ex) {
+                showMessage("Error al crear licencia: " + ex.getMessage(), true);
+            }
+        });
+
+        formPanel.add(altaButton);
+        updateContentPanel(formPanel, "📜 Alta de Licencia (Sin Equipo)");
+    }
+
+    // Método para alta licencia con equipo
+    private void showAltaLicenciaConEquipoPanel() {
+        JPanel formPanel = createFormPanel();
+
+        JTextField dniField = new JTextField();
+        JTextField equipoField = new JTextField();
+        equipoField.setEditable(false);
+        JButton seleccionarEquipoButton = createActionButton("Seleccionar Equipo", e -> {
+            List<Equipo> equipos = federacion.obtenerEquipos();
+            if (equipos.isEmpty()) {
+                showMessage("No hay equipos registrados. Por favor, cree un equipo primero.", true);
+                return;
+            }
+            String[] nombresEquipos = equipos.stream()
+                .map(eq -> eq.getLetra() + " - " + eq.getClub().getNombre())
+                .toArray(String[]::new);
+            String selectedEquipo = (String) JOptionPane.showInputDialog(
+                frame,
+                "Seleccione un Equipo:",
+                "Seleccionar Equipo",
+                JOptionPane.QUESTION_MESSAGE,
+                null,
+                nombresEquipos,
+                nombresEquipos[0]);
+
+            if (selectedEquipo != null) {
+                equipoField.setText(selectedEquipo);
+                showMessage("Equipo '" + selectedEquipo + "' seleccionado.", false);
+            }
+        });
+
+        formPanel.add(createFormFieldPanel(new JLabel("DNI de la Persona:"), dniField));
+        formPanel.add(createFormFieldPanel(new JLabel("Equipo Seleccionado:"), equipoField));
+        formPanel.add(seleccionarEquipoButton);
+        formPanel.add(Box.createVerticalStrut(30));
+
+        JButton altaButton = createActionButton("📜 Dar de Alta Licencia", e -> {
+            String dni = dniField.getText().trim();
+            String equipoStr = equipoField.getText().trim();
+
+            if (dni.isEmpty() || equipoStr.isEmpty()) {
+                showMessage("Por favor, complete todos los campos obligatorios.", true);
+                return;
+            }
+
+            try {
+                Persona persona = federacion.buscaPersona(dni);
+                if (persona == null) {
+                    showMessage("Persona no encontrada con DNI: " + dni, true);
+                    return;
+                }
+
+                String[] parts = equipoStr.split(" - ");
+                String letra = parts[0];
+                Equipo equipo = federacion.obtenerEquipos().stream()
+                    .filter(eq -> eq.getLetra().equals(letra))
+                    .findFirst()
+                    .orElse(null);
+                if (equipo == null) {
+                    showMessage("Equipo no encontrado: " + equipoStr, true);
+                    return;
+                }
+
+                Licencia nuevaLicencia = federacion.nuevaLicencia(persona, equipo);
+                showMessage("Licencia creada exitosamente para " + persona.getNombre() + " en el equipo " + equipoStr + ".", false);
+                dniField.setText("");
+                equipoField.setText("");
+            } catch (RuntimeException ex) {
+                showMessage("Error al crear licencia: " + ex.getMessage(), true);
+            }
+        });
+
+        formPanel.add(altaButton);
+        updateContentPanel(formPanel, "📜 Alta de Licencia (Con Equipo)");
+    }
+
+    // Método para añadir licencia a equipo
+    private void showAddLicenciaAEquipoPanel() {
+        JPanel formPanel = createFormPanel();
+
+        JTextField numeroLicenciaField = new JTextField();
+        JTextField equipoField = new JTextField();
+        equipoField.setEditable(false);
+        JButton seleccionarEquipoButton = createActionButton("Seleccionar Equipo", e -> {
+            List<Equipo> equipos = federacion.obtenerEquipos();
+            if (equipos.isEmpty()) {
+                showMessage("No hay equipos registrados. Por favor, cree un equipo primero.", true);
+                return;
+            }
+            String[] nombresEquipos = equipos.stream()
+                .map(eq -> eq.getLetra() + " - " + eq.getClub().getNombre())
+                .toArray(String[]::new);
+            String selectedEquipo = (String) JOptionPane.showInputDialog(
+                frame,
+                "Seleccione un Equipo:",
+                "Seleccionar Equipo",
+                JOptionPane.QUESTION_MESSAGE,
+                null,
+                nombresEquipos,
+                nombresEquipos[0]);
+
+            if (selectedEquipo != null) {
+                equipoField.setText(selectedEquipo);
+                showMessage("Equipo '" + selectedEquipo + "' seleccionado.", false);
+            }
+        });
+
+        formPanel.add(createFormFieldPanel(new JLabel("Número de Licencia:"), numeroLicenciaField));
+        formPanel.add(createFormFieldPanel(new JLabel("Equipo Seleccionado:"), equipoField));
+        formPanel.add(seleccionarEquipoButton);
+        formPanel.add(Box.createVerticalStrut(30));
+
+        JButton addButton = createActionButton("📜 Añadir Licencia a Equipo", e -> {
+            String numeroLicencia = numeroLicenciaField.getText().trim();
+            String equipoStr = equipoField.getText().trim();
+
+            if (numeroLicencia.isEmpty() || equipoStr.isEmpty()) {
+                showMessage("Por favor, complete todos los campos obligatorios.", true);
+                return;
+            }
+
+            try {
+                Licencia licencia = federacion.obtenerLicencias().stream()
+                    .filter(l -> l.getNumeroLicencia().equals(numeroLicencia))
+                    .findFirst()
+                    .orElse(null);
+                if (licencia == null) {
+                    showMessage("Licencia no encontrada: " + numeroLicencia, true);
+                    return;
+                }
+
+                String[] parts = equipoStr.split(" - ");
+                String letra = parts[0];
+                Equipo equipo = federacion.obtenerEquipos().stream()
+                    .filter(eq -> eq.getLetra().equals(letra))
+                    .findFirst()
+                    .orElse(null);
+                if (equipo == null) {
+                    showMessage("Equipo no encontrado: " + equipoStr, true);
+                    return;
+                }
+
+                federacion.addLicencia(licencia, equipo);
+                showMessage("Licencia '" + numeroLicencia + "' añadida al equipo " + equipoStr + ".", false);
+                numeroLicenciaField.setText("");
+                equipoField.setText("");
+            } catch (RuntimeException ex) {
+                showMessage("Error al añadir licencia al equipo: " + ex.getMessage(), true);
+            }
+        });
+
+        formPanel.add(addButton);
+        updateContentPanel(formPanel, "📜 Añadir Licencia a Equipo");
+    }
+
+    // Método para calcular precio de licencia
+    private void showCalcularPrecioLicenciaPanel() {
+        JPanel formPanel = createFormPanel();
+
+        JTextField equipoField = new JTextField();
+        equipoField.setEditable(false);
+        JButton seleccionarEquipoButton = createActionButton("Seleccionar Equipo", e -> {
+            List<Equipo> equipos = federacion.obtenerEquipos();
+            if (equipos.isEmpty()) {
+                showMessage("No hay equipos registrados. Por favor, cree un equipo primero.", true);
+                return;
+            }
+            String[] nombresEquipos = equipos.stream()
+                .map(eq -> eq.getLetra() + " - " + eq.getClub().getNombre())
+                .toArray(String[]::new);
+            String selectedEquipo = (String) JOptionPane.showInputDialog(
+                frame,
+                "Seleccione un Equipo:",
+                "Seleccionar Equipo",
+                JOptionPane.QUESTION_MESSAGE,
+                null,
+                nombresEquipos,
+                nombresEquipos[0]);
+
+            if (selectedEquipo != null) {
+                equipoField.setText(selectedEquipo);
+                showMessage("Equipo '" + selectedEquipo + "' seleccionado.", false);
+            }
+        });
+
+        JTextArea resultArea = new JTextArea(3, 30);
+        resultArea.setEditable(false);
+        resultArea.setFont(new Font("Inter", Font.PLAIN, 14));
+        resultArea.setBackground(new Color(252, 253, 255));
+        resultArea.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(BORDER_COLOR, 2),
+            BorderFactory.createEmptyBorder(10, 16, 10, 16)
+        ));
+
+        formPanel.add(createFormFieldPanel(new JLabel("Equipo Seleccionado:"), equipoField));
+        formPanel.add(seleccionarEquipoButton);
+        formPanel.add(Box.createVerticalStrut(20));
+        formPanel.add(createActionButton("💶 Calcular Precio", e -> {
+            String equipoStr = equipoField.getText().trim();
+            if (equipoStr.isEmpty()) {
+                showMessage("Por favor, seleccione un equipo.", true);
+                return;
+            }
+
+            try {
+                String[] parts = equipoStr.split(" - ");
+                String letra = parts[0];
+                Equipo equipo = federacion.obtenerEquipos().stream()
+                    .filter(eq -> eq.getLetra().equals(letra))
+                    .findFirst()
+                    .orElse(null);
+                if (equipo == null) {
+                    showMessage("Equipo no encontrado: " + equipoStr, true);
+                    return;
+                }
+
+                double precio = federacion.calcularPrecioLicencia(equipo);
+                resultArea.setText("Precio de la licencia: €" + precio);
+                showMessage("Precio calculado para el equipo '" + equipoStr + "': €" + precio, false);
+            } catch (RuntimeException ex) {
+                showMessage("Error al calcular precio: " + ex.getMessage(), true);
+                resultArea.setText("Error: " + ex.getMessage());
+            }
+        }));
+
+        formPanel.add(Box.createVerticalStrut(20));
+        formPanel.add(new JScrollPane(resultArea));
+        updateContentPanel(formPanel, "💶 Calcular Precio de Licencia");
+    }
+
+    // Método para listar licencias
+    private void showListarLicenciasPanel() {
+        JPanel mainPanel = new JPanel(new BorderLayout(20, 20));
+        mainPanel.setOpaque(false);
+
+        try {
+            List<Licencia> licencias = federacion.obtenerLicencias();
+            if (licencias.isEmpty()) {
+                JPanel emptyPanel = createEmptyStatePanel("📜", "No hay licencias registradas",
+                    "Comience agregando una nueva licencia desde el menú superior.");
+                mainPanel.add(emptyPanel, BorderLayout.CENTER);
+            } else {
+                JPanel licenciasPanel = new JPanel();
+                licenciasPanel.setLayout(new BoxLayout(licenciasPanel, BoxLayout.Y_AXIS));
+                licenciasPanel.setOpaque(false);
+
+                for (Licencia licencia : licencias) {
+                    JPanel licenciaCard = createLicenciaCard(licencia);
+                    licenciasPanel.add(licenciaCard);
+                    licenciasPanel.add(Box.createVerticalStrut(15));
+                }
+
+                JScrollPane scrollPane = new JScrollPane(licenciasPanel);
+                scrollPane.setBorder(BorderFactory.createEmptyBorder());
+                scrollPane.getViewport().setBackground(BACKGROUND_COLOR);
+                scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+                scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+
+                mainPanel.add(scrollPane, BorderLayout.CENTER);
+            }
+        } catch (Exception ex) {
+            showMessage("Error al cargar la lista de licencias: " + ex.getMessage(), true);
+            JPanel errorPanel = createErrorPanel("Error al cargar licencias", ex.getMessage());
+            mainPanel.add(errorPanel, BorderLayout.CENTER);
+        }
+
+        updateContentPanel(mainPanel, "📜 Lista de Licencias");
+    }
+
+    // Método auxiliar para crear tarjeta de licencia
+    private JPanel createLicenciaCard(Licencia licencia) {
+        JPanel card = new JPanel() {
+            @Override
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                Graphics2D g2d = (Graphics2D) g;
+                g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2d.setColor(new Color(0, 0, 0, 15));
+                g2d.fillRoundRect(4, 4, getWidth() - 4, getHeight() - 4, 16, 16);
+                GradientPaint gradient = new GradientPaint(
+                    0, 0, Color.WHITE,
+                    0, getHeight(), new Color(252, 253, 255)
+                );
+                g2d.setPaint(gradient);
+                g2d.fillRoundRect(0, 0, getWidth() - 4, getHeight() - 4, 16, 16);
+                g2d.setColor(BORDER_COLOR);
+                g2d.setStroke(new BasicStroke(2));
+                g2d.drawRoundRect(0, 0, getWidth() - 5, getHeight() - 5, 16, 16);
+                g2d.setColor(SECONDARY_COLOR);
+                g2d.setStroke(new BasicStroke(6));
+                g2d.drawLine(6, 16, 6, getHeight() - 16);
+            }
+        };
+
+        card.setLayout(new GridBagLayout());
+        card.setBorder(BorderFactory.createEmptyBorder(20, 30, 20, 20));
+        card.setOpaque(false);
+        card.setMaximumSize(new Dimension(Integer.MAX_VALUE, 120));
+
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(5, 5, 5, 5);
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.weightx = 1.0;
+        gbc.anchor = GridBagConstraints.WEST;
+        gbc.insets = new Insets(5, 5, 5, 5);
+
+        JLabel numeroLabel = new JLabel("📜 " + licencia.getNumeroLicencia());
+        numeroLabel.setFont(new Font("Inter", Font.BOLD, 20));
+        numeroLabel.setForeground(PRIMARY_COLOR);
+        gbc.gridx = 0; gbc.gridy = 0;
+        gbc.gridwidth = 2;
+        card.add(numeroLabel, gbc);
+
+        Persona jugador = licencia.getJugador();
+        String nombrePersona = (jugador != null) ? jugador.getNombre() + " " + jugador.getApellido1() : "Sin jugador asignado";
+        JLabel personaLabel = new JLabel("👤 " + nombrePersona);
+        personaLabel.setFont(new Font("Inter", Font.PLAIN, 16));
+        personaLabel.setForeground(TEXT_SECONDARY);
+        gbc.gridx = 1; gbc.gridy = 1;
+        card.add(personaLabel, gbc);
+
+        card.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseEntered(MouseEvent e) {
+                card.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+                card.repaint();
+            }
+
+            @Override
+            public void mouseExited(MouseEvent e) {
+                card.setCursor(Cursor.getDefaultCursor());
+                card.repaint();
+            }
+        });
+
+        return card;
+    }
+
+    // Método para alta de instalación
+    private void showAltaInstalacionPanel() {
+        JPanel formPanel = createFormPanel();
+
+        JTextField nombreField = new JTextField();
+        JTextField direccionField = new JTextField();
+        JTextField superficieField = new JTextField();
+
+        formPanel.add(createFormFieldPanel(new JLabel("Nombre de la Instalación:"), nombreField));
+        formPanel.add(createFormFieldPanel(new JLabel("Dirección:"), direccionField));
+        formPanel.add(createFormFieldPanel(new JLabel("Superficie (CESPED_NATURAL, CESPED_ARTIFICIAL, TIERRA):"), superficieField));
+        formPanel.add(Box.createVerticalStrut(30));
+
+        JButton altaButton = createActionButton("🏟️ Dar de Alta Instalación", e -> {
+            String nombre = nombreField.getText().trim();
+            String direccion = direccionField.getText().trim();
+            String superficie = superficieField.getText().trim();
+
+            if (nombre.isEmpty() || direccion.isEmpty() || superficie.isEmpty()) {
+                showMessage("Por favor, complete todos los campos obligatorios.", true);
+                return;
+            }
+
+            try {
+                Instalacion nuevaInstalacion = federacion.nuevaInstalacion(nombre, direccion, superficie);
+                showMessage("Instalación '" + nombre + "' dada de alta exitosamente.", false);
+                nombreField.setText("");
+                direccionField.setText("");
+                superficieField.setText("");
+            } catch (RuntimeException ex) {
+                showMessage("Error al dar de alta la instalación: " + ex.getMessage(), true);
+            }
+        });
+
+        formPanel.add(altaButton);
+        updateContentPanel(formPanel, "🏟️ Alta de Instalación");
+    }
+
+    // Método para buscar instalaciones
+    private void showBuscarInstalacionesPanel() {
+        JPanel formPanel = createFormPanel();
+
+        JTextField nombreField = new JTextField();
+        JTextArea resultArea = new JTextArea(10, 30);
+        resultArea.setEditable(false);
+        resultArea.setFont(new Font("Inter", Font.PLAIN, 14));
+        resultArea.setBackground(new Color(252, 253, 255));
+        resultArea.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(BORDER_COLOR, 2),
+            BorderFactory.createEmptyBorder(10, 16, 10, 16)
+        ));
+
+        formPanel.add(createFormFieldPanel(new JLabel("Nombre de la Instalación:"), nombreField));
+        formPanel.add(Box.createVerticalStrut(20));
+        formPanel.add(createActionButton("🔍 Buscar Instalaciones", e -> {
+            String nombre = nombreField.getText().trim();
+            if (nombre.isEmpty()) {
+                showMessage("Por favor, ingrese un nombre para buscar.", true);
+                return;
+            }
+
+            try {
+                List<Instalacion> instalaciones = federacion.buscarInstalaciones(nombre);
+                if (instalaciones.isEmpty()) {
+                    resultArea.setText("No se encontraron instalaciones con el nombre: " + nombre);
+                    showMessage("No se encontraron instalaciones con el nombre: " + nombre, true);
+                } else {
+                    StringBuilder sb = new StringBuilder();
+                    for (Instalacion instalacion : instalaciones) {
+                        sb.append("Nombre: ").append(instalacion.getNombre()).append("\n")
+                          .append("Dirección: ").append(instalacion.getDireccion()).append("\n")
+                          .append("Superficie: ").append(instalacion.getSuperficie()).append("\n")
+                          .append("----------------------------------------\n");
+                    }
+                    resultArea.setText(sb.toString());
+                    showMessage("Instalaciones encontradas: " + instalaciones.size(), false);
+                }
+            } catch (RuntimeException ex) {
+                showMessage("Error al buscar instalaciones: " + ex.getMessage(), true);
+                resultArea.setText("Error: " + ex.getMessage());
+            }
+        }));
+
+        formPanel.add(Box.createVerticalStrut(20));
+        formPanel.add(new JScrollPane(resultArea));
+        updateContentPanel(formPanel, "🔍 Buscar Instalaciones");
+        }
+    
+    // Método para limpiar base de datos
+    private void limpiarBaseDeDatos() {
+        int confirm = JOptionPane.showConfirmDialog(
+            frame,
+            "⚠️ ¿Está seguro que desea limpiar TODA la base de datos?\nEsta acción no se puede deshacer.",
+            "Confirmar Limpieza de Base de Datos",
+            JOptionPane.YES_NO_OPTION,
+            JOptionPane.WARNING_MESSAGE
+        );
+
+        if (confirm == JOptionPane.YES_OPTION) {
+            try {
+                federacion.limpiarTablas();
+                showMessage("Base de datos limpiada exitosamente. Reinicie la aplicación.", false);
+
+                // Opcional: Cerrar la aplicación o reiniciar la interfaz
+                JOptionPane.showMessageDialog(
+                    frame,
+                    "La base de datos ha sido limpiada.\nPor favor, reinicie la aplicación.",
+                    "Operación Completada",
+                    JOptionPane.INFORMATION_MESSAGE
+                );
+
+            } catch (Exception ex) {
+                showMessage("Error al limpiar la base de datos: " + ex.getMessage(), true);
+                JOptionPane.showMessageDialog(
+                    frame,
+                    "Error al limpiar la base de datos:\n" + ex.getMessage(),
+                    "Error",
+                    JOptionPane.ERROR_MESSAGE
+                );
+            }
+        }
+    }
+    
+    private class AnimatedWelcomePanel extends JPanel {
+    private float alpha = 0.0f; // Transparencia para la animación
+
+    public AnimatedWelcomePanel() {
+        setOpaque(false); // Importante para que se vea el fondo pintado
+    }
+
+    @Override
+    protected void paintComponent(Graphics g) {
+        super.paintComponent(g);
+        Graphics2D g2d = (Graphics2D) g;
+        g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+        // Fondo con gradiente radial
+        Point2D center = new Point2D.Float(getWidth() / 2f, getHeight() / 2f);
+        float radius = Math.max(getWidth(), getHeight()) / 2f;
+        float[] dist = {0.0f, 1.0f};
+        Color[] colors = {Color.WHITE, new Color(248, 250, 252)};
+        RadialGradientPaint gradient = new RadialGradientPaint(center, radius, dist, colors);
+        g2d.setPaint(gradient);
+        g2d.fillRoundRect(0, 0, getWidth(), getHeight(), 24, 24);
+
+        // Sombra sutil alrededor
+        g2d.setColor(new Color(0, 0, 0, 8));
+        g2d.setStroke(new BasicStroke(3));
+        g2d.drawRoundRect(2, 2, getWidth() - 4, getHeight() - 4, 24, 24);
+
+        // Borde elegante
+        g2d.setColor(BORDER_COLOR);
+        g2d.setStroke(new BasicStroke(2));
+        g2d.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 24, 24);
+        
+        // Aplicar animación de fade-in
+        g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, alpha));
+        // No llamar a super.paintChildren(g) aquí, ya que el layout se encarga de los hijos.
+        // Los componentes hijos se pintan automáticamente después de paintComponent.
+    }
+
+    // Método para establecer la transparencia
+    public void setAlpha(float alpha) {
+        this.alpha = alpha;
+        repaint();
+    }
+}
 }

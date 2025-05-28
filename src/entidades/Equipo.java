@@ -6,7 +6,7 @@ import java.util.List;
 import proyectoffcv.util.DatabaseConnection;
 
 public class Equipo {
-    private int id; // Nuevo campo para el ID
+    private int id;
     private String letra;
     private Instalacion instalacion;
     private Grupo grupo;
@@ -20,18 +20,38 @@ public class Equipo {
         this.club = club;
     }
 
+    // Constructor para cargar desde BD
+    public Equipo(int id, String letra, Instalacion instalacion, Grupo grupo, Club club) {
+        this.id = id;
+        this.letra = letra;
+        this.instalacion = instalacion;
+        this.grupo = grupo;
+        this.club = club;
+    }
+
     // Getters y Setters
-    public int getId() { return id; } // Nuevo getter
+    public int getId() { return id; }
     public String getLetra() { return letra; }
     public Instalacion getInstalacion() { return instalacion; }
-    public void setInstalacion(Instalacion instalacion) { this.instalacion = instalacion; }
     public Grupo getGrupo() { return grupo; }
     public void setGrupo(Grupo grupo) { this.grupo = grupo; }
     public Club getClub() { return club; }
-    public void setClub(Club club) { this.club = club; }
 
-    // Metodo para guardar en la base de datos
-    public void guardar() throws SQLException {
+    // Métodos públicos que llaman a los privados
+    public void guardarPublic() throws SQLException {
+        guardarPrivado();
+    }
+
+    public void actualizarPublic() throws SQLException {
+        actualizarPrivado();
+    }
+
+    public void eliminarPublic() throws SQLException {
+        eliminarPrivado();
+    }
+
+    // Método para guardar en la base de datos (Privado)
+    private void guardarPrivado() throws SQLException {
         String sql = "INSERT INTO Equipo (letra, instalacion_id, grupo_id, club_id) VALUES (?, ?, ?, ?)";
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
@@ -40,81 +60,42 @@ public class Equipo {
             stmt.setInt(3, grupo.getId());
             stmt.setInt(4, club.getId());
             stmt.executeUpdate();
-            ResultSet rs = stmt.getGeneratedKeys();
-            if (rs.next()) {
-                this.id = rs.getInt(1); // Asigna el ID generado
+
+            try (ResultSet generatedKeys = stmt.getGeneratedKeys()) {
+                if (generatedKeys.next()) {
+                    this.id = generatedKeys.getInt(1);
+                }
             }
         }
     }
 
-    // Metodo para actualizar en la base de datos
-    public void actualizar() throws SQLException {
-        String sql = "UPDATE Equipo SET instalacion_id = ?, grupo_id = ?, club_id = ? WHERE letra = ? AND club_id = ?";
+    // Método para actualizar en la base de datos (Privado)
+    private void actualizarPrivado() throws SQLException {
+        String sql = "UPDATE Equipo SET letra = ?, instalacion_id = ?, grupo_id = ?, club_id = ? WHERE id = ?";
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setInt(1, instalacion.getId());
-            stmt.setInt(2, grupo.getId());
-            stmt.setInt(3, club.getId());
-            stmt.setString(4, letra);
-            stmt.setInt(5, club.getId());
+            stmt.setString(1, letra);
+            stmt.setInt(2, instalacion.getId());
+            stmt.setInt(3, grupo.getId());
+            stmt.setInt(4, club.getId());
+            stmt.setInt(5, id);
             stmt.executeUpdate();
         }
     }
 
-    // Metodo para eliminar de la base de datos
-    public void eliminar() throws SQLException {
-        String sql = "DELETE FROM Equipo WHERE letra = ? AND club_id = ?";
+    // Método para eliminar de la base de datos (Privado)
+    private void eliminarPrivado() throws SQLException {
+        String sql = "DELETE FROM Equipo WHERE id = ?";
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setString(1, letra);
-            stmt.setInt(2, club.getId());
+            stmt.setInt(1, id);
             stmt.executeUpdate();
         }
     }
 
-    // Metodo para buscar por letra y club
-    public static Equipo buscarPorLetraYClub(String letra, String nombreClub) throws SQLException {
-        Club club = Club.buscarPorNombre(nombreClub);
-        if (club == null) return null;
-        String sql = "SELECT * FROM Equipo WHERE letra = ? AND club_id = ?";
-        try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setString(1, letra);
-            stmt.setInt(2, club.getId());
-            ResultSet rs = stmt.executeQuery();
-            if (rs.next()) {
-                Instalacion instalacion = Instalacion.buscarPorId(rs.getInt("instalacion_id"));
-                Grupo grupo = Grupo.buscarPorId(rs.getInt("grupo_id"));
-                Equipo equipo = new Equipo(letra, instalacion, grupo, club);
-                equipo.id = rs.getInt("id"); // Asigna el ID
-                return equipo;
-            }
-        }
-        return null;
-    }
-
-    // Metodo para buscar por letra
-    public static Equipo buscarPorLetra(String letra) throws SQLException {
-        String sql = "SELECT * FROM Equipo WHERE letra = ?";
-        try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setString(1, letra);
-            ResultSet rs = stmt.executeQuery();
-            if (rs.next()) {
-                Instalacion instalacion = Instalacion.buscarPorId(rs.getInt("instalacion_id"));
-                Grupo grupo = Grupo.buscarPorId(rs.getInt("grupo_id"));
-                Club club = Club.buscarPorId(rs.getInt("club_id"));
-                Equipo equipo = new Equipo(letra, instalacion, grupo, club);
-                equipo.id = rs.getInt("id"); // Asigna el ID
-                return equipo;
-            }
-        }
-        return null;
-    }
-
-    // Metodo para buscar por ID
+    // Método para buscar un equipo por su ID
     public static Equipo buscarPorId(int id) throws SQLException {
-        String sql = "SELECT * FROM Equipo WHERE id = ?";
+        String sql = "SELECT id, letra, instalacion_id, grupo_id, club_id FROM Equipo WHERE id = ?";
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setInt(1, id);
@@ -123,18 +104,27 @@ public class Equipo {
                 Instalacion instalacion = Instalacion.buscarPorId(rs.getInt("instalacion_id"));
                 Grupo grupo = Grupo.buscarPorId(rs.getInt("grupo_id"));
                 Club club = Club.buscarPorId(rs.getInt("club_id"));
-                Equipo equipo = new Equipo(rs.getString("letra"), instalacion, grupo, club);
-                equipo.id = rs.getInt("id"); // Asigna el ID
-                return equipo;
+
+                if (instalacion == null || grupo == null || club == null) {
+                    throw new SQLException("Error al cargar equipo " + id + ": Una de las relaciones (instalación, grupo, club) no se encontró en la base de datos.");
+                }
+
+                return new Equipo(
+                    rs.getInt("id"),
+                    rs.getString("letra"),
+                    instalacion,
+                    grupo,
+                    club
+                );
             }
         }
         return null;
     }
 
-    // Metodo para obtener todos los equipos
+    // Método para obtener todos los equipos
     public static List<Equipo> obtenerTodos() throws SQLException {
         List<Equipo> equipos = new ArrayList<>();
-        String sql = "SELECT * FROM Equipo";
+        String sql = "SELECT id FROM Equipo";
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql);
              ResultSet rs = stmt.executeQuery()) {

@@ -1,29 +1,30 @@
 package entidades;
 
 import java.sql.*;
+import java.util.ArrayList;
 import proyectoffcv.util.DatabaseConnection;
 
 public class Categoria {
     private String nombre;
     private int orden;
     private double precioLicencia;
+    private ArrayList<Grupo> grupos;
 
     // Constructor
     public Categoria(String nombre, int orden, double precioLicencia) {
         this.nombre = nombre;
         this.orden = orden;
         this.precioLicencia = precioLicencia;
+        this.grupos = new ArrayList<>();
     }
 
-    // Getters y Setters
+    // Getters
     public String getNombre() { return nombre; }
-    public void setNombre(String nombre) { this.nombre = nombre; }
     public int getOrden() { return orden; }
-    public void setOrden(int orden) { this.orden = orden; }
     public double getPrecioLicencia() { return precioLicencia; }
-    public void setPrecioLicencia(double precioLicencia) { this.precioLicencia = precioLicencia; }
+    public ArrayList<Grupo> getGrupos() { return grupos; }
 
-    // Metodo para obtener el ID
+    // Método para obtener el ID
     public int getId() throws SQLException {
         String sql = "SELECT id FROM Categoria WHERE nombre = ?";
         try (Connection conn = DatabaseConnection.getConnection();
@@ -34,11 +35,24 @@ public class Categoria {
                 return rs.getInt("id");
             }
         }
-        throw new SQLException("No se encontro el ID de la categoria: " + nombre);
+        return -1;
     }
 
-    // Metodo para guardar en la base de datos
-    public void guardar() throws SQLException {
+    // Métodos públicos para guardar, actualizar y eliminar
+    public void guardarPublic() throws SQLException {
+        guardarPrivado();
+    }
+
+    public void actualizarPublic() throws SQLException {
+        actualizarPrivado();
+    }
+
+    public void eliminarPublic() throws SQLException {
+        eliminarPrivado();
+    }
+
+    // Método para guardar en la base de datos (Privado)
+    private void guardarPrivado() throws SQLException {
         String sql = "INSERT INTO Categoria (nombre, orden, precioLicencia) VALUES (?, ?, ?)";
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -49,8 +63,8 @@ public class Categoria {
         }
     }
 
-    // Metodo para actualizar en la base de datos
-    public void actualizar() throws SQLException {
+    // Método para actualizar en la base de datos (Privado)
+    private void actualizarPrivado() throws SQLException {
         String sql = "UPDATE Categoria SET orden = ?, precioLicencia = ? WHERE nombre = ?";
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -61,8 +75,8 @@ public class Categoria {
         }
     }
 
-    // Metodo para eliminar de la base de datos
-    public void eliminar() throws SQLException {
+    // Método para eliminar de la base de datos (Privado)
+    private void eliminarPrivado() throws SQLException {
         String sql = "DELETE FROM Categoria WHERE nombre = ?";
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -71,7 +85,7 @@ public class Categoria {
         }
     }
 
-    // Metodo para buscar por nombre
+    // Método para buscar una categoría por nombre
     public static Categoria buscarPorNombre(String nombre) throws SQLException {
         String sql = "SELECT * FROM Categoria WHERE nombre = ?";
         try (Connection conn = DatabaseConnection.getConnection();
@@ -89,9 +103,9 @@ public class Categoria {
         return null;
     }
 
-    // Metodo para buscar por ID
+    // Método para buscar por ID
     public static Categoria buscarPorId(int id) throws SQLException {
-        String sql = "SELECT * FROM Categoria WHERE id = ?";
+        String sql = "SELECT id, nombre, orden, precioLicencia FROM Categoria WHERE id = ?";
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setInt(1, id);
@@ -105,6 +119,37 @@ public class Categoria {
             }
         }
         return null;
+    }
+
+    // Método para crear grupo
+    public Grupo crearGrupo(String nombreGrupo) {
+        try {
+            Grupo nuevoGrupo = new Grupo(this, nombreGrupo);
+            nuevoGrupo.guardarPublic();
+            grupos.add(nuevoGrupo); // Añadir a la lista local
+            return nuevoGrupo;
+        } catch (SQLException e) {
+            throw new RuntimeException("Error al crear el grupo", e);
+        }
+    }
+
+    // Método para cargar todas las categorías desde la base de datos
+    public static ArrayList<Categoria> cargarCategoriasDesdeBD() throws SQLException {
+        ArrayList<Categoria> categorias = new ArrayList<>();
+        String sql = "SELECT * FROM Categoria";
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql);
+             ResultSet rs = stmt.executeQuery()) {
+            while (rs.next()) {
+                Categoria c = new Categoria(
+                    rs.getString("nombre"),
+                    rs.getInt("orden"),
+                    rs.getDouble("precioLicencia")
+                );
+                categorias.add(c);
+            }
+        }
+        return categorias;
     }
 
     @Override
