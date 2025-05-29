@@ -43,9 +43,6 @@ import java.awt.GradientPaint;
 import java.awt.Image;
 import java.awt.Cursor;
 import javax.swing.UnsupportedLookAndFeelException;
-import entidades.Instalacion;
-import entidades.Categoria;
-import entidades.Grupo;
 import java.time.LocalDate;
 import java.awt.BasicStroke;
 import java.awt.AlphaComposite;
@@ -547,7 +544,7 @@ public class MainApp2 {
         return panel;
     }
     
-    private static final Dimension TEXT_FIELD_SIZE = new Dimension(300, 36); // Tamaño uniforme para todos los campos
+    private static final Dimension TEXT_FIELD_SIZE = new Dimension(300, 36);
     private JPanel createFormFieldPanel(JLabel label, JTextField textField) {
         JPanel fieldPanel = new JPanel();
         fieldPanel.setLayout(new GridBagLayout());
@@ -694,98 +691,6 @@ public class MainApp2 {
         });
     }
     
-    // Panel para Alta Club
-    private void showAltaClubPanel() {
-        JPanel formPanel = createFormPanel();
-
-        JTextField nombreField = new JTextField();
-        JTextField fechaFundacionField = new JTextField();
-        JTextField presidenteDNIField = new JTextField();
-        JTextField presidenteNombreField = new JTextField();
-        JTextField presidenteApellido1Field = new JTextField();
-        JTextField presidenteApellido2Field = new JTextField();
-        JTextField presidenteFechaNacimientoField = new JTextField();
-        JTextField presidenteUsuarioField = new JTextField();
-        JTextField presidentePasswordField = new JTextField();
-        JTextField presidentePoblacionField = new JTextField();
-
-
-        fechaFundacionField.setToolTipText("Formato: YYYY-MM-DD (ej: 2000-01-01)");
-        presidenteFechaNacimientoField.setToolTipText("Formato: YYYY-MM-DD (ej: 1980-05-15)");
-
-        formPanel.add(createFormFieldPanel(new JLabel("Nombre del Club:"), nombreField));
-        formPanel.add(createFormFieldPanel(new JLabel("Fecha Fundación (YYYY-MM-DD):"), fechaFundacionField));
-        formPanel.add(createFormFieldPanel(new JLabel("DNI Presidente:"), presidenteDNIField));
-        formPanel.add(createFormFieldPanel(new JLabel("Nombre Presidente:"), presidenteNombreField));
-        formPanel.add(createFormFieldPanel(new JLabel("Primer Apellido Presidente:"), presidenteApellido1Field));
-        formPanel.add(createFormFieldPanel(new JLabel("Segundo Apellido Presidente:"), presidenteApellido2Field));
-        formPanel.add(createFormFieldPanel(new JLabel("Fecha Nac. Presidente (YYYY-MM-DD):"), presidenteFechaNacimientoField));
-        formPanel.add(createFormFieldPanel(new JLabel("Usuario Presidente:"), presidenteUsuarioField));
-        formPanel.add(createFormFieldPanel(new JLabel("Password Presidente:"), presidentePasswordField));
-        formPanel.add(createFormFieldPanel(new JLabel("Población Presidente:"), presidentePoblacionField));
-
-        formPanel.add(Box.createVerticalStrut(30));
-
-        JButton altaButton = createActionButton("🏆 Dar de Alta Club", e -> {
-            String nombre = nombreField.getText().trim();
-            String fechaFundacionStr = fechaFundacionField.getText().trim();
-            String presidenteDNI = presidenteDNIField.getText().trim();
-            String presidenteNombre = presidenteNombreField.getText().trim();
-            String presidenteApellido1 = presidenteApellido1Field.getText().trim();
-            String presidenteApellido2 = presidenteApellido2Field.getText().trim();
-            String presidenteFechaNacimientoStr = presidenteFechaNacimientoField.getText().trim();
-            String presidenteUsuario = presidenteUsuarioField.getText().trim();
-            String presidentePassword = presidentePasswordField.getText().trim();
-            String presidentePoblacion = presidentePoblacionField.getText().trim();
-
-
-            if (nombre.isEmpty() || fechaFundacionStr.isEmpty() || presidenteDNI.isEmpty() ||
-                presidenteNombre.isEmpty() || presidenteApellido1.isEmpty() ||
-                presidenteFechaNacimientoStr.isEmpty() || presidenteUsuario.isEmpty() ||
-                presidentePassword.isEmpty() || presidentePoblacion.isEmpty()) {
-                showMessage("Por favor, complete todos los campos obligatorios para el club y el presidente.", true);
-                return;
-            }
-
-            try {
-                LocalDate fechaFundacion = LocalDate.parse(fechaFundacionStr);
-                LocalDate presidenteFechaNacimiento = LocalDate.parse(presidenteFechaNacimientoStr);
-
-                // Primero crear y guardar la Persona del presidente
-                Persona presidente = federacion.nuevaPersona(presidenteDNI, presidenteNombre,
-                                                            presidenteApellido1, presidenteApellido2,
-                                                            presidenteFechaNacimiento, presidenteUsuario,
-                                                            presidentePassword, presidentePoblacion);
-
-                // Luego crear el Club usando la Persona del presidente
-                Club nuevoClub = federacion.nuevoClub(nombre, fechaFundacion, presidente);
-                showMessage("Club '" + nombre + "' dado de alta exitosamente con presidente " + presidente.getNombre() + ".", false);
-
-                // Limpiar campos
-                nombreField.setText("");
-                fechaFundacionField.setText("");
-                presidenteDNIField.setText("");
-                presidenteNombreField.setText("");
-                presidenteApellido1Field.setText("");
-                presidenteApellido2Field.setText("");
-                presidenteFechaNacimientoField.setText("");
-                presidenteUsuarioField.setText("");
-                presidentePasswordField.setText("");
-                presidentePoblacionField.setText("");
-
-            } catch (DateTimeParseException ex) {
-                showMessage("Formato de fecha incorrecto. Use: YYYY-MM-DD", true);
-            } catch (RuntimeException ex) { // Capturar las RuntimeException lanzadas desde Federacion
-                showMessage("Error al dar de alta el club o presidente: " + ex.getMessage(), true);
-            } catch (Exception ex) {
-                showMessage("Error inesperado: " + ex.getMessage(), true);
-            }
-        });
-
-        formPanel.add(altaButton);
-        updateContentPanel(formPanel, "🏆 Alta de Club");
-    }
-
     // Panel para listar clubes con diseño tipo tarjetas
     private void showListarClubesPanel() {
         JPanel mainPanel = new JPanel(new BorderLayout(20, 20));
@@ -1177,113 +1082,99 @@ public class MainApp2 {
         updateContentPanel(formPanel, "👤 Alta de Persona");
     }
 
-    // Método para listar equipos
-    private void showListarEquiposPanel() {
-        JPanel mainPanel = new JPanel(new BorderLayout(20, 20));
-        mainPanel.setOpaque(false);
+    // Panel para Alta Club
+    private void showAltaClubPanel() {
+        JPanel formPanel = createFormPanel();
 
-        try {
-            List<Equipo> equipos = federacion.obtenerEquipos();
-            if (equipos.isEmpty()) {
-                JPanel emptyPanel = createEmptyStatePanel("⚽", "No hay equipos registrados",
-                    "Comience agregando un nuevo equipo desde el menú superior.");
-                mainPanel.add(emptyPanel, BorderLayout.CENTER);
-            } else {
-                JPanel equiposPanel = new JPanel();
-                equiposPanel.setLayout(new BoxLayout(equiposPanel, BoxLayout.Y_AXIS));
-                equiposPanel.setOpaque(false);
+        JTextField nombreField = new JTextField();
+        JTextField fechaFundacionField = new JTextField();
+        JTextField presidenteDNIField = new JTextField();
+        JTextField presidenteNombreField = new JTextField();
+        JTextField presidenteApellido1Field = new JTextField();
+        JTextField presidenteApellido2Field = new JTextField();
+        JTextField presidenteFechaNacimientoField = new JTextField();
+        JTextField presidenteUsuarioField = new JTextField();
+        JTextField presidentePasswordField = new JTextField();
+        JTextField presidentePoblacionField = new JTextField();
 
-                for (Equipo equipo : equipos) {
-                    JPanel equipoCard = createEquipoCard(equipo);
-                    equiposPanel.add(equipoCard);
-                    equiposPanel.add(Box.createVerticalStrut(15));
-                }
 
-                JScrollPane scrollPane = new JScrollPane(equiposPanel);
-                scrollPane.setBorder(BorderFactory.createEmptyBorder());
-                scrollPane.getViewport().setBackground(BACKGROUND_COLOR);
-                scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
-                scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+        fechaFundacionField.setToolTipText("Formato: YYYY-MM-DD (ej: 2000-01-01)");
+        presidenteFechaNacimientoField.setToolTipText("Formato: YYYY-MM-DD (ej: 1980-05-15)");
 
-                mainPanel.add(scrollPane, BorderLayout.CENTER);
-            }
-        } catch (Exception ex) {
-            showMessage("Error al cargar la lista de equipos: " + ex.getMessage(), true);
-            JPanel errorPanel = createErrorPanel("Error al cargar equipos", ex.getMessage());
-            mainPanel.add(errorPanel, BorderLayout.CENTER);
-        }
+        formPanel.add(createFormFieldPanel(new JLabel("Nombre del Club:"), nombreField));
+        formPanel.add(createFormFieldPanel(new JLabel("Fecha Fundación (YYYY-MM-DD):"), fechaFundacionField));
+        formPanel.add(createFormFieldPanel(new JLabel("DNI Presidente:"), presidenteDNIField));
+        formPanel.add(createFormFieldPanel(new JLabel("Nombre Presidente:"), presidenteNombreField));
+        formPanel.add(createFormFieldPanel(new JLabel("Primer Apellido Presidente:"), presidenteApellido1Field));
+        formPanel.add(createFormFieldPanel(new JLabel("Segundo Apellido Presidente:"), presidenteApellido2Field));
+        formPanel.add(createFormFieldPanel(new JLabel("Fecha Nac. Presidente (YYYY-MM-DD):"), presidenteFechaNacimientoField));
+        formPanel.add(createFormFieldPanel(new JLabel("Usuario Presidente:"), presidenteUsuarioField));
+        formPanel.add(createFormFieldPanel(new JLabel("Password Presidente:"), presidentePasswordField));
+        formPanel.add(createFormFieldPanel(new JLabel("Población Presidente:"), presidentePoblacionField));
 
-        updateContentPanel(mainPanel, "📋 Lista de Equipos");
-    }
+        formPanel.add(Box.createVerticalStrut(30));
 
-    // Método auxiliar para crear tarjeta de equipo
-    private JPanel createEquipoCard(Equipo equipo) {
-        JPanel card = new JPanel() {
-            @Override
-            protected void paintComponent(Graphics g) {
-                super.paintComponent(g);
-                Graphics2D g2d = (Graphics2D) g;
-                g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                g2d.setColor(new Color(0, 0, 0, 15));
-                g2d.fillRoundRect(4, 4, getWidth() - 4, getHeight() - 4, 16, 16);
-                GradientPaint gradient = new GradientPaint(
-                    0, 0, Color.WHITE,
-                    0, getHeight(), new Color(252, 253, 255)
-                );
-                g2d.setPaint(gradient);
-                g2d.fillRoundRect(0, 0, getWidth() - 4, getHeight() - 4, 16, 16);
-                g2d.setColor(BORDER_COLOR);
-                g2d.setStroke(new BasicStroke(2));
-                g2d.drawRoundRect(0, 0, getWidth() - 5, getHeight() - 5, 16, 16);
-                g2d.setColor(SECONDARY_COLOR);
-                g2d.setStroke(new BasicStroke(6));
-                g2d.drawLine(6, 16, 6, getHeight() - 16);
-            }
-        };
+        JButton altaButton = createActionButton("🏆 Dar de Alta Club", e -> {
+            String nombre = nombreField.getText().trim();
+            String fechaFundacionStr = fechaFundacionField.getText().trim();
+            String presidenteDNI = presidenteDNIField.getText().trim();
+            String presidenteNombre = presidenteNombreField.getText().trim();
+            String presidenteApellido1 = presidenteApellido1Field.getText().trim();
+            String presidenteApellido2 = presidenteApellido2Field.getText().trim();
+            String presidenteFechaNacimientoStr = presidenteFechaNacimientoField.getText().trim();
+            String presidenteUsuario = presidenteUsuarioField.getText().trim();
+            String presidentePassword = presidentePasswordField.getText().trim();
+            String presidentePoblacion = presidentePoblacionField.getText().trim();
 
-        card.setLayout(new GridBagLayout());
-        card.setBorder(BorderFactory.createEmptyBorder(20, 30, 20, 20));
-        card.setOpaque(false);
-        card.setMaximumSize(new Dimension(Integer.MAX_VALUE, 120));
 
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(5, 5, 5, 5);
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        gbc.weightx = 1.0;
-        gbc.anchor = GridBagConstraints.WEST;
-        gbc.insets = new Insets(5, 5, 5, 5);
-
-        JLabel nombreLabel = new JLabel("⚽ " + equipo.getLetra());
-        nombreLabel.setFont(new Font("Inter", Font.BOLD, 20));
-        nombreLabel.setForeground(PRIMARY_COLOR);
-        gbc.gridx = 0; gbc.gridy = 0;
-        gbc.gridwidth = 2;
-        card.add(nombreLabel, gbc);
-
-        JLabel clubLabel = new JLabel("🏆 Club: " + equipo.getClub().getNombre());
-        clubLabel.setFont(new Font("Inter", Font.PLAIN, 16));
-        clubLabel.setForeground(TEXT_SECONDARY);
-        gbc.gridx = 1; gbc.gridy = 1;
-        card.add(clubLabel, gbc);
-
-        card.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mouseEntered(MouseEvent e) {
-                card.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-                card.repaint();
+            if (nombre.isEmpty() || fechaFundacionStr.isEmpty() || presidenteDNI.isEmpty() ||
+                presidenteNombre.isEmpty() || presidenteApellido1.isEmpty() ||
+                presidenteFechaNacimientoStr.isEmpty() || presidenteUsuario.isEmpty() ||
+                presidentePassword.isEmpty() || presidentePoblacion.isEmpty()) {
+                showMessage("Por favor, complete todos los campos obligatorios para el club y el presidente.", true);
+                return;
             }
 
-            @Override
-            public void mouseExited(MouseEvent e) {
-                card.setCursor(Cursor.getDefaultCursor());
-                card.repaint();
+            try {
+                LocalDate fechaFundacion = LocalDate.parse(fechaFundacionStr);
+                LocalDate presidenteFechaNacimiento = LocalDate.parse(presidenteFechaNacimientoStr);
+
+                // Primero crear y guardar la Persona del presidente
+                Persona presidente = federacion.nuevaPersona(presidenteDNI, presidenteNombre,
+                                                            presidenteApellido1, presidenteApellido2,
+                                                            presidenteFechaNacimiento, presidenteUsuario,
+                                                            presidentePassword, presidentePoblacion);
+
+                // Luego crear el Club usando la Persona del presidente
+                federacion.nuevoClub(nombre, fechaFundacion, presidente);
+                showMessage("Club '" + nombre + "' dado de alta exitosamente con presidente " + presidente.getNombre() + ".", false);
+
+                // Limpiar campos
+                nombreField.setText("");
+                fechaFundacionField.setText("");
+                presidenteDNIField.setText("");
+                presidenteNombreField.setText("");
+                presidenteApellido1Field.setText("");
+                presidenteApellido2Field.setText("");
+                presidenteFechaNacimientoField.setText("");
+                presidenteUsuarioField.setText("");
+                presidentePasswordField.setText("");
+                presidentePoblacionField.setText("");
+
+            } catch (DateTimeParseException ex) {
+                showMessage("Formato de fecha incorrecto. Use: YYYY-MM-DD", true);
+            } catch (RuntimeException ex) { // Capturar las RuntimeException lanzadas desde Federacion
+                showMessage("Error al dar de alta el club o presidente: " + ex.getMessage(), true);
+            } catch (Exception ex) {
+                showMessage("Error inesperado: " + ex.getMessage(), true);
             }
         });
 
-        return card;
+        formPanel.add(altaButton);
+        updateContentPanel(formPanel, "🏆 Alta de Club");
     }
-
-    // Método para alta de categoría
+    
+    // Panel para Alta categoría
     private void showAltaCategoriaPanel() {
         JPanel formPanel = createFormPanel();
 
@@ -1309,7 +1200,7 @@ public class MainApp2 {
             try {
                 int orden = Integer.parseInt(ordenStr);
                 double precio = Double.parseDouble(precioStr);
-                Categoria nuevaCategoria = federacion.nuevaCategoria(nombre, orden, precio);
+                federacion.nuevaCategoria(nombre, orden, precio);
                 showMessage("Categoría '" + nombre + "' dada de alta exitosamente.", false);
 
                 nombreField.setText("");
@@ -1326,7 +1217,7 @@ public class MainApp2 {
         updateContentPanel(formPanel, "📋 Alta de Categoría");
     }
 
-    // Método para alta de grupo
+    // Panel para Alta Grupo
     private void showAltaGrupoPanel() {
         JPanel formPanel = createFormPanel();
 
@@ -1380,7 +1271,7 @@ public class MainApp2 {
                     return;
                 }
 
-                Grupo nuevoGrupo = federacion.nuevoGrupo(categoria, nombreGrupo);
+                federacion.nuevoGrupo(categoria, nombreGrupo);
                 showMessage("Grupo '" + nombreGrupo + "' dado de alta exitosamente en la categoría '" + nombreCategoria + "'.", false);
 
                 categoriaField.setText("");
@@ -1392,6 +1283,167 @@ public class MainApp2 {
 
         formPanel.add(altaButton);
         updateContentPanel(formPanel, "📋 Alta de Grupo");
+    }
+    
+    // Panel para Alta Empleado
+    private void showAltaEmpleadoPanel() {
+        JPanel formPanel = createFormPanel();
+
+        JTextField dniField = new JTextField();
+        JTextField nombreField = new JTextField();
+        JTextField apellido1Field = new JTextField();
+        JTextField apellido2Field = new JTextField();
+        JTextField fechaNacimientoField = new JTextField();
+        JTextField usuarioField = new JTextField();
+        JTextField passwordField = new JTextField();
+        JTextField poblacionField = new JTextField();
+        JTextField numEmpleadoField = new JTextField();
+        JTextField inicioContratoField = new JTextField();
+        JTextField segSocialField = new JTextField();
+        
+        fechaNacimientoField.setToolTipText("Formato: YYYY-MM-DD (ej: 1990-12-25)");
+        inicioContratoField.setToolTipText("Formato: YYYY-MM-DD (ej: 2023-01-01)");
+
+        formPanel.add(createFormFieldPanel(new JLabel("DNI:"), dniField));
+        formPanel.add(createFormFieldPanel(new JLabel("Nombre:"), nombreField));
+        formPanel.add(createFormFieldPanel(new JLabel("Primer Apellido:"), apellido1Field));
+        formPanel.add(createFormFieldPanel(new JLabel("Segundo Apellido:"), apellido2Field));
+        formPanel.add(createFormFieldPanel(new JLabel("Fecha de Nacimiento (YYYY-MM-DD):"), fechaNacimientoField));
+        formPanel.add(createFormFieldPanel(new JLabel("Usuario:"), usuarioField));
+        formPanel.add(createFormFieldPanel(new JLabel("Contraseña:"), passwordField));
+        formPanel.add(createFormFieldPanel(new JLabel("Población:"), poblacionField));
+        formPanel.add(createFormFieldPanel(new JLabel("Número de Empleado:"), numEmpleadoField));
+        formPanel.add(createFormFieldPanel(new JLabel("Inicio Contrato (YYYY-MM-DD):"), inicioContratoField));
+        formPanel.add(createFormFieldPanel(new JLabel("Seguridad Social:"), segSocialField));
+        formPanel.add(Box.createVerticalStrut(30));
+
+        JButton altaButton = createActionButton("👤 Dar de Alta Empleado", e -> {
+            String dni = dniField.getText().trim();
+            String nombre = nombreField.getText().trim();
+            String apellido1 = apellido1Field.getText().trim();
+            String apellido2 = apellido2Field.getText().trim();
+            String fechaNacimientoStr = fechaNacimientoField.getText().trim();
+            String usuario = usuarioField.getText().trim();
+            String password = passwordField.getText().trim();
+            String poblacion = poblacionField.getText().trim();
+            String numEmpleadoStr = numEmpleadoField.getText().trim();
+            String inicioContratoStr = inicioContratoField.getText().trim();
+            String segSocial = segSocialField.getText().trim();
+
+            if (dni.isEmpty() || nombre.isEmpty() || apellido1.isEmpty() || fechaNacimientoStr.isEmpty() ||
+                usuario.isEmpty() || password.isEmpty() || poblacion.isEmpty() ||
+                numEmpleadoStr.isEmpty() || inicioContratoStr.isEmpty() || segSocial.isEmpty()) {
+                showMessage("Por favor, complete todos los campos obligatorios.", true);
+                return;
+            }
+
+            try {
+                LocalDate fechaNacimiento = LocalDate.parse(fechaNacimientoStr);
+                LocalDate inicioContrato = LocalDate.parse(inicioContratoStr);
+                int numEmpleado = Integer.parseInt(numEmpleadoStr);
+                federacion.nuevoEmpleado(dni, nombre, apellido1, apellido2,
+                    fechaNacimiento, usuario, password, poblacion, numEmpleado, inicioContrato, segSocial);
+                showMessage("Empleado '" + nombre + " " + apellido1 + "' dado de alta exitosamente.", false);
+
+                dniField.setText("");
+                nombreField.setText("");
+                apellido1Field.setText("");
+                apellido2Field.setText("");
+                fechaNacimientoField.setText("");
+                usuarioField.setText("");
+                passwordField.setText("");
+                poblacionField.setText("");
+                numEmpleadoField.setText("");
+                inicioContratoField.setText("");
+                segSocialField.setText("");
+            } catch (DateTimeParseException ex) {
+                showMessage("Formato de fecha incorrecto. Use: YYYY-MM-DD", true);
+            } catch (NumberFormatException ex) {
+                showMessage("Número de empleado debe ser un valor numérico válido.", true);
+            } catch (RuntimeException ex) {
+                showMessage("Error al dar de alta el empleado: " + ex.getMessage(), true);
+            }
+        });
+
+        formPanel.add(altaButton);
+        updateContentPanel(formPanel, "👤 Alta de Empleado");
+    }
+    
+    // Panel para Alta Instalación
+    private void showAltaInstalacionPanel() {
+        JPanel formPanel = createFormPanel();
+
+        JTextField nombreField = new JTextField();
+        JTextField direccionField = new JTextField();
+        JTextField superficieField = new JTextField();
+
+        formPanel.add(createFormFieldPanel(new JLabel("Nombre de la Instalación:"), nombreField));
+        formPanel.add(createFormFieldPanel(new JLabel("Dirección:"), direccionField));
+        formPanel.add(createFormFieldPanel(new JLabel("Superficie (CESPED_NATURAL, CESPED_ARTIFICIAL, TIERRA):"), superficieField));
+        formPanel.add(Box.createVerticalStrut(30));
+
+        JButton altaButton = createActionButton("🏟️ Dar de Alta Instalación", e -> {
+            String nombre = nombreField.getText().trim();
+            String direccion = direccionField.getText().trim();
+            String superficie = superficieField.getText().trim();
+
+            if (nombre.isEmpty() || direccion.isEmpty() || superficie.isEmpty()) {
+                showMessage("Por favor, complete todos los campos obligatorios.", true);
+                return;
+            }
+
+            try {
+                Instalacion nuevaInstalacion = federacion.nuevaInstalacion(nombre, direccion, superficie);
+                showMessage("Instalación '" + nombre + "' dada de alta exitosamente.", false);
+                nombreField.setText("");
+                direccionField.setText("");
+                superficieField.setText("");
+            } catch (RuntimeException ex) {
+                showMessage("Error al dar de alta la instalación: " + ex.getMessage(), true);
+            }
+        });
+
+        formPanel.add(altaButton);
+        updateContentPanel(formPanel, "🏟️ Alta de Instalación");
+    }
+
+    // Método para listar equipos
+    private void showListarEquiposPanel() {
+        JPanel mainPanel = new JPanel(new BorderLayout(20, 20));
+        mainPanel.setOpaque(false);
+
+        try {
+            List<Equipo> equipos = federacion.obtenerEquipos();
+            if (equipos.isEmpty()) {
+                JPanel emptyPanel = createEmptyStatePanel("⚽", "No hay equipos registrados",
+                    "Comience agregando un nuevo equipo desde el menú superior.");
+                mainPanel.add(emptyPanel, BorderLayout.CENTER);
+            } else {
+                JPanel equiposPanel = new JPanel();
+                equiposPanel.setLayout(new BoxLayout(equiposPanel, BoxLayout.Y_AXIS));
+                equiposPanel.setOpaque(false);
+
+                for (Equipo equipo : equipos) {
+                    JPanel equipoCard = createEquipoCard(equipo);
+                    equiposPanel.add(equipoCard);
+                    equiposPanel.add(Box.createVerticalStrut(15));
+                }
+
+                JScrollPane scrollPane = new JScrollPane(equiposPanel);
+                scrollPane.setBorder(BorderFactory.createEmptyBorder());
+                scrollPane.getViewport().setBackground(BACKGROUND_COLOR);
+                scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+                scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+
+                mainPanel.add(scrollPane, BorderLayout.CENTER);
+            }
+        } catch (Exception ex) {
+            showMessage("Error al cargar la lista de equipos: " + ex.getMessage(), true);
+            JPanel errorPanel = createErrorPanel("Error al cargar equipos", ex.getMessage());
+            mainPanel.add(errorPanel, BorderLayout.CENTER);
+        }
+
+        updateContentPanel(mainPanel, "📋 Lista de Equipos");
     }
 
     // Método para listar categorías
@@ -1433,72 +1485,83 @@ public class MainApp2 {
         updateContentPanel(mainPanel, "📋 Lista de Categorías");
     }
 
-    // Método auxiliar para crear tarjeta de categoría
-    private JPanel createCategoriaCard(Categoria categoria) {
-        JPanel card = new JPanel() {
-            @Override
-            protected void paintComponent(Graphics g) {
-                super.paintComponent(g);
-                Graphics2D g2d = (Graphics2D) g;
-                g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                g2d.setColor(new Color(0, 0, 0, 15));
-                g2d.fillRoundRect(4, 4, getWidth() - 4, getHeight() - 4, 16, 16);
-                GradientPaint gradient = new GradientPaint(
-                    0, 0, Color.WHITE,
-                    0, getHeight(), new Color(252, 253, 255)
-                );
-                g2d.setPaint(gradient);
-                g2d.fillRoundRect(0, 0, getWidth() - 4, getHeight() - 4, 16, 16);
-                g2d.setColor(BORDER_COLOR);
-                g2d.setStroke(new BasicStroke(2));
-                g2d.drawRoundRect(0, 0, getWidth() - 5, getHeight() - 5, 16, 16);
-                g2d.setColor(SECONDARY_COLOR);
-                g2d.setStroke(new BasicStroke(6));
-                g2d.drawLine(6, 16, 6, getHeight() - 16);
+    // Método para listar personas
+    private void showListarPersonasPanel() {
+        JPanel mainPanel = new JPanel(new BorderLayout(20, 20));
+        mainPanel.setOpaque(false);
+
+        try {
+            List<Persona> personas = federacion.obtenerPersonas();
+            if (personas.isEmpty()) {
+                JPanel emptyPanel = createEmptyStatePanel("👤", "No hay personas registradas",
+                    "Comience agregando una nueva persona desde el menú superior.");
+                mainPanel.add(emptyPanel, BorderLayout.CENTER);
+            } else {
+                JPanel personasPanel = new JPanel();
+                personasPanel.setLayout(new BoxLayout(personasPanel, BoxLayout.Y_AXIS));
+                personasPanel.setOpaque(false);
+
+                for (Persona persona : personas) {
+                    JPanel personaCard = createPersonaCard(persona);
+                    personasPanel.add(personaCard);
+                    personasPanel.add(Box.createVerticalStrut(15));
+                }
+
+                JScrollPane scrollPane = new JScrollPane(personasPanel);
+                scrollPane.setBorder(BorderFactory.createEmptyBorder());
+                scrollPane.getViewport().setBackground(BACKGROUND_COLOR);
+                scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+                scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+
+                mainPanel.add(scrollPane, BorderLayout.CENTER);
             }
-        };
-
-        card.setLayout(new GridBagLayout());
-        card.setBorder(BorderFactory.createEmptyBorder(20, 30, 20, 20));
-        card.setOpaque(false);
-        card.setMaximumSize(new Dimension(Integer.MAX_VALUE, 120));
-
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(5, 5, 5, 5);
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        gbc.weightx = 1.0;
-        gbc.anchor = GridBagConstraints.WEST;
-        gbc.insets = new Insets(5, 5, 5, 5);
-
-    JLabel nombreLabel = new JLabel("📋 " + categoria.getNombre());
-    nombreLabel.setFont(new Font("Inter", Font.BOLD, 20));
-    nombreLabel.setForeground(PRIMARY_COLOR);
-    gbc.gridx = 0; gbc.gridy = 0;
-    gbc.gridwidth = 2;
-    card.add(nombreLabel, gbc);
-
-    JLabel precioLabel = new JLabel("💶 Precio Licencia: €" + categoria.getPrecioLicencia());
-    precioLabel.setFont(new Font("Inter", Font.PLAIN, 16));
-    precioLabel.setForeground(TEXT_SECONDARY);
-    gbc.gridx = 1; gbc.gridy = 1;
-    card.add(precioLabel, gbc);
-
-    card.addMouseListener(new MouseAdapter() {
-        @Override
-        public void mouseEntered(MouseEvent e) {
-            card.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-            card.repaint();
+        } catch (Exception ex) {
+            showMessage("Error al cargar la lista de personas: " + ex.getMessage(), true);
+            JPanel errorPanel = createErrorPanel("Error al cargar personas", ex.getMessage());
+            mainPanel.add(errorPanel, BorderLayout.CENTER);
         }
 
-        @Override
-        public void mouseExited(MouseEvent e) {
-            card.setCursor(Cursor.getDefaultCursor());
-            card.repaint();
-        }
-    });
+        updateContentPanel(mainPanel, "📋 Lista de Personas");
+    }
+    
+    // Método para listar empleados
+    private void showListarEmpleadosPanel() {
+        JPanel mainPanel = new JPanel(new BorderLayout(20, 20));
+        mainPanel.setOpaque(false);
 
-    return card;
-}
+        try {
+            List<Empleado> empleados = federacion.obtenerEmpleados();
+            if (empleados.isEmpty()) {
+                JPanel emptyPanel = createEmptyStatePanel("👤", "No hay empleados registrados",
+                    "Comience agregando un nuevo empleado desde el menú superior.");
+                mainPanel.add(emptyPanel, BorderLayout.CENTER);
+            } else {
+                JPanel empleadosPanel = new JPanel();
+                empleadosPanel.setLayout(new BoxLayout(empleadosPanel, BoxLayout.Y_AXIS));
+                empleadosPanel.setOpaque(false);
+
+                for (Empleado empleado : empleados) {
+                    JPanel empleadoCard = createEmpleadoCard(empleado);
+                    empleadosPanel.add(empleadoCard);
+                    empleadosPanel.add(Box.createVerticalStrut(15));
+                }
+
+                JScrollPane scrollPane = new JScrollPane(empleadosPanel);
+                scrollPane.setBorder(BorderFactory.createEmptyBorder());
+                scrollPane.getViewport().setBackground(BACKGROUND_COLOR);
+                scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+                scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+
+                mainPanel.add(scrollPane, BorderLayout.CENTER);
+            }
+        } catch (Exception ex) {
+            showMessage("Error al cargar la lista de empleados: " + ex.getMessage(), true);
+            JPanel errorPanel = createErrorPanel("Error al cargar empleados", ex.getMessage());
+            mainPanel.add(errorPanel, BorderLayout.CENTER);
+        }
+
+        updateContentPanel(mainPanel, "📋 Lista de Empleados");
+    }
 
     // Método para listar grupos por categoría
     private void showListarGruposPorCategoriaPanel() {
@@ -1580,155 +1643,43 @@ public class MainApp2 {
         updateContentPanel(formPanel, "📋 Lista de Grupos por Categoría");
     }
 
-    // Método auxiliar para crear tarjeta de grupo
-    private JPanel createGrupoCard(Grupo grupo) {
-        JPanel card = new JPanel() {
-            @Override
-            protected void paintComponent(Graphics g) {
-                super.paintComponent(g);
-                Graphics2D g2d = (Graphics2D) g;
-                g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                g2d.setColor(new Color(0, 0, 0, 15));
-                g2d.fillRoundRect(4, 4, getWidth() - 4, getHeight() - 4, 16, 16);
-                GradientPaint gradient = new GradientPaint(
-                    0, 0, Color.WHITE,
-                    0, getHeight(), new Color(252, 253, 255)
-                );
-                g2d.setPaint(gradient);
-                g2d.fillRoundRect(0, 0, getWidth() - 4, getHeight() - 4, 16, 16);
-                g2d.setColor(BORDER_COLOR);
-                g2d.setStroke(new BasicStroke(2));
-                g2d.drawRoundRect(0, 0, getWidth() - 5, getHeight() - 5, 16, 16);
-                g2d.setColor(SECONDARY_COLOR);
-                g2d.setStroke(new BasicStroke(6));
-                g2d.drawLine(6, 16, 6, getHeight() - 16);
+    // Método para listar licencias
+    private void showListarLicenciasPanel() {
+        JPanel mainPanel = new JPanel(new BorderLayout(20, 20));
+        mainPanel.setOpaque(false);
+
+        try {
+            List<Licencia> licencias = federacion.obtenerLicencias();
+            if (licencias.isEmpty()) {
+                JPanel emptyPanel = createEmptyStatePanel("📜", "No hay licencias registradas",
+                    "Comience agregando una nueva licencia desde el menú superior.");
+                mainPanel.add(emptyPanel, BorderLayout.CENTER);
+            } else {
+                JPanel licenciasPanel = new JPanel();
+                licenciasPanel.setLayout(new BoxLayout(licenciasPanel, BoxLayout.Y_AXIS));
+                licenciasPanel.setOpaque(false);
+
+                for (Licencia licencia : licencias) {
+                    JPanel licenciaCard = createLicenciaCard(licencia);
+                    licenciasPanel.add(licenciaCard);
+                    licenciasPanel.add(Box.createVerticalStrut(15));
+                }
+
+                JScrollPane scrollPane = new JScrollPane(licenciasPanel);
+                scrollPane.setBorder(BorderFactory.createEmptyBorder());
+                scrollPane.getViewport().setBackground(BACKGROUND_COLOR);
+                scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+                scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+
+                mainPanel.add(scrollPane, BorderLayout.CENTER);
             }
-        };
+        } catch (Exception ex) {
+            showMessage("Error al cargar la lista de licencias: " + ex.getMessage(), true);
+            JPanel errorPanel = createErrorPanel("Error al cargar licencias", ex.getMessage());
+            mainPanel.add(errorPanel, BorderLayout.CENTER);
+        }
 
-        card.setLayout(new GridBagLayout());
-        card.setBorder(BorderFactory.createEmptyBorder(20, 30, 20, 20));
-        card.setOpaque(false);
-        card.setMaximumSize(new Dimension(Integer.MAX_VALUE, 120));
-
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(5, 5, 5, 5);
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        gbc.weightx = 1.0;
-        gbc.anchor = GridBagConstraints.WEST;
-        gbc.insets = new Insets(5, 5, 5, 5);
-
-        JLabel nombreLabel = new JLabel("📋 " + grupo.getNombre());
-        nombreLabel.setFont(new Font("Inter", Font.BOLD, 20));
-        nombreLabel.setForeground(PRIMARY_COLOR);
-        gbc.gridx = 0; gbc.gridy = 0;
-        gbc.gridwidth = 2;
-        card.add(nombreLabel, gbc);
-
-        JLabel categoriaLabel = new JLabel("📋 Categoría: " + grupo.getCategoria().getNombre());
-        categoriaLabel.setFont(new Font("Inter", Font.PLAIN, 16));
-        categoriaLabel.setForeground(TEXT_SECONDARY);
-        gbc.gridx = 1; gbc.gridy = 1;
-        card.add(categoriaLabel, gbc);
-
-        card.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mouseEntered(MouseEvent e) {
-                card.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-                card.repaint();
-            }
-
-            @Override
-            public void mouseExited(MouseEvent e) {
-                card.setCursor(Cursor.getDefaultCursor());
-                card.repaint();
-            }
-        });
-
-        return card;
-    }
-
-    // Método para alta de empleado
-    private void showAltaEmpleadoPanel() {
-        JPanel formPanel = createFormPanel();
-
-        JTextField dniField = new JTextField();
-        JTextField nombreField = new JTextField();
-        JTextField apellido1Field = new JTextField();
-        JTextField apellido2Field = new JTextField();
-        JTextField fechaNacimientoField = new JTextField();
-        JTextField usuarioField = new JTextField();
-        JTextField passwordField = new JTextField();
-        JTextField poblacionField = new JTextField();
-        JTextField numEmpleadoField = new JTextField();
-        JTextField inicioContratoField = new JTextField();
-        JTextField segSocialField = new JTextField();
-        
-        fechaNacimientoField.setToolTipText("Formato: YYYY-MM-DD (ej: 1990-12-25)");
-        inicioContratoField.setToolTipText("Formato: YYYY-MM-DD (ej: 2023-01-01)");
-
-        formPanel.add(createFormFieldPanel(new JLabel("DNI:"), dniField));
-        formPanel.add(createFormFieldPanel(new JLabel("Nombre:"), nombreField));
-        formPanel.add(createFormFieldPanel(new JLabel("Primer Apellido:"), apellido1Field));
-        formPanel.add(createFormFieldPanel(new JLabel("Segundo Apellido:"), apellido2Field));
-        formPanel.add(createFormFieldPanel(new JLabel("Fecha de Nacimiento (YYYY-MM-DD):"), fechaNacimientoField));
-        formPanel.add(createFormFieldPanel(new JLabel("Usuario:"), usuarioField));
-        formPanel.add(createFormFieldPanel(new JLabel("Contraseña:"), passwordField));
-        formPanel.add(createFormFieldPanel(new JLabel("Población:"), poblacionField));
-        formPanel.add(createFormFieldPanel(new JLabel("Número de Empleado:"), numEmpleadoField));
-        formPanel.add(createFormFieldPanel(new JLabel("Inicio Contrato (YYYY-MM-DD):"), inicioContratoField));
-        formPanel.add(createFormFieldPanel(new JLabel("Seguridad Social:"), segSocialField));
-        formPanel.add(Box.createVerticalStrut(30));
-
-        JButton altaButton = createActionButton("👤 Dar de Alta Empleado", e -> {
-            String dni = dniField.getText().trim();
-            String nombre = nombreField.getText().trim();
-            String apellido1 = apellido1Field.getText().trim();
-            String apellido2 = apellido2Field.getText().trim();
-            String fechaNacimientoStr = fechaNacimientoField.getText().trim();
-            String usuario = usuarioField.getText().trim();
-            String password = passwordField.getText().trim();
-            String poblacion = poblacionField.getText().trim();
-            String numEmpleadoStr = numEmpleadoField.getText().trim();
-            String inicioContratoStr = inicioContratoField.getText().trim();
-            String segSocial = segSocialField.getText().trim();
-
-            if (dni.isEmpty() || nombre.isEmpty() || apellido1.isEmpty() || fechaNacimientoStr.isEmpty() ||
-                usuario.isEmpty() || password.isEmpty() || poblacion.isEmpty() ||
-                numEmpleadoStr.isEmpty() || inicioContratoStr.isEmpty() || segSocial.isEmpty()) {
-                showMessage("Por favor, complete todos los campos obligatorios.", true);
-                return;
-            }
-
-            try {
-                LocalDate fechaNacimiento = LocalDate.parse(fechaNacimientoStr);
-                LocalDate inicioContrato = LocalDate.parse(inicioContratoStr);
-                int numEmpleado = Integer.parseInt(numEmpleadoStr);
-                Empleado nuevoEmpleado = federacion.nuevoEmpleado(dni, nombre, apellido1, apellido2,
-                    fechaNacimiento, usuario, password, poblacion, numEmpleado, inicioContrato, segSocial);
-                showMessage("Empleado '" + nombre + " " + apellido1 + "' dado de alta exitosamente.", false);
-
-                dniField.setText("");
-                nombreField.setText("");
-                apellido1Field.setText("");
-                apellido2Field.setText("");
-                fechaNacimientoField.setText("");
-                usuarioField.setText("");
-                passwordField.setText("");
-                poblacionField.setText("");
-                numEmpleadoField.setText("");
-                inicioContratoField.setText("");
-                segSocialField.setText("");
-            } catch (DateTimeParseException ex) {
-                showMessage("Formato de fecha incorrecto. Use: YYYY-MM-DD", true);
-            } catch (NumberFormatException ex) {
-                showMessage("Número de empleado debe ser un valor numérico válido.", true);
-            } catch (RuntimeException ex) {
-                showMessage("Error al dar de alta el empleado: " + ex.getMessage(), true);
-            }
-        });
-
-        formPanel.add(altaButton);
-        updateContentPanel(formPanel, "👤 Alta de Empleado");
+        updateContentPanel(mainPanel, "📜 Lista de Licencias");
     }
 
     // Método para buscar persona por DNI
@@ -1838,44 +1789,139 @@ public class MainApp2 {
         updateContentPanel(formPanel, "🔍 Buscar Personas por Nombre");
     }
 
-    // Método para listar personas
-    private void showListarPersonasPanel() {
-        JPanel mainPanel = new JPanel(new BorderLayout(20, 20));
-        mainPanel.setOpaque(false);
-
-        try {
-            List<Persona> personas = federacion.obtenerPersonas();
-            if (personas.isEmpty()) {
-                JPanel emptyPanel = createEmptyStatePanel("👤", "No hay personas registradas",
-                    "Comience agregando una nueva persona desde el menú superior.");
-                mainPanel.add(emptyPanel, BorderLayout.CENTER);
-            } else {
-                JPanel personasPanel = new JPanel();
-                personasPanel.setLayout(new BoxLayout(personasPanel, BoxLayout.Y_AXIS));
-                personasPanel.setOpaque(false);
-
-                for (Persona persona : personas) {
-                    JPanel personaCard = createPersonaCard(persona);
-                    personasPanel.add(personaCard);
-                    personasPanel.add(Box.createVerticalStrut(15));
-                }
-
-                JScrollPane scrollPane = new JScrollPane(personasPanel);
-                scrollPane.setBorder(BorderFactory.createEmptyBorder());
-                scrollPane.getViewport().setBackground(BACKGROUND_COLOR);
-                scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
-                scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
-
-                mainPanel.add(scrollPane, BorderLayout.CENTER);
+    // Método auxiliar para crear tarjeta de equipo
+    private JPanel createEquipoCard(Equipo equipo) {
+        JPanel card = new JPanel() {
+            @Override
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                Graphics2D g2d = (Graphics2D) g;
+                g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2d.setColor(new Color(0, 0, 0, 15));
+                g2d.fillRoundRect(4, 4, getWidth() - 4, getHeight() - 4, 16, 16);
+                GradientPaint gradient = new GradientPaint(
+                    0, 0, Color.WHITE,
+                    0, getHeight(), new Color(252, 253, 255)
+                );
+                g2d.setPaint(gradient);
+                g2d.fillRoundRect(0, 0, getWidth() - 4, getHeight() - 4, 16, 16);
+                g2d.setColor(BORDER_COLOR);
+                g2d.setStroke(new BasicStroke(2));
+                g2d.drawRoundRect(0, 0, getWidth() - 5, getHeight() - 5, 16, 16);
+                g2d.setColor(SECONDARY_COLOR);
+                g2d.setStroke(new BasicStroke(6));
+                g2d.drawLine(6, 16, 6, getHeight() - 16);
             }
-        } catch (Exception ex) {
-            showMessage("Error al cargar la lista de personas: " + ex.getMessage(), true);
-            JPanel errorPanel = createErrorPanel("Error al cargar personas", ex.getMessage());
-            mainPanel.add(errorPanel, BorderLayout.CENTER);
+        };
+
+        card.setLayout(new GridBagLayout());
+        card.setBorder(BorderFactory.createEmptyBorder(20, 30, 20, 20));
+        card.setOpaque(false);
+        card.setMaximumSize(new Dimension(Integer.MAX_VALUE, 120));
+
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(5, 5, 5, 5);
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.weightx = 1.0;
+        gbc.anchor = GridBagConstraints.WEST;
+        gbc.insets = new Insets(5, 5, 5, 5);
+
+        JLabel nombreLabel = new JLabel("⚽ " + equipo.getLetra());
+        nombreLabel.setFont(new Font("Inter", Font.BOLD, 20));
+        nombreLabel.setForeground(PRIMARY_COLOR);
+        gbc.gridx = 0; gbc.gridy = 0;
+        gbc.gridwidth = 2;
+        card.add(nombreLabel, gbc);
+
+        JLabel clubLabel = new JLabel("🏆 Club: " + equipo.getClub().getNombre());
+        clubLabel.setFont(new Font("Inter", Font.PLAIN, 16));
+        clubLabel.setForeground(TEXT_SECONDARY);
+        gbc.gridx = 1; gbc.gridy = 1;
+        card.add(clubLabel, gbc);
+
+        card.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseEntered(MouseEvent e) {
+                card.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+                card.repaint();
+            }
+
+            @Override
+            public void mouseExited(MouseEvent e) {
+                card.setCursor(Cursor.getDefaultCursor());
+                card.repaint();
+            }
+        });
+
+        return card;
+    }
+
+    // Método auxiliar para crear tarjeta de categoría
+    private JPanel createCategoriaCard(Categoria categoria) {
+        JPanel card = new JPanel() {
+            @Override
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                Graphics2D g2d = (Graphics2D) g;
+                g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2d.setColor(new Color(0, 0, 0, 15));
+                g2d.fillRoundRect(4, 4, getWidth() - 4, getHeight() - 4, 16, 16);
+                GradientPaint gradient = new GradientPaint(
+                    0, 0, Color.WHITE,
+                    0, getHeight(), new Color(252, 253, 255)
+                );
+                g2d.setPaint(gradient);
+                g2d.fillRoundRect(0, 0, getWidth() - 4, getHeight() - 4, 16, 16);
+                g2d.setColor(BORDER_COLOR);
+                g2d.setStroke(new BasicStroke(2));
+                g2d.drawRoundRect(0, 0, getWidth() - 5, getHeight() - 5, 16, 16);
+                g2d.setColor(SECONDARY_COLOR);
+                g2d.setStroke(new BasicStroke(6));
+                g2d.drawLine(6, 16, 6, getHeight() - 16);
+            }
+        };
+
+        card.setLayout(new GridBagLayout());
+        card.setBorder(BorderFactory.createEmptyBorder(20, 30, 20, 20));
+        card.setOpaque(false);
+        card.setMaximumSize(new Dimension(Integer.MAX_VALUE, 120));
+
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(5, 5, 5, 5);
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.weightx = 1.0;
+        gbc.anchor = GridBagConstraints.WEST;
+        gbc.insets = new Insets(5, 5, 5, 5);
+
+    JLabel nombreLabel = new JLabel("📋 " + categoria.getNombre());
+    nombreLabel.setFont(new Font("Inter", Font.BOLD, 20));
+    nombreLabel.setForeground(PRIMARY_COLOR);
+    gbc.gridx = 0; gbc.gridy = 0;
+    gbc.gridwidth = 2;
+    card.add(nombreLabel, gbc);
+
+    JLabel precioLabel = new JLabel("💶 Precio Licencia: €" + categoria.getPrecioLicencia());
+    precioLabel.setFont(new Font("Inter", Font.PLAIN, 16));
+    precioLabel.setForeground(TEXT_SECONDARY);
+    gbc.gridx = 1; gbc.gridy = 1;
+    card.add(precioLabel, gbc);
+
+    card.addMouseListener(new MouseAdapter() {
+        @Override
+        public void mouseEntered(MouseEvent e) {
+            card.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+            card.repaint();
         }
 
-        updateContentPanel(mainPanel, "📋 Lista de Personas");
-    }
+        @Override
+        public void mouseExited(MouseEvent e) {
+            card.setCursor(Cursor.getDefaultCursor());
+            card.repaint();
+        }
+    });
+
+    return card;
+}
 
     // Método auxiliar para crear tarjeta de persona
     private JPanel createPersonaCard(Persona persona) {
@@ -1942,45 +1988,6 @@ public class MainApp2 {
         });
 
         return card;
-    }
-
-    // Método para listar empleados
-    private void showListarEmpleadosPanel() {
-        JPanel mainPanel = new JPanel(new BorderLayout(20, 20));
-        mainPanel.setOpaque(false);
-
-        try {
-            List<Empleado> empleados = federacion.obtenerEmpleados();
-            if (empleados.isEmpty()) {
-                JPanel emptyPanel = createEmptyStatePanel("👤", "No hay empleados registrados",
-                    "Comience agregando un nuevo empleado desde el menú superior.");
-                mainPanel.add(emptyPanel, BorderLayout.CENTER);
-            } else {
-                JPanel empleadosPanel = new JPanel();
-                empleadosPanel.setLayout(new BoxLayout(empleadosPanel, BoxLayout.Y_AXIS));
-                empleadosPanel.setOpaque(false);
-
-                for (Empleado empleado : empleados) {
-                    JPanel empleadoCard = createEmpleadoCard(empleado);
-                    empleadosPanel.add(empleadoCard);
-                    empleadosPanel.add(Box.createVerticalStrut(15));
-                }
-
-                JScrollPane scrollPane = new JScrollPane(empleadosPanel);
-                scrollPane.setBorder(BorderFactory.createEmptyBorder());
-                scrollPane.getViewport().setBackground(BACKGROUND_COLOR);
-                scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
-                scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
-
-                mainPanel.add(scrollPane, BorderLayout.CENTER);
-            }
-        } catch (Exception ex) {
-            showMessage("Error al cargar la lista de empleados: " + ex.getMessage(), true);
-            JPanel errorPanel = createErrorPanel("Error al cargar empleados", ex.getMessage());
-            mainPanel.add(errorPanel, BorderLayout.CENTER);
-        }
-
-        updateContentPanel(mainPanel, "📋 Lista de Empleados");
     }
 
     // Método auxiliar para crear tarjeta de empleado
@@ -2050,6 +2057,142 @@ public class MainApp2 {
         return card;
     }
     
+    // Método auxiliar para crear tarjeta de grupo
+    private JPanel createGrupoCard(Grupo grupo) {
+        JPanel card = new JPanel() {
+            @Override
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                Graphics2D g2d = (Graphics2D) g;
+                g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2d.setColor(new Color(0, 0, 0, 15));
+                g2d.fillRoundRect(4, 4, getWidth() - 4, getHeight() - 4, 16, 16);
+                GradientPaint gradient = new GradientPaint(
+                    0, 0, Color.WHITE,
+                    0, getHeight(), new Color(252, 253, 255)
+                );
+                g2d.setPaint(gradient);
+                g2d.fillRoundRect(0, 0, getWidth() - 4, getHeight() - 4, 16, 16);
+                g2d.setColor(BORDER_COLOR);
+                g2d.setStroke(new BasicStroke(2));
+                g2d.drawRoundRect(0, 0, getWidth() - 5, getHeight() - 5, 16, 16);
+                g2d.setColor(SECONDARY_COLOR);
+                g2d.setStroke(new BasicStroke(6));
+                g2d.drawLine(6, 16, 6, getHeight() - 16);
+            }
+        };
+
+        card.setLayout(new GridBagLayout());
+        card.setBorder(BorderFactory.createEmptyBorder(20, 30, 20, 20));
+        card.setOpaque(false);
+        card.setMaximumSize(new Dimension(Integer.MAX_VALUE, 120));
+
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(5, 5, 5, 5);
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.weightx = 1.0;
+        gbc.anchor = GridBagConstraints.WEST;
+        gbc.insets = new Insets(5, 5, 5, 5);
+
+        JLabel nombreLabel = new JLabel("📋 " + grupo.getNombre());
+        nombreLabel.setFont(new Font("Inter", Font.BOLD, 20));
+        nombreLabel.setForeground(PRIMARY_COLOR);
+        gbc.gridx = 0; gbc.gridy = 0;
+        gbc.gridwidth = 2;
+        card.add(nombreLabel, gbc);
+
+        JLabel categoriaLabel = new JLabel("📋 Categoría: " + grupo.getCategoria().getNombre());
+        categoriaLabel.setFont(new Font("Inter", Font.PLAIN, 16));
+        categoriaLabel.setForeground(TEXT_SECONDARY);
+        gbc.gridx = 1; gbc.gridy = 1;
+        card.add(categoriaLabel, gbc);
+
+        card.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseEntered(MouseEvent e) {
+                card.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+                card.repaint();
+            }
+
+            @Override
+            public void mouseExited(MouseEvent e) {
+                card.setCursor(Cursor.getDefaultCursor());
+                card.repaint();
+            }
+        });
+
+        return card;
+    }
+
+    // Método auxiliar para crear tarjeta de licencia
+    private JPanel createLicenciaCard(Licencia licencia) {
+        JPanel card = new JPanel() {
+            @Override
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                Graphics2D g2d = (Graphics2D) g;
+                g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2d.setColor(new Color(0, 0, 0, 15));
+                g2d.fillRoundRect(4, 4, getWidth() - 4, getHeight() - 4, 16, 16);
+                GradientPaint gradient = new GradientPaint(
+                    0, 0, Color.WHITE,
+                    0, getHeight(), new Color(252, 253, 255)
+                );
+                g2d.setPaint(gradient);
+                g2d.fillRoundRect(0, 0, getWidth() - 4, getHeight() - 4, 16, 16);
+                g2d.setColor(BORDER_COLOR);
+                g2d.setStroke(new BasicStroke(2));
+                g2d.drawRoundRect(0, 0, getWidth() - 5, getHeight() - 5, 16, 16);
+                g2d.setColor(SECONDARY_COLOR);
+                g2d.setStroke(new BasicStroke(6));
+                g2d.drawLine(6, 16, 6, getHeight() - 16);
+            }
+        };
+
+        card.setLayout(new GridBagLayout());
+        card.setBorder(BorderFactory.createEmptyBorder(20, 30, 20, 20));
+        card.setOpaque(false);
+        card.setMaximumSize(new Dimension(Integer.MAX_VALUE, 120));
+
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(5, 5, 5, 5);
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.weightx = 1.0;
+        gbc.anchor = GridBagConstraints.WEST;
+        gbc.insets = new Insets(5, 5, 5, 5);
+
+        JLabel numeroLabel = new JLabel("📜 " + licencia.getNumeroLicencia());
+        numeroLabel.setFont(new Font("Inter", Font.BOLD, 20));
+        numeroLabel.setForeground(PRIMARY_COLOR);
+        gbc.gridx = 0; gbc.gridy = 0;
+        gbc.gridwidth = 2;
+        card.add(numeroLabel, gbc);
+
+        Persona jugador = licencia.getJugador();
+        String nombrePersona = (jugador != null) ? jugador.getNombre() + " " + jugador.getApellido1() : "Sin jugador asignado";
+        JLabel personaLabel = new JLabel("👤 " + nombrePersona);
+        personaLabel.setFont(new Font("Inter", Font.PLAIN, 16));
+        personaLabel.setForeground(TEXT_SECONDARY);
+        gbc.gridx = 1; gbc.gridy = 1;
+        card.add(personaLabel, gbc);
+
+        card.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseEntered(MouseEvent e) {
+                card.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+                card.repaint();
+            }
+
+            @Override
+            public void mouseExited(MouseEvent e) {
+                card.setCursor(Cursor.getDefaultCursor());
+                card.repaint();
+            }
+        });
+
+        return card;
+    }
+
     // Método para alta licencia sin equipo
     private void showAltaLicenciaSinEquipoPanel() {
         JPanel formPanel = createFormPanel();
@@ -2312,152 +2455,6 @@ public class MainApp2 {
         formPanel.add(Box.createVerticalStrut(20));
         formPanel.add(new JScrollPane(resultArea));
         updateContentPanel(formPanel, "💶 Calcular Precio de Licencia");
-    }
-
-    // Método para listar licencias
-    private void showListarLicenciasPanel() {
-        JPanel mainPanel = new JPanel(new BorderLayout(20, 20));
-        mainPanel.setOpaque(false);
-
-        try {
-            List<Licencia> licencias = federacion.obtenerLicencias();
-            if (licencias.isEmpty()) {
-                JPanel emptyPanel = createEmptyStatePanel("📜", "No hay licencias registradas",
-                    "Comience agregando una nueva licencia desde el menú superior.");
-                mainPanel.add(emptyPanel, BorderLayout.CENTER);
-            } else {
-                JPanel licenciasPanel = new JPanel();
-                licenciasPanel.setLayout(new BoxLayout(licenciasPanel, BoxLayout.Y_AXIS));
-                licenciasPanel.setOpaque(false);
-
-                for (Licencia licencia : licencias) {
-                    JPanel licenciaCard = createLicenciaCard(licencia);
-                    licenciasPanel.add(licenciaCard);
-                    licenciasPanel.add(Box.createVerticalStrut(15));
-                }
-
-                JScrollPane scrollPane = new JScrollPane(licenciasPanel);
-                scrollPane.setBorder(BorderFactory.createEmptyBorder());
-                scrollPane.getViewport().setBackground(BACKGROUND_COLOR);
-                scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
-                scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
-
-                mainPanel.add(scrollPane, BorderLayout.CENTER);
-            }
-        } catch (Exception ex) {
-            showMessage("Error al cargar la lista de licencias: " + ex.getMessage(), true);
-            JPanel errorPanel = createErrorPanel("Error al cargar licencias", ex.getMessage());
-            mainPanel.add(errorPanel, BorderLayout.CENTER);
-        }
-
-        updateContentPanel(mainPanel, "📜 Lista de Licencias");
-    }
-
-    // Método auxiliar para crear tarjeta de licencia
-    private JPanel createLicenciaCard(Licencia licencia) {
-        JPanel card = new JPanel() {
-            @Override
-            protected void paintComponent(Graphics g) {
-                super.paintComponent(g);
-                Graphics2D g2d = (Graphics2D) g;
-                g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                g2d.setColor(new Color(0, 0, 0, 15));
-                g2d.fillRoundRect(4, 4, getWidth() - 4, getHeight() - 4, 16, 16);
-                GradientPaint gradient = new GradientPaint(
-                    0, 0, Color.WHITE,
-                    0, getHeight(), new Color(252, 253, 255)
-                );
-                g2d.setPaint(gradient);
-                g2d.fillRoundRect(0, 0, getWidth() - 4, getHeight() - 4, 16, 16);
-                g2d.setColor(BORDER_COLOR);
-                g2d.setStroke(new BasicStroke(2));
-                g2d.drawRoundRect(0, 0, getWidth() - 5, getHeight() - 5, 16, 16);
-                g2d.setColor(SECONDARY_COLOR);
-                g2d.setStroke(new BasicStroke(6));
-                g2d.drawLine(6, 16, 6, getHeight() - 16);
-            }
-        };
-
-        card.setLayout(new GridBagLayout());
-        card.setBorder(BorderFactory.createEmptyBorder(20, 30, 20, 20));
-        card.setOpaque(false);
-        card.setMaximumSize(new Dimension(Integer.MAX_VALUE, 120));
-
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(5, 5, 5, 5);
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        gbc.weightx = 1.0;
-        gbc.anchor = GridBagConstraints.WEST;
-        gbc.insets = new Insets(5, 5, 5, 5);
-
-        JLabel numeroLabel = new JLabel("📜 " + licencia.getNumeroLicencia());
-        numeroLabel.setFont(new Font("Inter", Font.BOLD, 20));
-        numeroLabel.setForeground(PRIMARY_COLOR);
-        gbc.gridx = 0; gbc.gridy = 0;
-        gbc.gridwidth = 2;
-        card.add(numeroLabel, gbc);
-
-        Persona jugador = licencia.getJugador();
-        String nombrePersona = (jugador != null) ? jugador.getNombre() + " " + jugador.getApellido1() : "Sin jugador asignado";
-        JLabel personaLabel = new JLabel("👤 " + nombrePersona);
-        personaLabel.setFont(new Font("Inter", Font.PLAIN, 16));
-        personaLabel.setForeground(TEXT_SECONDARY);
-        gbc.gridx = 1; gbc.gridy = 1;
-        card.add(personaLabel, gbc);
-
-        card.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mouseEntered(MouseEvent e) {
-                card.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-                card.repaint();
-            }
-
-            @Override
-            public void mouseExited(MouseEvent e) {
-                card.setCursor(Cursor.getDefaultCursor());
-                card.repaint();
-            }
-        });
-
-        return card;
-    }
-
-    // Método para alta de instalación
-    private void showAltaInstalacionPanel() {
-        JPanel formPanel = createFormPanel();
-
-        JTextField nombreField = new JTextField();
-        JTextField direccionField = new JTextField();
-        JTextField superficieField = new JTextField();
-
-        formPanel.add(createFormFieldPanel(new JLabel("Nombre de la Instalación:"), nombreField));
-        formPanel.add(createFormFieldPanel(new JLabel("Dirección:"), direccionField));
-        formPanel.add(createFormFieldPanel(new JLabel("Superficie (CESPED_NATURAL, CESPED_ARTIFICIAL, TIERRA):"), superficieField));
-        formPanel.add(Box.createVerticalStrut(30));
-
-        JButton altaButton = createActionButton("🏟️ Dar de Alta Instalación", e -> {
-            String nombre = nombreField.getText().trim();
-            String direccion = direccionField.getText().trim();
-            String superficie = superficieField.getText().trim();
-
-            if (nombre.isEmpty() || direccion.isEmpty() || superficie.isEmpty()) {
-                showMessage("Por favor, complete todos los campos obligatorios.", true);
-                return;
-            }
-
-            try {
-                Instalacion nuevaInstalacion = federacion.nuevaInstalacion(nombre, direccion, superficie);
-                showMessage("Instalación '" + nombre + "' dada de alta exitosamente.", false);
-                nombreField.setText("");
-                direccionField.setText("");
-                superficieField.setText("");
-            } catch (RuntimeException ex) {
-                showMessage("Error al dar de alta la instalación: " + ex.getMessage(), true);
-            }
-        });
-
-        formPanel.add(altaButton);
-        updateContentPanel(formPanel, "🏟️ Alta de Instalación");
     }
 
     // Método para buscar instalaciones

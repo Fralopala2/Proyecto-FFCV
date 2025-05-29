@@ -3,6 +3,7 @@ package entidades;
 import java.sql.*;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.List;
 import proyectoffcv.util.DatabaseConnection;
 
 public class Club {
@@ -15,7 +16,11 @@ public class Club {
 
     // Constructor para crear un club nuevo
     public Club(String nombre, LocalDate fechaFundacion, Persona presidente) throws SQLException {
-        validarDatos(nombre, fechaFundacion, presidente);
+        try {
+            validarDatos(nombre, fechaFundacion, presidente);
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException("Error al crear club: " + e.getMessage(), e);
+        }
         this.nombre = nombre;
         this.fechaFundacion = fechaFundacion;
         this.presidente = presidente;
@@ -24,7 +29,7 @@ public class Club {
     }
 
     // Constructor para cargar desde BD
-    public Club(int id, String nombre, LocalDate fechaFundacion, Persona presidente, Persona secretario) {
+    public Club(int id, String nombre, LocalDate fechaFundacion, Persona presidente, Persona secretario) throws SQLException {
         this.id = id;
         this.nombre = nombre;
         this.fechaFundacion = fechaFundacion;
@@ -53,6 +58,8 @@ public class Club {
     public void setFechaFundacion(LocalDate fechaFundacion) { this.fechaFundacion = fechaFundacion; }
     public Persona getPresidente() { return presidente; }
     public void setPresidente(Persona presidente) { this.presidente = presidente; }
+    public Persona getSecretario() { return secretario; } // Añadido
+    public void setSecretario(Persona secretario) { this.secretario = secretario; } // Añadido
     public ArrayList<Equipo> getEquipos() { return equipos; }
 
     // Métodos públicos que llaman a los privados
@@ -72,7 +79,6 @@ public class Club {
     public void agregarEquipo(Equipo equipo) throws SQLException {
         if (equipo != null && !this.equipos.contains(equipo)) {
             this.equipos.add(equipo);
-            // Eliminado equipo.setClub(this) ya que Equipo no tiene setClub
         }
     }
 
@@ -157,10 +163,73 @@ public class Club {
                     presidente,
                     secretario
                 );
+                club.cargarEquiposDesdeBD(); // Cargar equipos para cada club
                 clubes.add(club);
             }
         }
         return clubes;
+    }
+    
+    public void cargarEquiposDesdeBD() throws SQLException {
+        equipos.clear();
+        String sql = "SELECT id, letra, instalacion_id, grupo_id, club_id FROM Equipo WHERE club_id = ?";
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, this.id);
+            ResultSet rs = stmt.executeQuery();
+            while (rs.next()) {
+                Instalacion instalacion = Instalacion.buscarPorId(rs.getInt("instalacion_id"));
+                Grupo grupo = Grupo.buscarPorId(rs.getInt("grupo_id"));
+                if (instalacion == null || grupo == null) {
+                    throw new SQLException("Instalación o grupo no encontrados para el equipo con ID " + rs.getInt("id"));
+                }
+                Equipo equipo = new Equipo(
+                    rs.getInt("id"),
+                    rs.getString("letra"),
+                    instalacion,
+                    grupo,
+                    this
+                );
+                equipos.add(equipo);
+            }
+        }
+    }
+    
+    public List<Equipo> obtenerEquipos() {
+        return new ArrayList<>(equipos);
+    }
+    
+    private Equipo buscarEquipoPorIdPrivado(int id) throws SQLException {
+        String sql = "SELECT id, letra, instalacion_id, grupo_id, club_id FROM Equipo WHERE id = ? AND club_id = ?";
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, id);
+            stmt.setInt(2, this.getId());
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                Instalacion instalacion = Instalacion.buscarPorId(rs.getInt("instalacion_id"));
+                Grupo grupo = Grupo.buscarPorId(rs.getInt("grupo_id"));
+                if (instalacion == null || grupo == null) {
+                    throw new SQLException("Instalación o grupo no encontrados para el equipo con ID " + id);
+                }
+                return new Equipo(
+                    rs.getInt("id"),
+                    rs.getString("letra"),
+                    instalacion,
+                    grupo,
+                    this
+                );
+            }
+        }
+        return null;
+    }
+
+    public Equipo buscarEquipoPorId(int id) throws SQLException {
+        Equipo equipo = equipos.stream()
+            .filter(e -> e.getId() == id)
+            .findFirst()
+            .orElse(null);
+        return equipo != null ? equipo : buscarEquipoPorIdPrivado(id);
     }
 
     @Override

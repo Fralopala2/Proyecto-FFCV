@@ -12,7 +12,7 @@ public class DatabaseConnection {
     public static Connection getConnection() throws SQLException {
         try {
             Connection conn = DriverManager.getConnection(URL, USER, PASSWORD);
-            conn.setAutoCommit(true); // Asegura autoCommit
+            conn.setAutoCommit(true);
             System.out.println("Conexion a la base de datos establecida.");
             return conn;
         } catch (SQLException ex) {

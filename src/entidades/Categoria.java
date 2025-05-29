@@ -2,6 +2,7 @@ package entidades;
 
 import java.sql.*;
 import java.util.ArrayList;
+import java.util.List;
 import proyectoffcv.util.DatabaseConnection;
 
 public class Categoria {
@@ -11,11 +12,15 @@ public class Categoria {
     private ArrayList<Grupo> grupos;
 
     // Constructor
-    public Categoria(String nombre, int orden, double precioLicencia) {
+    public Categoria(String nombre, int orden, double precioLicencia) throws SQLException {
         this.nombre = nombre;
         this.orden = orden;
         this.precioLicencia = precioLicencia;
         this.grupos = new ArrayList<>();
+    }
+
+    public Categoria(String nombre, int orden, double precioLicencia, int id) throws SQLException {
+        this(nombre, orden, precioLicencia);
     }
 
     // Getters
@@ -25,9 +30,22 @@ public class Categoria {
     public ArrayList<Grupo> getGrupos() { return grupos; }
 
     // Método para obtener el ID
+    public int getId(Connection conn) throws SQLException {
+        String sql = "SELECT id FROM Categoria WHERE nombre = ?";
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, nombre);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                return rs.getInt("id");
+            }
+        }
+        return -1;
+    }
+    
+    // Sobrecarga de getId() para cuando se necesita una conexión propia (fuera de un contexto de transacción)
     public int getId() throws SQLException {
         String sql = "SELECT id FROM Categoria WHERE nombre = ?";
-        try (Connection conn = DatabaseConnection.getConnection();
+        try (Connection conn = DatabaseConnection.getConnection(); // Abre y cierra su propia conexión
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, nombre);
             ResultSet rs = ps.executeQuery();
@@ -93,11 +111,17 @@ public class Categoria {
             stmt.setString(1, nombre);
             ResultSet rs = stmt.executeQuery();
             if (rs.next()) {
-                return new Categoria(
+                // Al cargar una categoría existente, cargamos sus grupos
+                Categoria c = new Categoria(
                     rs.getString("nombre"),
                     rs.getInt("orden"),
                     rs.getDouble("precioLicencia")
                 );
+                // Cargar los grupos después de que la categoría ha sido creada y tiene un nombre (y por lo tanto un ID).
+                try (Connection groupsConn = DatabaseConnection.getConnection()) { // Nueva conexión para cargar grupos
+                    c.cargarGruposDesdeBD(groupsConn);
+                }
+                return c;
             }
         }
         return null;
@@ -111,11 +135,15 @@ public class Categoria {
             stmt.setInt(1, id);
             ResultSet rs = stmt.executeQuery();
             if (rs.next()) {
-                return new Categoria(
+                Categoria c = new Categoria(
                     rs.getString("nombre"),
                     rs.getInt("orden"),
                     rs.getDouble("precioLicencia")
                 );
+                try (Connection groupsConn = DatabaseConnection.getConnection()) { // Nueva conexión para cargar grupos
+                    c.cargarGruposDesdeBD(groupsConn);
+                }
+                return c;
             }
         }
         return null;
@@ -146,10 +174,44 @@ public class Categoria {
                     rs.getInt("orden"),
                     rs.getDouble("precioLicencia")
                 );
+                try (Connection groupsConn = DatabaseConnection.getConnection()) { // Nueva conexión para cada categoría
+                    c.cargarGruposDesdeBD(groupsConn); // Cargar grupos para cada categoría
+                }
                 categorias.add(c);
             }
         }
         return categorias;
+    }
+    
+    // Método para cargar grupos desde la base de datos
+    public void cargarGruposDesdeBD(Connection conn) throws SQLException {
+        grupos.clear();
+        String sql = "SELECT id, nombre, categoria_id FROM Grupo WHERE categoria_id = ?";
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, this.getId(conn)); // Pasamos la misma conexión a getId()
+            ResultSet rs = stmt.executeQuery();
+            while (rs.next()) {
+                Grupo grupo = new Grupo(rs.getInt("id"), this, rs.getString("nombre"));
+                grupos.add(grupo);
+            }
+        }
+    }
+    
+    public void cargarGruposDesdeBD() throws SQLException {
+        try (Connection conn = DatabaseConnection.getConnection()) {
+            cargarGruposDesdeBD(conn);
+        }
+    }
+
+    public Grupo buscarGrupoPorId(int id) {
+        return grupos.stream()
+            .filter(g -> g.getId() == id)
+            .findFirst()
+            .orElse(null);
+    }
+
+    public List<Grupo> obtenerGrupos() {
+        return new ArrayList<>(grupos);
     }
 
     @Override

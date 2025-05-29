@@ -19,34 +19,34 @@ public final class Federacion implements IFederacion {
     private static int contadorLicencias = 1;
     private List<Categoria> categorias;
     private List<Empleado> empleados;
-    private List<Persona> afiliados;
+    private List<Persona> personas;
     private List<Club> clubes;
     private List<Instalacion> instalaciones;
     private List<Licencia> licencias;
-    private List<Equipo> equipos;
-
+    
     private Federacion() {
         this.categorias = new ArrayList<>();
         this.empleados = new ArrayList<>();
-        this.afiliados = new ArrayList<>();
+        this.personas = new ArrayList<>();
         this.clubes = new ArrayList<>();
         this.instalaciones = new ArrayList<>();
         this.licencias = new ArrayList<>();
-        this.equipos = new ArrayList<>();
-    
-        // Cargar los datos desde la base de datos
-        try {
-            this.afiliados = Persona.obtenerTodas();
-            this.empleados = Empleado.obtenerTodos();
-            this.instalaciones = Instalacion.obtenerTodas();
-            this.categorias = Categoria.cargarCategoriasDesdeBD();
-            this.clubes = Club.cargarClubsDesdeBD();
-            this.equipos = Equipo.obtenerTodos();
-            this.licencias = Licencia.obtenerTodas();
 
+        try {
+            System.out.println("Cargando personas...");
+            this.personas = Persona.obtenerTodas();
+            System.out.println("Cargando empleados...");
+            this.empleados = Empleado.obtenerTodos();
+            System.out.println("Cargando instalaciones...");
+            this.instalaciones = Instalacion.obtenerTodas();
+            System.out.println("Cargando categorias...");
+            this.categorias = Categoria.cargarCategoriasDesdeBD();
+            System.out.println("Cargando clubes...");
+            this.clubes = Club.cargarClubsDesdeBD();
+            System.out.println("Cargando licencias...");
+            this.licencias = Licencia.obtenerTodas();
         } catch (SQLException e) {
             System.err.println("Error al cargar datos desde la base de datos: " + e.getMessage());
-            e.printStackTrace();
             JOptionPane.showMessageDialog(null, "Error al cargar datos iniciales de la base de datos.", "Error de Carga", JOptionPane.ERROR_MESSAGE);
         }
     }
@@ -84,7 +84,6 @@ public final class Federacion implements IFederacion {
             nuevoEquipo.guardarPublic();
             club.agregarEquipo(nuevoEquipo);
             grupo.agregarEquipo(nuevoEquipo);
-            equipos.add(nuevoEquipo);
             return nuevoEquipo;
         } catch (SQLException e) {
             Logger.getLogger(Federacion.class.getName()).log(Level.SEVERE, "Error al crear un nuevo equipo: " + e.getMessage(), e);
@@ -95,14 +94,18 @@ public final class Federacion implements IFederacion {
     @Override
     public Club nuevoClub(String nombre, LocalDate fechaFundacion, Persona presidente) {
         try {
-            Club nuevoClub = new Club(nombre, fechaFundacion, presidente);
-            nuevoClub.validarDatos(nombre, fechaFundacion, presidente);
-            nuevoClub.guardarPublic();
-            this.clubes.add(nuevoClub);
-            return nuevoClub;
+            Club club = new Club(nombre, fechaFundacion, presidente);
+            club.guardarPublic(); // Este método intentará guardar en la BD y lanzará SQLException si hay duplicado.
+            clubes.add(club); // Si se guarda correctamente, añadir a la lista en memoria.
+            return club;
         } catch (SQLException e) {
-            Logger.getLogger(Federacion.class.getName()).log(Level.SEVERE, "Error al crear un nuevo club: " + e.getMessage(), e);
-            throw new RuntimeException("Error al crear un nuevo club: " + e.getMessage(), e);
+            if (e.getMessage().contains("Duplicate entry") && e.getMessage().contains("for key 'nombre'")) {
+                Logger.getLogger(Federacion.class.getName()).log(Level.WARNING, "Intento de crear un club con nombre duplicado: {0}", nombre);
+                throw new RuntimeException("Ya existe un club con el nombre: " + nombre, e);
+            } else {
+                Logger.getLogger(Federacion.class.getName()).log(Level.SEVERE, "Error al crear un nuevo club: " + e.getMessage(), e);
+                throw new RuntimeException("Error al crear un nuevo club: " + e.getMessage(), e);
+            }
         }
     }
 
@@ -152,7 +155,7 @@ public final class Federacion implements IFederacion {
         try {
             Persona persona = new Persona(dni, nombre, apellido1, apellido2, fechaNacimiento, usuario, password, poblacion);
             persona.guardarPublic();
-            afiliados.add(persona);
+            personas.add(persona);
             return persona;
         } catch (SQLException e) {
             Logger.getLogger(Federacion.class.getName()).log(Level.SEVERE, "Error al crear una nueva persona: " + e.getMessage(), e);
@@ -166,7 +169,7 @@ public final class Federacion implements IFederacion {
             Empleado empleado = new Empleado(dni, nombre, apellido1, apellido2, fechaNacimiento, usuario, password, poblacion, numEmpleado, inicioContrato, segSocial);
             empleado.guardarPublic();
             this.empleados.add(empleado);
-            this.afiliados.add(empleado);
+            this.personas.add(empleado);
             return empleado;
         } catch (SQLException e) {
             Logger.getLogger(Federacion.class.getName()).log(Level.SEVERE, "Error al crear un nuevo empleado: " + e.getMessage(), e);
@@ -176,7 +179,7 @@ public final class Federacion implements IFederacion {
 
     @Override
     public Persona buscaPersona(String dni) {
-        for (Persona i : afiliados) {
+        for (Persona i : personas) {
             if (i.getDni().equals(dni)) {
                 return i;
             }
@@ -187,7 +190,7 @@ public final class Federacion implements IFederacion {
     @Override
     public List<Persona> buscaPersonas(String nombre, String apellido1, String apellido2) {
         List<Persona> resultados = new ArrayList<>();
-        for (Persona p : afiliados) {
+        for (Persona p : personas) {
             boolean coincideNombre = (nombre == null || nombre.isEmpty()) || p.getNombre().equalsIgnoreCase(nombre);
             boolean coincideApellido1 = (apellido1 == null || apellido1.isEmpty()) || p.getApellido1().equalsIgnoreCase(apellido1);
             boolean coincideApellido2 = (apellido2 == null || apellido2.isEmpty()) || (p.getApellido2() != null && p.getApellido2().equalsIgnoreCase(apellido2));
@@ -284,18 +287,21 @@ public final class Federacion implements IFederacion {
         return resultados;
     }
     
-    // METODOS EXTERNOS PARA USABILIDAD
-    
+    // Métodos auxiliares para usabilidad Interfaz grafica
     public List<Club> obtenerClubes() {
         return Collections.unmodifiableList(clubes);
     }
 
     public List<Equipo> obtenerEquipos() {
-        return Collections.unmodifiableList(equipos);
+        List<Equipo> todosLosEquipos = new ArrayList<>();
+        for (Club club : clubes) {
+            todosLosEquipos.addAll(club.obtenerEquipos());
+        }
+        return todosLosEquipos;
     }
 
     public List<Persona> obtenerPersonas() {
-        return Collections.unmodifiableList(afiliados);
+        return Collections.unmodifiableList(personas);
     }
 
     public List<Empleado> obtenerEmpleados() {
@@ -312,7 +318,6 @@ public final class Federacion implements IFederacion {
             try (PreparedStatement stmt = conn.prepareStatement("SET FOREIGN_KEY_CHECKS = 0")) {
                 stmt.executeUpdate();
             }
-            try (PreparedStatement stmt = conn.prepareStatement("DELETE FROM Equipo_Jugador")) { stmt.executeUpdate(); }
             try (PreparedStatement stmt = conn.prepareStatement("DELETE FROM Licencia")) { stmt.executeUpdate(); }
             try (PreparedStatement stmt = conn.prepareStatement("DELETE FROM Equipo")) { stmt.executeUpdate(); }
             try (PreparedStatement stmt = conn.prepareStatement("DELETE FROM Instalacion")) { stmt.executeUpdate(); }
@@ -341,11 +346,10 @@ public final class Federacion implements IFederacion {
     public void limpiarListas() {
         categorias.clear();
         empleados.clear();
-        afiliados.clear();
+        personas.clear();
         clubes.clear();
         instalaciones.clear();
         licencias.clear();
-        equipos.clear();
         contadorLicencias = 1;
         instancia = null;
     }

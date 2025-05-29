@@ -10,9 +10,7 @@ public class Licencia {
     private Persona jugador;
     private Equipo equipo;
     private boolean abonada;
-    private java.time.LocalDate fechaInicio;
-    private java.time.LocalDate fechaFin;
-
+    
     public Licencia(String numeroLicencia, Persona jugador, Equipo equipo, boolean abonada) {
         this.numeroLicencia = numeroLicencia;
         this.jugador = jugador;
@@ -24,6 +22,7 @@ public class Licencia {
     public String getNumeroLicencia() { return numeroLicencia; }
     public Persona getJugador() { return jugador; }
     public Equipo getEquipo() { return equipo; }
+    public boolean isAbonada() { return abonada; }
 
     // Setters
     public void setEquipo(Equipo equipo) { this.equipo = equipo; }
@@ -43,30 +42,26 @@ public class Licencia {
 
     // Método para guardar en la base de datos (Privado)
     private void guardarPrivado() throws SQLException {
-        String sql = "INSERT INTO Licencia (numeroLicencia, persona_dni, equipo_id, abonada, fecha_inicio, fecha_fin) VALUES (?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO Licencia (numeroLicencia, persona_dni, equipo_id, abonada) VALUES (?, ?, ?, ?)";
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setString(1, numeroLicencia);
             stmt.setString(2, jugador.getDni());
             stmt.setInt(3, equipo.getId());
             stmt.setBoolean(4, abonada);
-            stmt.setDate(5, fechaInicio != null ? java.sql.Date.valueOf(fechaInicio) : null);
-            stmt.setDate(6, fechaFin != null ? java.sql.Date.valueOf(fechaFin) : null);
             stmt.executeUpdate();
         }
     }
 
     // Método para actualizar en la base de datos (Privado)
     private void actualizarPrivado() throws SQLException {
-        String sql = "UPDATE Licencia SET persona_dni = ?, equipo_id = ?, abonada = ?, fecha_inicio = ?, fecha_fin = ? WHERE numeroLicencia = ?";
+        String sql = "UPDATE Licencia SET persona_dni = ?, equipo_id = ?, abonada = ? WHERE numeroLicencia = ?";
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setString(1, jugador.getDni());
             stmt.setInt(2, equipo.getId());
             stmt.setBoolean(3, abonada);
-            stmt.setDate(4, fechaInicio != null ? java.sql.Date.valueOf(fechaInicio) : null);
-            stmt.setDate(5, fechaFin != null ? java.sql.Date.valueOf(fechaFin) : null);
-            stmt.setString(6, numeroLicencia);
+            stmt.setString(4, numeroLicencia);
             stmt.executeUpdate();
         }
     }

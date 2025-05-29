@@ -197,6 +197,43 @@ public class Grupo {
         }
         return true;
     }
+    
+    public Equipo buscarEquipoPorId(int id) throws SQLException {
+        Equipo equipo = equipos.stream()
+            .filter(e -> e.getId() == id)
+            .findFirst()
+            .orElse(null);
+        if (equipo == null) {
+            equipo = buscarEquipoPorIdPrivado(id);
+        }
+        return equipo;
+    }
+
+    private Equipo buscarEquipoPorIdPrivado(int id) throws SQLException {
+        String sql = "SELECT id, letra, instalacion_id, grupo_id, club_id FROM Equipo WHERE id = ? AND grupo_id = ?";
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, id);
+            stmt.setInt(2, this.id);
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                Instalacion instalacion = Instalacion.buscarPorId(rs.getInt("instalacion_id"));
+                Club club = Club.buscarPorId(rs.getInt("club_id"));
+                return new Equipo(
+                    rs.getInt("id"),
+                    rs.getString("letra"),
+                    instalacion,
+                    this,
+                    club
+                );
+            }
+        }
+        return null;
+    }
+
+    public List<Equipo> obtenerEquipos() {
+        return new ArrayList<>(equipos);
+    }
 
     @Override
     public String toString() {
