@@ -22,16 +22,14 @@ public final class Federacion implements IFederacion {
     private List<Persona> personas;
     private List<Club> clubes;
     private List<Instalacion> instalaciones;
-    private List<Licencia> licencias;
-    
+   
     private Federacion() {
         this.categorias = new ArrayList<>();
         this.empleados = new ArrayList<>();
         this.personas = new ArrayList<>();
         this.clubes = new ArrayList<>();
         this.instalaciones = new ArrayList<>();
-        this.licencias = new ArrayList<>();
-
+        
         try {
             System.out.println("Cargando personas...");
             this.personas = Persona.obtenerTodas();
@@ -43,8 +41,6 @@ public final class Federacion implements IFederacion {
             this.categorias = Categoria.cargarCategoriasDesdeBD();
             System.out.println("Cargando clubes...");
             this.clubes = Club.cargarClubsDesdeBD();
-            System.out.println("Cargando licencias...");
-            this.licencias = Licencia.obtenerTodas();
         } catch (SQLException e) {
             System.err.println("Error al cargar datos desde la base de datos: " + e.getMessage());
             JOptionPane.showMessageDialog(null, "Error al cargar datos iniciales de la base de datos.", "Error de Carga", JOptionPane.ERROR_MESSAGE);
@@ -70,7 +66,7 @@ public final class Federacion implements IFederacion {
         }
         throw new RuntimeException("Error no se encontro ningun club con el nombre: " + nombre);
     }
-
+    
     @Override
     public Equipo nuevoEquipo(String letra, Instalacion instalacion, Grupo grupo, Club club) throws IllegalArgumentException, RuntimeException {
         try {
@@ -95,8 +91,8 @@ public final class Federacion implements IFederacion {
     public Club nuevoClub(String nombre, LocalDate fechaFundacion, Persona presidente) {
         try {
             Club club = new Club(nombre, fechaFundacion, presidente);
-            club.guardarPublic(); // Este método intentará guardar en la BD y lanzará SQLException si hay duplicado.
-            clubes.add(club); // Si se guarda correctamente, añadir a la lista en memoria.
+            club.guardarPublic();
+            clubes.add(club);
             return club;
         } catch (SQLException e) {
             if (e.getMessage().contains("Duplicate entry") && e.getMessage().contains("for key 'nombre'")) {
@@ -295,7 +291,7 @@ public final class Federacion implements IFederacion {
     public List<Equipo> obtenerEquipos() {
         List<Equipo> todosLosEquipos = new ArrayList<>();
         for (Club club : clubes) {
-            todosLosEquipos.addAll(club.obtenerEquipos());
+            todosLosEquipos.addAll(club.getEquipos());
         }
         return todosLosEquipos;
     }

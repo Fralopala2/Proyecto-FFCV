@@ -174,7 +174,7 @@ public class Categoria {
                     rs.getInt("orden"),
                     rs.getDouble("precioLicencia")
                 );
-                try (Connection groupsConn = DatabaseConnection.getConnection()) { // Nueva conexión para cada categoría
+                try (Connection groupsConn = DatabaseConnection.getConnection()) { 
                     c.cargarGruposDesdeBD(groupsConn); // Cargar grupos para cada categoría
                 }
                 categorias.add(c);
@@ -188,7 +188,7 @@ public class Categoria {
         grupos.clear();
         String sql = "SELECT id, nombre, categoria_id FROM Grupo WHERE categoria_id = ?";
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setInt(1, this.getId(conn)); // Pasamos la misma conexión a getId()
+            stmt.setInt(1, this.getId(conn)); 
             ResultSet rs = stmt.executeQuery();
             while (rs.next()) {
                 Grupo grupo = new Grupo(rs.getInt("id"), this, rs.getString("nombre"));

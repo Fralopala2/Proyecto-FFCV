@@ -59,7 +59,7 @@ public class Club {
     public Persona getPresidente() { return presidente; }
     public void setPresidente(Persona presidente) { this.presidente = presidente; }
     public Persona getSecretario() { return secretario; } // Añadido
-    public void setSecretario(Persona secretario) { this.secretario = secretario; } // Añadido
+    public void setSecretario(Persona secretario) { this.secretario = secretario; }
     public ArrayList<Equipo> getEquipos() { return equipos; }
 
     // Métodos públicos que llaman a los privados
