@@ -66,7 +66,6 @@ public class MainApp2 {
     private JMenuBar menuBar;
     private JTextArea errorArea;
     private JScrollPane errorScrollPane;
-    private JLabel numLicenciasLabel;
     
     // Colores modernos y profesionales
     private static final Color PRIMARY_COLOR = new Color(26, 38, 57);      // #1A2639

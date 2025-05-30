@@ -11,14 +11,11 @@ public class Licencia {
     private Equipo equipo;
     private boolean abonada;
     
-    private static ArrayList<Licencia> listaLicencias = new ArrayList<>();
-    
     public Licencia(String numeroLicencia, Persona jugador, Equipo equipo, boolean abonada) {
         this.numeroLicencia = numeroLicencia;
         this.jugador = jugador;
         this.equipo = equipo;
         this.abonada = abonada;
-        agregarLicenciaALaLista(this); // Usar el método estático para añadir
     }
 
     // Getters
@@ -26,21 +23,9 @@ public class Licencia {
     public Persona getJugador() { return jugador; }
     public Equipo getEquipo() { return equipo; }
     public boolean isAbonada() { return abonada; }
-
-    // Getter para la lista de licencias (estática)
-    public static ArrayList<Licencia> getListaLicencias() {
-        return listaLicencias;
-    }
     
     // Setters
     public void setEquipo(Equipo equipo) { this.equipo = equipo; }
-
-    // Método para agregar una licencia a la lista estática
-    public static void agregarLicenciaALaLista(Licencia licencia) {
-        if (licencia != null && !listaLicencias.contains(licencia)) {
-            listaLicencias.add(licencia);
-        }
-    }
     
     // Métodos públicos que llaman a los privados
     public void guardarPublic() throws SQLException {

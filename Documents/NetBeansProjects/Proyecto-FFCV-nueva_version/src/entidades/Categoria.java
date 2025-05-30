@@ -42,7 +42,6 @@ public class Categoria {
         return -1;
     }
     
-    // Sobrecarga de getId() para cuando se necesita una conexión propia (fuera de un contexto de transacción)
     public int getId() throws SQLException {
         String sql = "SELECT id FROM Categoria WHERE nombre = ?";
         try (Connection conn = DatabaseConnection.getConnection(); // Abre y cierra su propia conexión

@@ -13,7 +13,6 @@ public class DatabaseConnection {
         try {
             Connection conn = DriverManager.getConnection(URL, USER, PASSWORD);
             conn.setAutoCommit(true);
-            System.out.println("Conexion a la base de datos establecida.");
             return conn;
         } catch (SQLException ex) {
             System.err.println("Error de conexion: " + ex.getMessage());
