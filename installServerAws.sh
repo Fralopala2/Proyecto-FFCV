@@ -458,10 +458,10 @@ EOF
   jar cf magic8ball.war *
 
   if [ "$deployMethod" = "war" ]; then
-    rm -rf "${deployDir}/magic8ball" "${deployDir}/magic8ball.war}"
     rm -rf "${deployDir}/magic8ball" "${deployDir}/magic8ball.war"
     cp magic8ball.war "${deployDir}/"
-    chown tomcat:tomcat "${deployDir}/magic8ball.war"
+    # Para Tomcat/WildFly no forzamos usuario concreto, usamos el que corresponda
+    # chown tomcat:tomcat "${deployDir}/magic8ball.war"
     sleep 15
   elif [ "$deployMethod" = "asadmin" ]; then
     if [ -d /opt/glassfish ]; then
