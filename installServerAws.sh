@@ -620,6 +620,7 @@ main() {
       4)
         installWildfly
         deployMagic8Ball "war" "/opt/wildfly/standalone/deployments"
+        systemctl restart wildfly
         ;;
     esac
   fi
