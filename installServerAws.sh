@@ -1,5 +1,4 @@
 #!/bin/bash
-
 # https://raw.githubusercontent.com/Fralopala2/Proyecto-FFCV/refs/heads/entrega_final/installServerAws.sh
 
 set -e
@@ -105,7 +104,7 @@ nonInteractiveMode() {
   fi
 }
 
-# Instalacion NGINX
+# Instalacion NGINX (sin SSL)
 installNginx() {
   echo ""
   echo "=== Instalando NGINX ==="
@@ -151,7 +150,7 @@ EOF
   echo "NGINX instalado y configurado"
 }
 
-# Instalacion Apache
+# Instalacion Apache (sin SSL)
 installApache() {
   echo ""
   echo "=== Instalando Apache ==="
@@ -446,8 +445,7 @@ deployMagic8Ball() {
 </html>
 EOF
 
-  if [ "$deployMethod" = "asadmin" ]; then
-    cat > "${tmpAppDir}/WEB-INF/web.xml" <<'EOF'
+  cat > "${tmpAppDir}/WEB-INF/web.xml" <<'EOF'
 <web-app>
     <display-name>magic8ball</display-name>
     <welcome-file-list>
@@ -455,21 +453,12 @@ EOF
     </welcome-file-list>
 </web-app>
 EOF
-  else
-    cat > "${tmpAppDir}/WEB-INF/web.xml" <<'EOF'
-<web-app>
-    <display-name>magic8ball</display-name>
-    <welcome-file-list>
-        <welcome-file>index.jsp</welcome-file>
-    </welcome-file-list>
-</web-app>
-EOF
-  fi
 
   cd "${tmpAppDir}"
   jar cf magic8ball.war *
 
   if [ "$deployMethod" = "war" ]; then
+    rm -rf "${deployDir}/magic8ball" "${deployDir}/magic8ball.war}"
     rm -rf "${deployDir}/magic8ball" "${deployDir}/magic8ball.war"
     cp magic8ball.war "${deployDir}/"
     chown tomcat:tomcat "${deployDir}/magic8ball.war"
@@ -502,4 +491,156 @@ showSummary() {
   echo ""
   echo "==================================================================="
   echo "Instalacion completada"
-  echo "============================================================
+  echo "==================================================================="
+
+  if [ "$machineType" = "1" ]; then
+    echo "Tipo: Maquina 1 (Servidor Web)"
+    if [ "$webServer" = "1" ]; then
+      echo "Software: NGINX"
+      echo ""
+      echo "Archivos configuracion:"
+      echo " - /etc/nginx/sites-available/app"
+      echo ""
+      echo "Comandos utiles:"
+      echo " sudo systemctl status nginx"
+      echo " sudo nginx -t"
+      echo " sudo systemctl reload nginx"
+      echo " sudo tail -f /var/log/nginx/access.log"
+    else
+      echo "Software: Apache"
+      echo ""
+      echo "Archivos configuracion:"
+      echo " - /etc/apache2/sites-available/app.conf"
+      echo ""
+      echo "Comandos utiles:"
+      echo " sudo systemctl status apache2"
+      echo " sudo apache2ctl configtest"
+      echo " sudo systemctl reload apache2"
+      echo " sudo tail -f /var/log/apache2/access.log"
+    fi
+
+    echo ""
+    if [ -n "$appServerIp" ]; then
+      echo "Proxy configurado hacia: $appServerIp:8080"
+    else
+      echo "ATENCION: Configurar IP de Maquina 2 manualmente"
+    fi
+
+    echo ""
+    echo "Acceso:"
+    echo " http://${domainName}/magic8ball/"
+
+  elif [ "$machineType" = "2" ]; then
+    echo "Tipo: Maquina 2 (Servidor Aplicaciones)"
+    echo "IP privada: $myPrivateIp"
+    case "$appServer" in
+      1)
+        echo "Software: Tomcat"
+        echo ""
+        echo "Directorios:"
+        echo " - /opt/tomcat"
+        echo " - /opt/tomcat/webapps"
+        echo ""
+        echo "Comandos utiles:"
+        echo " sudo systemctl status tomcat"
+        echo " sudo systemctl restart tomcat"
+        echo " sudo tail -f /opt/tomcat/logs/catalina.out"
+        ;;
+      2)
+        echo "Software: Glassfish"
+        echo ""
+        echo "Directorios:"
+        echo " - /opt/glassfish"
+        echo ""
+        echo "Comandos utiles:"
+        echo " sudo systemctl status glassfish"
+        echo " sudo -u glassfish /opt/glassfish/bin/asadmin list-applications"
+        echo " sudo tail -f /opt/glassfish/glassfish/domains/domain1/logs/server.log"
+        echo ""
+        echo "Consola admin: http://${myPrivateIp}:4848"
+        ;;
+      3)
+        echo "Software: Payara"
+        echo ""
+        echo "Directorios:"
+        echo " - /opt/payara"
+        echo ""
+        echo "Comandos utiles:"
+        echo " sudo systemctl status payara"
+        echo " sudo -u payara /opt/payara/bin/asadmin list-applications"
+        echo " sudo tail -f /opt/payara/glassfish/domains/domain1/logs/server.log"
+        echo ""
+        echo "Consola admin: http://${myPrivateIp}:4848"
+        ;;
+      4)
+        echo "Software: WildFly"
+        echo ""
+        echo "Directorios:"
+        echo " - /opt/wildfly"
+        echo " - /opt/wildfly/standalone/deployments"
+        echo ""
+        echo "Comandos utiles:"
+        echo " sudo systemctl status wildfly"
+        echo " sudo systemctl restart wildfly"
+        echo " sudo tail -f /opt/wildfly/standalone/log/server.log"
+        echo ""
+        echo "Consola admin: http://${myPrivateIp}:9990"
+        ;;
+    esac
+
+    echo ""
+    echo "Aplicacion desplegada: magic8ball"
+    echo "Prueba local: curl http://localhost:8080/magic8ball/"
+    echo "Desde Maquina 1: curl http://${myPrivateIp}:8080/magic8ball/"
+  fi
+
+  echo "==================================================================="
+}
+
+# Main
+main() {
+  if [ "$EUID" -ne 0 ]; then
+    echo "Este script debe ejecutarse como root (sudo)"
+    exit 1
+  fi
+
+  detectPrivateIp
+
+  if [ -n "$MACHINE_TYPE" ] || [ -n "$WEB_SERVER" ] || [ -n "$APP_SERVER" ]; then
+    nonInteractiveMode
+  else
+    interactiveMode
+  fi
+
+  if [ "$machineType" = "1" ]; then
+    if [ "$webServer" = "1" ]; then
+      installNginx
+    elif [ "$webServer" = "2" ]; then
+      installApache
+    fi
+  elif [ "$machineType" = "2" ]; then
+    case "$appServer" in
+      1)
+        installTomcat
+        deployMagic8Ball "war" "/opt/tomcat/webapps"
+        ;;
+      2)
+        installGlassfish
+        deployMagic8Ball "asadmin" ""
+        ;;
+      3)
+        installPayara
+        deployMagic8Ball "asadmin" ""
+        ;;
+      4)
+        installWildfly
+        deployMagic8Ball "war" "/opt/wildfly/standalone/deployments"
+        ;;
+    esac
+  fi
+
+  configureHosts
+  showSummary
+}
+
+main
