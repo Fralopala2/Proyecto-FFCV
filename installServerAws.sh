@@ -4,10 +4,9 @@
 set -e
 
 echo "=== Script instalacion automatica AWS ==="
-echo "Version: 1.0 - Enero 2026"
+echo "Version: 2.0 - Febrero 2026"
 echo ""
 
-# Variables globales
 machineType=""
 webServer=""
 appServer=""
@@ -16,13 +15,11 @@ appServerIp=""
 myPrivateIp=""
 domainName="app.local"
 
-# Detectar IP privada automaticamente
 detectPrivateIp() {
   myPrivateIp=$(hostname -I | awk '{print $1}')
   echo "IP privada detectada: $myPrivateIp"
 }
 
-# Modo interactivo
 interactiveMode() {
   echo "Tipo instalacion:"
   echo " 1) Maquina 1 (Servidor Web)"
@@ -85,7 +82,6 @@ interactiveMode() {
   fi
 }
 
-# Modo no interactivo (variables de entorno)
 nonInteractiveMode() {
   if [ -n "$MACHINE_TYPE" ]; then
     machineType="$MACHINE_TYPE"
@@ -104,7 +100,6 @@ nonInteractiveMode() {
   fi
 }
 
-# Instalacion NGINX (sin SSL)
 installNginx() {
   echo ""
   echo "=== Instalando NGINX ==="
@@ -150,7 +145,6 @@ EOF
   echo "NGINX instalado y configurado"
 }
 
-# Instalacion Apache (sin SSL)
 installApache() {
   echo ""
   echo "=== Instalando Apache ==="
@@ -199,7 +193,6 @@ EOF
   echo "Apache instalado y configurado"
 }
 
-# Instalacion Tomcat
 installTomcat() {
   echo ""
   echo "=== Instalando Tomcat ==="
@@ -255,7 +248,6 @@ EOF
   echo "Tomcat instalado y arrancado"
 }
 
-# Instalacion Glassfish
 installGlassfish() {
   echo ""
   echo "=== Instalando Glassfish ==="
@@ -303,7 +295,6 @@ EOF
   echo "Glassfish instalado y arrancado"
 }
 
-# Instalacion Payara
 installPayara() {
   echo ""
   echo "=== Instalando Payara ==="
@@ -351,7 +342,6 @@ EOF
   echo "Payara instalado y arrancado"
 }
 
-# Instalacion WildFly
 installWildfly() {
   echo ""
   echo "=== Instalando WildFly ==="
@@ -399,7 +389,6 @@ EOF
   echo "WildFly instalado y arrancado"
 }
 
-# Despliegue aplicacion Magic 8 Ball
 deployMagic8Ball() {
   echo ""
   echo "=== Desplegando aplicacion Magic 8 Ball ==="
@@ -460,8 +449,7 @@ EOF
   if [ "$deployMethod" = "war" ]; then
     rm -rf "${deployDir}/magic8ball" "${deployDir}/magic8ball.war"
     cp magic8ball.war "${deployDir}/"
-    # Para Tomcat/WildFly no forzamos usuario concreto, usamos el que corresponda
-    # chown tomcat:tomcat "${deployDir}/magic8ball.war"
+    # sin cambio de propietario explicito para que funcione en Tomcat o WildFly
     sleep 15
   elif [ "$deployMethod" = "asadmin" ]; then
     if [ -d /opt/glassfish ]; then
@@ -475,7 +463,6 @@ EOF
   echo "Aplicacion Magic 8 Ball desplegada"
 }
 
-# Configuracion hosts
 configureHosts() {
   if [ "$machineType" = "1" ] && [ -n "$appServerIp" ]; then
     grep -q "${appServerIp} app-server" /etc/hosts || echo "${appServerIp} app-server" >> /etc/hosts
@@ -486,7 +473,6 @@ configureHosts() {
   fi
 }
 
-# Resumen final
 showSummary() {
   echo ""
   echo "==================================================================="
@@ -597,7 +583,6 @@ showSummary() {
   echo "==================================================================="
 }
 
-# Main
 main() {
   if [ "$EUID" -ne 0 ]; then
     echo "Este script debe ejecutarse como root (sudo)"
@@ -644,3 +629,4 @@ main() {
 }
 
 main
+
