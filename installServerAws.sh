@@ -1,5 +1,7 @@
 #!/bin/bash
 
+# https://raw.githubusercontent.com/Fralopala2/Proyecto-FFCV/refs/heads/entrega_final/installServerAws.sh
+
 set -e
 
 echo "=== Script instalacion automatica AWS ==="
